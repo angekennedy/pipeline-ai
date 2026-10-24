@@ -540,6 +540,8 @@ Pour le script uniquement : un exemple de scène court (few-shot) et une consign
 
 ### 4.4 DAG
 
+> **Révision (octobre 2026, tâche 1.6).** Les dérivés ne partagent plus de cache (voir 4.7), donc faire passer `titles` en premier ne rapporte plus rien. Les étapes sont calculées depuis `dependsOn` (`src/lib/pipeline/dag.ts`) : `script` → (`titles` ∥ `seo` ∥ `voiceover`) → `thumbnails`, seul asset qui dépend des titres. Le schéma ci-dessous est conservé pour l'historique.
+
 ```
             ┌──────────┐
  brief ───▶ │  script  │  (Opus/Sonnet, streamé)
