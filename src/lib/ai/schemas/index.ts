@@ -17,6 +17,7 @@ export const assetSchemas = {
 } as const satisfies Record<AssetType, unknown>;
 
 export * from "./brief";
+export * from "./channel";
 export * from "./script";
 export * from "./seo";
 export * from "./thumbnails";

@@ -66,3 +66,18 @@ export const validThumbnails = {
     aspectRatio: "16:9",
   })),
 };
+
+export const validChannel = {
+  name: "Mystères d'Égypte",
+  niche: "Histoire",
+  defaultLanguage: "fr",
+  tone: "mysterious",
+  style: "documentary",
+  audience: "Passionnés d'histoire de 25 à 45 ans",
+  voiceProfile: { gender: "male", age: "40-50", accent: "français standard", pace: "slow" },
+  brandRules: {
+    bannedWords: ["extraterrestre"],
+    ctaTemplate: "Abonnez-vous pour le prochain mystère.",
+    thumbnailPalette: ["#FFD400", "#000000"],
+  },
+};

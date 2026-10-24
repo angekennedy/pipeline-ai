@@ -656,6 +656,13 @@ const final = await stream.finalMessage();        // usage : input/output/cache_
 
 ### 4.7 Prompt caching
 
+> **Révision (octobre 2026, tâche 1.5).** Les sorties structurées remplacent les outils `emit_*` (ADR-002), or changer `output_config.format` invalide le cache de prompt. Les quatre dérivés ont des schémas différents : ils **ne partagent pas** de préfixe. L'ordre retenu, dans `src/lib/ai/prompts/shared.ts` :
+> 1. `system` : instructions fixes de l'asset et consigne sur les données non fiables, identiques pour tous les pipelines (point de cache) ;
+> 2. premier message utilisateur : preset, brief, script et titres rendus par `renderUntrusted()` en JSON à clés triées (point de cache), réutilisés par la réparation Zod et les régénérations ;
+> 3. tâche (langue, cibles calculées) et feedback éventuel, après le dernier point de cache.
+>
+> Sur Haiku, l'économie perdue est de l'ordre de 0,002 $ par pipeline. Le minimum cacheable est de 512 tokens sur les modèles 5.x : un préfixe plus court n'est simplement pas mis en cache. Les points ci-dessous qui supposent une liste `tools` commune sont caducs.
+
 - **L'ordre du préfixe compte** : tools, puis system, puis messages. Pour que les 4 appels dérivés partagent le même préfixe :
   1. **la liste `tools` est identique** dans les 4 appels, avec les 4 outils `emit_*` ;
   2. le script, le brief et le preset sont placés **dans `system`**, avec `cache_control` sur le dernier bloc ;

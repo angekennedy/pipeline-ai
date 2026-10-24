@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Sans drapeau `i` : le motif est transmis tel quel dans le JSON Schema, qui ne connaît pas les drapeaux.
-const HexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
+export const HexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/);
 
 export const ThumbnailConceptSchema = z.object({
   pairedTitleIndex: z.number().int().min(0), // la miniature complète ce titre, sans le répéter
