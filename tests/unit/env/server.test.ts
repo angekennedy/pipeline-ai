@@ -1,8 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// `server-only` lève une erreur hors d'un environnement React Server : neutralisé pour le test.
-vi.mock("server-only", () => ({}));
-
 async function loadServerEnv() {
   vi.resetModules();
   return (await import("@/lib/env/server")).serverEnv;
@@ -11,13 +8,22 @@ async function loadServerEnv() {
 describe("serverEnv", () => {
   afterEach(() => vi.unstubAllEnvs());
 
-  it("expose la clé secrète Supabase", async () => {
+  it("expose les secrets serveur", async () => {
     vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_test");
-    await expect(loadServerEnv()).resolves.toEqual({ SUPABASE_SECRET_KEY: "sb_secret_test" });
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
+    await expect(loadServerEnv()).resolves.toMatchObject({
+      SUPABASE_SECRET_KEY: "sb_secret_test",
+      ANTHROPIC_API_KEY: "sk-ant-test",
+    });
   });
 
-  it("échoue si la clé secrète manque", async () => {
-    vi.stubEnv("SUPABASE_SECRET_KEY", "");
+  it("laisse les surcharges de modèles facultatives", async () => {
+    const env = await loadServerEnv();
+    expect(env.MODEL_SCRIPT_STANDARD).toBeUndefined();
+  });
+
+  it.each(["SUPABASE_SECRET_KEY", "ANTHROPIC_API_KEY"])("échoue si %s manque", async (name) => {
+    vi.stubEnv(name, "");
     await expect(loadServerEnv()).rejects.toThrow();
   });
 });

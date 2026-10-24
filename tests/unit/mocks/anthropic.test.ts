@@ -1,35 +1,41 @@
-import { http } from "msw/http";
 import { describe, expect, it } from "vitest";
-import { ANTHROPIC_MESSAGES_URL, toolUseMessage, toolUseStream } from "../../mocks/anthropic";
+import { ANTHROPIC_MESSAGES_URL, anthropicSequence, jsonReplyStream } from "../../mocks/anthropic";
 import { server } from "../../mocks/server";
 
-const input = { variants: [{ title: "Le secret oublié des pyramides" }] };
+const post = (body: unknown = {}) => fetch(ANTHROPIC_MESSAGES_URL, { method: "POST", body: JSON.stringify(body) });
+
+const textOf = (sse: string) =>
+  sse
+    .split("\n")
+    .filter((line) => line.startsWith("data: "))
+    .map((line) => JSON.parse(line.slice(6)))
+    .filter((e) => e.delta?.type === "text_delta")
+    .map((e) => e.delta.text)
+    .join("");
 
 describe("mock Anthropic", () => {
   it("refuse par défaut une requête sans fixture", async () => {
-    const res = await fetch(ANTHROPIC_MESSAGES_URL, { method: "POST", body: "{}" });
-    expect(res.status).toBe(400);
+    expect((await post()).status).toBe(400);
   });
 
-  it("renvoie un bloc tool_use", async () => {
-    server.use(http.post(ANTHROPIC_MESSAGES_URL, () => Response.json(toolUseMessage({ toolName: "emit_titles", input }))));
-    const body = await (await fetch(ANTHROPIC_MESSAGES_URL, { method: "POST", body: "{}" })).json();
-    expect(body.content[0]).toMatchObject({ type: "tool_use", name: "emit_titles", input });
+  it("streame une sortie structurée en deltas de texte reconstituables", async () => {
+    const output = { title: "Le secret des pyramides" };
+    const { handler } = anthropicSequence(() => jsonReplyStream(output, { chunkSize: 5 }));
+    server.use(handler);
+    const sse = await (await post()).text();
+    expect(JSON.parse(textOf(sse))).toEqual(output);
+    expect(sse).toContain('"stop_reason":"end_turn"');
   });
 
-  it("streame le JSON de l'outil en deltas reconstituables", async () => {
-    server.use(http.post(ANTHROPIC_MESSAGES_URL, () => toolUseStream({ toolName: "emit_titles", input }, 8)));
-    const text = await (await fetch(ANTHROPIC_MESSAGES_URL, { method: "POST", body: "{}" })).text();
-
-    const partial = text
-      .split("\n")
-      .filter((line) => line.startsWith("data: "))
-      .map((line) => JSON.parse(line.slice(6)))
-      .filter((e) => e.delta?.type === "input_json_delta")
-      .map((e) => e.delta.partial_json)
-      .join("");
-
-    expect(JSON.parse(partial)).toEqual(input);
-    expect(text).toContain("event: message_stop");
+  it("enchaîne les réponses et enregistre chaque requête", async () => {
+    const { handler, calls } = anthropicSequence(
+      () => jsonReplyStream("premier"),
+      () => jsonReplyStream("suivant"),
+    );
+    server.use(handler);
+    const texts = [];
+    for (const n of [1, 2, 3]) texts.push(textOf(await (await post({ n })).text()));
+    expect(texts).toEqual(["premier", "suivant", "suivant"]);
+    expect(calls.map((c) => c.body.n)).toEqual([1, 2, 3]);
   });
 });

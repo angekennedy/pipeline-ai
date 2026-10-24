@@ -61,7 +61,7 @@
 | A5 | Mutations | Route Handlers `/api/pipelines/*` | Server Actions | **Server Actions** pour l'UI. Route Handlers uniquement pour Stripe, Inngest et l'export. | Moins de surface d'API, contrôle d'origine natif. |
 | A6 | Tarif en crédits | Forfait de 10 ou 20 crédits | Coût par asset, indexé sur la durée | **Coût par asset** (ARCHITECTURE §5.1). Le **total** s'affiche avant le lancement. | Remboursement partiel naturel si le pipeline finit en `partial`, marge maîtrisée sur les vidéos longues. |
 | A7 | Chapitres et durées | Calculés en code | Calculés en code | **Accord** (ADR-008) | Le LLM ne fait pas d'arithmétique fiable. |
-| A8 | Sortie structurée | Structured outputs | Tool use forcé + Zod + une réparation | **Tool use forcé** (ADR-002) | Permet le streaming partiel avec `input_json_delta`. On passe aux structured outputs natifs si on veut l'extended thinking sur le script. |
+| A8 | Sortie structurée | Structured outputs | Tool use forcé + Zod + une réparation | **Sorties structurées natives (`output_config.format`) + Zod + une réparation** (ADR-002, révisée) | Le tool use forcé (`tool_choice: tool`) renvoie une 400 sur Opus 5.5 et Sonnet 5.5. Le JSON est streamé en deltas de texte. L'API ignore les bornes du schéma : Zod les revalide côté serveur. |
 
 ---
 

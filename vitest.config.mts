@@ -5,10 +5,22 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "server-only": fileURLToPath(new URL("./tests/stubs/server-only.ts", import.meta.url)),
+    },
   },
   test: {
-    environment: "jsdom",
+    // Node par défaut : le code serveur (SDK Anthropic compris) refuse un environnement de type navigateur.
+    // Les tests de composants passent en jsdom avec `// @vitest-environment jsdom` en tête de fichier.
+    environment: "node",
+    // Valeurs factices : aucun appel réseau réel, MSW intercepte tout.
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
+      SUPABASE_SECRET_KEY: "test-secret-key",
+      ANTHROPIC_API_KEY: "test-anthropic-key",
+    },
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}", "tests/integration/**/*.test.{ts,tsx}"],
     coverage: {

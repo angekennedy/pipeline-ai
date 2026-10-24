@@ -803,7 +803,9 @@ Les changements de plan passent par le Stripe Customer Portal, sans UI de gestio
   - (−) chaque étape reste soumise à `maxDuration` Vercel. Le mode plan puis sections est nécessaire au-delà de 30 min de vidéo.
   - (−) dépendance à un fournisseur. Elle est contenue par le fait que `lib/pipeline` est indépendant d'Inngest : passer à Trigger.dev ne change que `lib/jobs`.
 
-**ADR-002 : Tool use forcé + Zod + une réparation.** *Accepté.*
+**ADR-002 : Tool use forcé + Zod + une réparation.** *Remplacé (octobre 2026).*
+- Révision : `tool_choice` `tool`/`any` renvoie une 400 sur Claude Opus 5.5 et Claude Sonnet 5.5. On utilise les sorties structurées natives (`output_config.format`, JSON Schema dérivé de Zod par `zodOutputFormat`). Le JSON arrive en deltas de texte, et l'API ignore les bornes (`minLength`, `maximum`…) que le SDK retire du schéma : la validation Zod côté serveur et la réparation restent obligatoires. Voir `src/lib/ai/structured.ts`.
+- Décision d'origine, conservée pour l'historique :
 - Pour : schéma unique en Zod vers JSON Schema, streaming partiel avec `input_json_delta`, validation métier (`refine`) impossible à exprimer en JSON Schema.
 - Contre : incompatible avec l'extended thinking.
 - Alternatives :

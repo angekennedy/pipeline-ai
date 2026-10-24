@@ -2,47 +2,89 @@ import { http, HttpResponse } from "msw/http";
 
 export const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
 
-type ToolUseFixture = {
-  model?: string;
-  toolName: string;
-  input: unknown;
-  usage?: { input_tokens: number; output_tokens: number };
+type Usage = {
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_input_tokens?: number;
+  cache_creation_input_tokens?: number;
 };
 
-const DEFAULT_USAGE = { input_tokens: 100, output_tokens: 200 };
+type ReplyOptions = {
+  model?: string;
+  usage?: Usage;
+  stopReason?: "end_turn" | "max_tokens" | "refusal";
+  stopDetails?: { type: "refusal"; category: string | null; explanation: string | null };
+  chunkSize?: number;
+};
 
-// Réponse non streamée : un unique bloc tool_use, comme avec un tool_choice forcé.
-export function toolUseMessage({ model = "claude-haiku-5-5", toolName, input, usage = DEFAULT_USAGE }: ToolUseFixture) {
-  return {
-    id: "msg_test",
-    type: "message",
-    role: "assistant",
-    model,
-    content: [{ type: "tool_use", id: "toolu_test", name: toolName, input }],
-    stop_reason: "tool_use",
-    stop_sequence: null,
-    usage,
-  };
-}
+const DEFAULT_USAGE: Usage = { input_tokens: 100, output_tokens: 200 };
 
-// Réponse streamée (SSE) : le JSON de l'outil est découpé en deltas `input_json_delta`.
-export function toolUseStream({ model = "claude-sonnet-5-5", toolName, input, usage = DEFAULT_USAGE }: ToolUseFixture, chunkSize = 24) {
-  const json = JSON.stringify(input);
+const sse = (events: Array<[string, unknown]>) =>
+  new HttpResponse(events.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join(""), {
+    headers: { "content-type": "text/event-stream" },
+  });
+
+// Réponse streamée d'une sortie structurée (`output_config.format`) : le JSON arrive en deltas de texte.
+// Passer une chaîne pour simuler un texte brut (par exemple un JSON invalide).
+export function jsonReplyStream(output: unknown, options: ReplyOptions = {}) {
+  const { model = "claude-sonnet-5-5", usage = DEFAULT_USAGE, stopReason = "end_turn", stopDetails = null, chunkSize = 24 } = options;
+  const text = typeof output === "string" ? output : JSON.stringify(output);
+
   const events: Array<[string, unknown]> = [
-    ["message_start", { type: "message_start", message: { ...toolUseMessage({ model, toolName, input: {}, usage: { input_tokens: usage.input_tokens, output_tokens: 0 } }), content: [], stop_reason: null } }],
-    ["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "tool_use", id: "toolu_test", name: toolName, input: {} } }],
+    [
+      "message_start",
+      {
+        type: "message_start",
+        message: {
+          id: "msg_test",
+          type: "message",
+          role: "assistant",
+          model,
+          content: [],
+          stop_reason: null,
+          stop_sequence: null,
+          stop_details: null,
+          usage: {
+            input_tokens: usage.input_tokens,
+            output_tokens: 0,
+            cache_read_input_tokens: usage.cache_read_input_tokens ?? 0,
+            cache_creation_input_tokens: usage.cache_creation_input_tokens ?? 0,
+          },
+        },
+      },
+    ],
   ];
-  for (let i = 0; i < json.length; i += chunkSize) {
-    events.push(["content_block_delta", { type: "content_block_delta", index: 0, delta: { type: "input_json_delta", partial_json: json.slice(i, i + chunkSize) } }]);
+  if (text) {
+    events.push(["content_block_start", { type: "content_block_start", index: 0, content_block: { type: "text", text: "", citations: null } }]);
+    for (let i = 0; i < text.length; i += chunkSize) {
+      events.push(["content_block_delta", { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: text.slice(i, i + chunkSize) } }]);
+    }
+    events.push(["content_block_stop", { type: "content_block_stop", index: 0 }]);
   }
   events.push(
-    ["content_block_stop", { type: "content_block_stop", index: 0 }],
-    ["message_delta", { type: "message_delta", delta: { stop_reason: "tool_use", stop_sequence: null }, usage: { output_tokens: usage.output_tokens } }],
+    ["message_delta", { type: "message_delta", delta: { stop_reason: stopReason, stop_sequence: null, stop_details: stopDetails }, usage: { output_tokens: usage.output_tokens } }],
     ["message_stop", { type: "message_stop" }],
   );
+  return sse(events);
+}
 
-  const body = events.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join("");
-  return new HttpResponse(body, { headers: { "content-type": "text/event-stream" } });
+export function refusalStream(category: string | null = "general_harms") {
+  return jsonReplyStream("", {
+    stopReason: "refusal",
+    stopDetails: { type: "refusal", category, explanation: "Demande refusée par le classifieur" },
+  });
+}
+
+export type RecordedCall = { body: Record<string, unknown>; headers: Headers };
+
+// Répond successivement avec chaque réponse fournie (la dernière se répète) et enregistre les requêtes.
+export function anthropicSequence(...replies: Array<() => Response>) {
+  const calls: RecordedCall[] = [];
+  const handler = http.post(ANTHROPIC_MESSAGES_URL, async ({ request }) => {
+    calls.push({ body: (await request.json()) as Record<string, unknown>, headers: request.headers });
+    return replies[Math.min(calls.length, replies.length) - 1]!();
+  });
+  return { handler, calls };
 }
 
 // Handler par défaut : échoue explicitement. Chaque test déclare sa réponse avec `server.use(...)`.
