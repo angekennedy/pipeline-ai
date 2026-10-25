@@ -760,6 +760,28 @@ export const pipelineCost = (b: Brief, tier: Tier) =>
 
 La double facturation est impossible à trois niveaux : la contrainte `unique(idempotency_key)` du registre, le verrou `FOR UPDATE` et l'idempotence Inngest.
 
+> **Révision (octobre 2026, tâche 3.1).** Migration `20261025000006_reservation.sql`.
+>
+> **`credit_op`** relit la clé d'idempotence **après** le verrou. Sinon, deux appels simultanés avec la même clé passaient tous deux le premier contrôle, et le second échouait sur l'unicité.
+>
+> **`create_pipeline_with_reservation`** est idempotente par `(workspace, idempotency_key)` : la clé est une par soumission du formulaire. Elle renvoie `(pipeline_id, created)`.
+> - Un double clic renvoie le pipeline existant avec `created = false`, sans nouvelle réservation.
+> - Elle revérifie le rôle `editor` et l'appartenance du preset au workspace, puisqu'en service role `auth.uid()` est vide.
+> - Un solde insuffisant lève `INSUFFICIENT_CREDITS` (`P0001`) avec un détail `{required, available}`. Rien n'est créé, et la clé reste libre pour une nouvelle tentative.
+>
+> **Côté TypeScript** :
+> - `src/lib/billing/costs.ts` (`assetCredits`, `pipelineCredits`) calcule les coûts à partir du registre ;
+> - `src/lib/billing/reservation.ts` traduit l'erreur en `InsufficientCreditsError`.
+>
+> **Test de concurrence** (`tests/integration/credits.test.ts`). Pour rendre le chevauchement déterministe :
+> 1. une connexion verrouille le compte ;
+> 2. elle attend que les 10 réservations soient bloquées, ce qui est visible dans `pg_stat_activity` ;
+> 3. elle relâche le verrou.
+>
+> Sans `FOR UPDATE`, les 10 réservations réussissent et le test échoue, ce qui a été vérifié par mutation.
+>
+> **Reste à brancher** dans la Server Action `createPipeline`, quand l'authentification et les workspaces seront là (phase 2).
+
 ### 5.3 Webhooks Stripe
 
 ```ts

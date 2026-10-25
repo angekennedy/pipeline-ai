@@ -311,6 +311,11 @@ isOneToOne: false
 "commit_asset_version":
 { Args: { "p_content": Json,"p_created_by"?: string,"p_generation"?: string,"p_pipeline": string,"p_restored_from"?: string,"p_schema_version": string,"p_source": Database["public"]['Enums']["version_source"],"p_source_versions": Json,"p_telemetry"?: Json,"p_type": Database["public"]['Enums']["asset_type"] }; Returns: string
                            },
+"create_pipeline_with_reservation":
+{ Args: { "p_brief": Json,"p_channel"?: string,"p_channel_snapshot"?: Json,"p_credits": number,"p_key": string,"p_tier": string,"p_user": string,"p_workspace": string }; Returns: {
+              "created": boolean,"pipeline_id": string
+            }[]
+                           },
 "mark_generation_failed":
 { Args: { "p_code": string,"p_cost_usd_micros"?: number,"p_generation": string,"p_message": string }; Returns: undefined
                            },
