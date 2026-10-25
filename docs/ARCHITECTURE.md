@@ -782,6 +782,24 @@ La double facturation est impossible à trois niveaux : la contrainte `unique(id
 >
 > **Reste à brancher** dans la Server Action `createPipeline`, quand l'authentification et les workspaces seront là (phase 2).
 
+> **Révision (octobre 2026, tâche 3.2).** Migration `20261025000007_capture_release.sql`.
+>
+> **Capture.** `commit_asset_version` capture `generations.credits` avec la clé `capture:pipe:<id>:<type>`, dans la même transaction que la version.
+> - Le montant est plafonné au reliquat réservé (`private.pipeline_reservation_remaining`). Une génération qui se termine après une annulation est donc enregistrée sans être facturée, au lieu de faire échouer le `CHECK reserved >= 0`.
+> - Aucune capture n'a lieu sans réservation. Les régénérations (`regen:<nonce>`) ne sont pas encore facturées : leur réservation viendra avec la Server Action `regenerateAsset`.
+>
+> **Libération.** `finalize_pipeline` pose le statut terminal et libère le reliquat avec la clé `release:pipe:<id>`. Elle est idempotente.
+> - `SupabasePipelineStore.setPipelineStatus` l'appelle pour tout statut terminal : fin du DAG, `onFailure` et annulation.
+> - Un échec du script libère 100 % de la réservation. Un pipeline `partial` libère l'asset échoué et ses dépendants sautés.
+>
+> **Verrous.** L'ordre est le même partout : la ligne `pipelines`, puis `credit_accounts`. Une capture et une finalisation simultanées se suivent donc sans interblocage.
+>
+> **Balayage.** `sweep_stale_reservations` tourne en cron Inngest (`sweep-reservations`, toutes les 15 min).
+> - Il passe en échec les pipelines `queued` ou `running` **sans activité** depuis 30 min, et libère leur réservation.
+> - L'activité tient compte de la dernière prise ou fin de génération, pour épargner un pipeline lent ou en file d'attente.
+>
+> **Tests.** `tests/integration/billing-flow.test.ts` fait tourner la vraie orchestration sur le vrai store, avec un client Anthropic hors réseau. La suppression de la capture et la suppression du plafond ont été testées par mutation : elles font échouer les tests.
+
 ### 5.3 Webhooks Stripe
 
 ```ts

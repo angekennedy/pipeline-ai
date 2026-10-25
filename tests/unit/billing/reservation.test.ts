@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import type { Brief, ChannelPreset } from "@/lib/ai/schemas";
-import { InsufficientCreditsError, createPipelineWithReservation } from "@/lib/billing/reservation";
+import { InsufficientCreditsError, createPipelineWithReservation, sweepStaleReservations } from "@/lib/billing/reservation";
 import type { Database } from "@/lib/supabase/database.types";
 import { validBrief, validChannel } from "../../fixtures/assets";
 
@@ -56,5 +56,18 @@ describe("createPipelineWithReservation", () => {
   it("échoue si la RPC ne renvoie aucune ligne", async () => {
     const { db } = fakeDb({ data: [], error: null });
     await expect(createPipelineWithReservation(db, input)).rejects.toThrow("aucune ligne");
+  });
+});
+
+describe("sweepStaleReservations", () => {
+  it("renvoie le nombre de pipelines balayés", async () => {
+    const { db, rpc } = fakeDb({ data: 2, error: null });
+    await expect(sweepStaleReservations(db)).resolves.toBe(2);
+    expect(rpc).toHaveBeenCalledWith("sweep_stale_reservations");
+  });
+
+  it("laisse remonter une erreur de la RPC", async () => {
+    const { db } = fakeDb({ data: null, error: { message: "boom", code: "XX000" } });
+    await expect(sweepStaleReservations(db)).rejects.toMatchObject({ message: "Balayage des réservations : boom", code: "XX000" });
   });
 });

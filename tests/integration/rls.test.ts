@@ -159,6 +159,20 @@ describe("Realtime", () => {
     return new Promise<string>((resolve) => channel.subscribe((status) => status !== "CLOSED" && resolve(status)));
   }
 
+  // Juste après un `supabase db reset`, Realtime redémarre et refuse un temps tous les abonnements :
+  // on attend qu'un abonnement légitime passe, sans quoi un refus ne prouverait rien.
+  beforeAll(async () => {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const status = await join(b, pipelineB);
+      // Canal d'essai retiré : un second `channel()` sur le même topic renverrait celui-ci, déjà abonné.
+      const [client, channel] = channels.pop()!;
+      await client.removeChannel(channel);
+      if (status === "SUBSCRIBED") return;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    throw new Error("Realtime ne répond pas : abonnement légitime refusé");
+  });
+
   it("B ne rejoint pas le canal d'un pipeline de A", async () => {
     expect(await join(b, pipelineA)).toBe("CHANNEL_ERROR");
     expect(await join(b, pipelineB)).toBe("SUBSCRIBED");

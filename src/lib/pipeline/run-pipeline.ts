@@ -64,7 +64,8 @@ export async function runPipelineSteps(
   }
 
   const status = finalStatus(assets);
-  // Phase 3 : capture des crédits consommés et libération de ceux des assets échoués ou sautés.
+  // Statut terminal : le store libère les crédits non capturés (assets échoués ou sautés). Chaque
+  // asset réussi a déjà capturé son coût, dans la transaction de sa version.
   await step.run("finalize", async () => {
     await store.setPipelineStatus(pipelineId, status);
     await safePublish(publish, { type: "pipeline.status", status });

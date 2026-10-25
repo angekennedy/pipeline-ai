@@ -316,8 +316,14 @@ isOneToOne: false
               "created": boolean,"pipeline_id": string
             }[]
                            },
+"finalize_pipeline":
+{ Args: { "p_pipeline": string,"p_status": Database["public"]['Enums']["pipeline_status"] }; Returns: number
+                           },
 "mark_generation_failed":
 { Args: { "p_code": string,"p_cost_usd_micros"?: number,"p_generation": string,"p_message": string }; Returns: undefined
+                           },
+"sweep_stale_reservations":
+{ Args: { "p_idle"?: string }; Returns: number
                            },
 "upsert_generation":
 { Args: { "p_credits": number,"p_feedback"?: string,"p_key": string,"p_pipeline": string,"p_type": Database["public"]['Enums']["asset_type"] }; Returns: {

@@ -10,7 +10,7 @@ import { toStepError, type JobDeps } from "../step-errors";
 export const markPipelineFailed =
   (store: () => PipelineStore) =>
   async ({ event }: { event: { data: { event: { data: { pipelineId: string } } } } }) => {
-    // Phase 3 : libérer toute la réservation de crédits.
+    // Statut `failed` : le store libère le reliquat de la réservation (les assets réussis restent capturés).
     await store().setPipelineStatus(event.data.event.data.pipelineId, "failed");
   };
 

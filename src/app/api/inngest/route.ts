@@ -1,7 +1,9 @@
 import { serve } from "inngest/next";
+import { sweepStaleReservations } from "@/lib/billing/reservation";
 import { inngest } from "@/lib/jobs/client";
 import { createRegenerateAssetFunction } from "@/lib/jobs/functions/regenerate-asset";
 import { createRunPipelineFunction } from "@/lib/jobs/functions/run-pipeline";
+import { createSweepReservationsFunction } from "@/lib/jobs/functions/sweep-reservations";
 import type { JobDeps } from "@/lib/jobs/step-errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createBroadcastPublisher } from "@/lib/supabase/broadcast";
@@ -21,5 +23,9 @@ const deps: JobDeps = {
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [createRunPipelineFunction(deps), createRegenerateAssetFunction(deps)],
+  functions: [
+    createRunPipelineFunction(deps),
+    createRegenerateAssetFunction(deps),
+    createSweepReservationsFunction({ sweep: () => sweepStaleReservations(db()) }),
+  ],
 });

@@ -54,3 +54,11 @@ export async function createPipelineWithReservation(db: SupabaseClient<Database>
   if (!row) throw new Error("Création du pipeline : aucune ligne renvoyée");
   return { pipelineId: row.pipeline_id, created: row.created, credits };
 }
+
+// Filet de sécurité (cron Inngest) : pipelines `queued` ou `running` sans activité depuis 30 min
+// passés en échec, réservation libérée. Renvoie le nombre de pipelines balayés.
+export async function sweepStaleReservations(db: SupabaseClient<Database>): Promise<number> {
+  const { data, error } = await db.rpc("sweep_stale_reservations");
+  if (error) throw Object.assign(new Error(`Balayage des réservations : ${error.message}`), { code: error.code });
+  return data;
+}

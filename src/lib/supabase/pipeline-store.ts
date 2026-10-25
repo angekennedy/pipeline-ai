@@ -148,8 +148,13 @@ export class SupabasePipelineStore implements PipelineStore {
     );
   }
 
+  // Statut terminal : finalize_pipeline pose le statut et libère, dans la même transaction, les
+  // crédits réservés qui n'ont pas été capturés (assets échoués, sautés ou annulés).
   async setPipelineStatus(pipelineId: string, status: PipelineStatus) {
-    const completedAt = TERMINAL.includes(status) ? new Date().toISOString() : null;
-    optional(await this.db.from("pipelines").update({ status, completed_at: completedAt }).eq("id", pipelineId), "Statut du pipeline");
+    if (TERMINAL.includes(status)) {
+      required(await this.db.rpc("finalize_pipeline", { p_pipeline: pipelineId, p_status: status }), "Finalisation du pipeline");
+      return;
+    }
+    optional(await this.db.from("pipelines").update({ status }).eq("id", pipelineId), "Statut du pipeline");
   }
 }
