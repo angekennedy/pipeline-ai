@@ -140,3 +140,39 @@ describe("validation dans le contexte du pipeline", () => {
     expect(registry.titles.schema(context()).safeParse({ ...validTitles, recommendedIndex: 9 }).success).toBe(false);
   });
 });
+
+describe("sortie du modèle plus souple que le contrat stocké", () => {
+  const concepts = (texts: string[]) => texts.map((text, i) => ({ ...validThumbnails.concepts[0]!, pairedTitleIndex: i, textOverlay: { ...validThumbnails.concepts[0]!.textOverlay, text } }));
+
+  it("SEO : un tag trop long est accepté en sortie, refusé à l'édition, puis écarté", () => {
+    const seo = { ...validSeo, tags: ["pyramides", "construction des pyramides de gizeh"] };
+    expect(registry.seo.outputSchema!(context()).safeParse(seo).success).toBe(true);
+    expect(registry.seo.schema(context()).safeParse(seo).success).toBe(false);
+    expect(registry.seo.postProcess(seo, context()).tags).toEqual(["pyramides"]);
+  });
+
+  it("miniatures : un concept trop verbeux parmi 4 est accepté en sortie puis écarté", () => {
+    const thumbnails = { concepts: concepts(["SANS POULIE", "UN DEUX TROIS QUATRE CINQ", "LE CODE", "INEXPLIQUÉ ?"]) };
+    expect(registry.thumbnails.outputSchema!(context()).safeParse(thumbnails).success).toBe(true);
+    expect(registry.thumbnails.schema(context()).safeParse(thumbnails).success).toBe(false); // éditions : contrat strict
+    expect(registry.thumbnails.postProcess(thumbnails as never, context()).concepts.map((c) => c.textOverlay.text)).toEqual([
+      "SANS POULIE",
+      "LE CODE",
+      "INEXPLIQUÉ ?",
+    ]);
+  });
+
+  it("miniatures : s'il resterait moins de 3 concepts, la réparation vise seulement les fautifs", () => {
+    const thumbnails = { concepts: concepts(["SANS POULIE", "UN DEUX TROIS QUATRE CINQ", "LE CODE"]) };
+    const result = registry.thumbnails.outputSchema!(context()).safeParse(thumbnails);
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.map(({ path, message }) => ({ path, message }))).toEqual([
+      { path: ["concepts", 1, "textOverlay", "text"], message: "« UN DEUX TROIS QUATRE CINQ » compte 5 mots : 4 au maximum" },
+    ]);
+  });
+
+  it("garde les règles du pipeline dans la sortie du modèle (titre inexistant)", () => {
+    const thumbnails = { concepts: concepts(["A", "B", "C"]).map((c, i) => ({ ...c, pairedTitleIndex: i === 2 ? 9 : i })) };
+    expect(registry.thumbnails.outputSchema!(context()).safeParse(thumbnails).success).toBe(false);
+  });
+});

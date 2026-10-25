@@ -111,7 +111,19 @@ describe("ThumbnailsSchema", () => {
   it("limite le texte en overlay à 4 mots", () => {
     const t = thumbs();
     t.concepts[0]!.textOverlay.text = "UN DEUX TROIS QUATRE CINQ";
-    expect(ThumbnailsSchema.safeParse(t).success).toBe(false);
+    const result = ThumbnailsSchema.safeParse(t);
+    expect(result.success).toBe(false);
+    // Message destiné à la réparation : le modèle voit le texte fautif et son nombre de mots.
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ["concepts", 0, "textOverlay", "text"],
+      message: "« UN DEUX TROIS QUATRE CINQ » compte 5 mots : 4 au maximum",
+    });
+  });
+
+  it("accepte 4 mots en overlay, petits mots compris", () => {
+    const t = thumbs();
+    t.concepts[0]!.textOverlay.text = "LE CODE DE GIZEH";
+    expect(ThumbnailsSchema.safeParse(t).success).toBe(true);
   });
 
   it("rejette une couleur qui n'est pas un hexadécimal à 6 chiffres", () => {

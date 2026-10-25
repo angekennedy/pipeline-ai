@@ -12,12 +12,16 @@ import { runCase, type CaseRun } from "./lib/run-case";
 // Évaluation des pipelines sur les briefs de référence (tâche 1.11). Appels réels et payants :
 //   EVAL_VARIANT=baseline pnpm evals           # Standard : script par Claude Sonnet 5.5
 //   EVAL_VARIANT=v1 pnpm evals                 # Premium : script par Claude Opus 5.5
+//   EVAL_VARIANT=v2 pnpm evals                 # Standard, prompts corrigés après la v0
+//   EVAL_VARIANT=v3 pnpm evals                 # Standard, corrections après la v2
 //   EVAL_CASES=fr-short-flamants pnpm evals    # sous-ensemble (essai)
 // Puis : pnpm evals:report (evals/report/report.html).
 
 const VARIANTS: Record<string, { tier: ModelTier; description: string }> = {
   baseline: { tier: "standard", description: "Standard : script rédigé par Claude Sonnet 5.5, dérivés par Claude Haiku 5.5." },
   v1: { tier: "premium", description: "Premium : script rédigé par Claude Opus 5.5, dérivés par Claude Haiku 5.5." },
+  v2: { tier: "standard", description: "Standard après correction des prompts (script@2, titles@2, thumbnails@2) : durée, promesses des titres, texte des miniatures." },
+  v3: { tier: "standard", description: "Standard, v2 plus titres sans mention du script (titles@3), 4 concepts de miniatures filtrés et tags trop longs écartés par le code (thumbnails@3)." },
 };
 
 // Échecs d'infrastructure (API, quota, crédit, bug) : ils ne disent rien de la qualité et vont dans
@@ -68,7 +72,7 @@ it("évaluation des pipelines", async () => {
   checkHarness(readState(), process.env.EVAL_APPROVE_HARNESS === "1");
 
   const out = openVariant(variant);
-  if (variant !== "baseline") writeFileSync(join(out.dir, "change.md"), `# ${config.description}\n\nMêmes briefs et même notation que baseline ; seul le modèle du script change.\n`);
+  if (variant !== "baseline") writeFileSync(join(out.dir, "change.md"), `# ${config.description}\n\nMêmes briefs et même notation que baseline.\n`);
 
   const client = new Anthropic({ maxRetries: 4 }); // backoff exponentiel avec jitter du SDK sur 429/529
   const cases = loadCases().filter((c) => !out.isDone(c.id, REP));

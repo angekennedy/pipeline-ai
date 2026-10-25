@@ -94,11 +94,44 @@ l'écart est mesuré mais reste modeste (moins de 0,2 point sur 5), sur des note
    plafond : pour départager des variantes plus proches, il faudra des briefs plus difficiles ou plus
    de passages.
 
+## Corrections après la v0 (Standard)
+
+Mêmes briefs, même notation, formule Standard. Résultats : `report/v2/` et `report/v3/`.
+
+**v2** (`script@2`, `titles@2`, `thumbnails@2`) : fourchette de mots ferme et budget de mots par scène
+pour le script, règle vérifiable sur les promesses des titres, exemples et message de réparation
+précis pour le texte des miniatures. Sur 10 briefs : juge 4,67/5 (écart apparié avec baseline
++0,03 ± 0,09, non significatif), **durées dans la tolérance 10/10** (contre 4/10), mais seulement
+6 pipelines complets sur 10 : 3 SEO refusés pour un tag de plus de 30 caractères (cause, jusque-là
+inconnue, de l'échec SEO de baseline) et 1 texte de miniature à 5 mots. Effet de bord : un titre
+cite une scène (« Kennedy's answer is in scene 16 »). Coût 3,29 $.
+
+**v3** (`titles@3`, `thumbnails@3`, sorties plus souples que le contrat stocké) : le code écarte les
+tags de plus de 30 caractères et les concepts de miniature de plus de 4 mots (4 concepts demandés,
+au moins 3 gardés) au lieu de refuser l'asset ; un titre ne mentionne jamais le script ni ses scènes,
+et ceux d'une vidéo-liste présentent la liste entière. **Passage partiel : 7 briefs sur 10**, l'API
+ayant désactivé l'organisation en cours de route (« This organization has been disabled ») ; les
+3 cas manquants sont dans `report/v3/errors.jsonl` et seront rejoués par une reprise.
+
+| Sur les 7 mêmes briefs | baseline | v2 | v3 |
+|---|---|---|---|
+| Pipelines complets | 6/7 | 4/7 | **7/7** |
+| Durées dans ±15 % | 2/7 | 7/7 | **7/7** |
+| Juge | 4,63 | 4,69 | 4,71 |
+| Titres et miniatures | 3,86 | 4,00 | 4,00 |
+| Exactitude | 4,14 | 4,29 | 4,57 |
+
+Écarts appariés v3 − baseline sur ces 7 briefs : juge +0,08 ± 0,15, titres et miniatures
++0,14 ± 0,51. La durée et la complétude sont corrigées ; pour les titres, l'effet n'est pas mesurable
+sur 7 cas. Aucun titre de la v3 ne mentionne le script ou une scène ; sur 2 briefs, un concept de
+miniature trop verbeux a été écarté et 3 concepts sont restés.
+
 ## Relancer
 
 ```
 EVAL_VARIANT=baseline pnpm evals run-evals   # Standard
 EVAL_VARIANT=v1 pnpm evals run-evals         # Premium
+EVAL_VARIANT=v3 pnpm evals run-evals         # Standard corrigé (reprend les cas manquants)
 EVAL_JUDGE_SANITY=1 pnpm evals judge-sanity  # contre-exemples du juge
 pnpm evals:report
 ```

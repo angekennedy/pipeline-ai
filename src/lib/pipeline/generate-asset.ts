@@ -95,7 +95,7 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
         modelKey: def.modelKey(pipeline.tier),
         system: prompt.system,
         messages: prompt.messages,
-        schema: def.schema(ctx),
+        schema: (def.outputSchema ?? def.schema)(ctx),
         maxTokens: def.maxTokens(pipeline.brief),
         onText:
           scenes || options.onText

@@ -1,3 +1,5 @@
+import { MAX_TAG_CHARS } from "@/lib/ai/schemas/seo";
+
 // Limite YouTube : 500 caractères pour l'ensemble des tags.
 export const TAGS_MAX_CHARS = 500;
 
@@ -10,13 +12,13 @@ export function tagsCharCount(tags: string[]): number {
 
 const normalize = (tag: string) => tag.trim().replace(/^#+/, "").replace(/\s+/gu, " ").trim().toLowerCase();
 
-// Normalise et déduplique dans l'ordre de pertinence proposé par le modèle.
-// Un tag qui dépasse le budget est sauté, mais les suivants plus courts peuvent encore entrer.
+// Normalise et déduplique dans l'ordre de pertinence proposé par le modèle. Un tag de plus de
+// MAX_TAG_CHARS caractères, ou qui dépasse le budget, est sauté ; les suivants peuvent encore entrer.
 export function normalizeTags(tags: string[]): string[] {
   const result: string[] = [];
   let used = 0;
   for (const tag of new Set(tags.map(normalize))) {
-    if (!tag) continue;
+    if (!tag || [...tag].length > MAX_TAG_CHARS) continue;
     const cost = tagCost(tag) + (result.length > 0 ? 1 : 0);
     if (used + cost > TAGS_MAX_CHARS) continue;
     result.push(tag);

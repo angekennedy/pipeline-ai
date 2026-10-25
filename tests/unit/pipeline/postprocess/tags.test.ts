@@ -31,6 +31,10 @@ describe("normalizeTags", () => {
     expect(result.length).toBeGreaterThan(0);
   });
 
+  it("écarte un tag de plus de 30 caractères, sans perdre les autres", () => {
+    expect(normalizeTags(["pyramides", "construction des pyramides de gizeh", "gizeh"])).toEqual(["pyramides", "gizeh"]);
+  });
+
   it("saute un tag trop long mais garde les suivants qui tiennent, dans l'ordre", () => {
     const filler = Array.from({ length: 16 }, (_, i) => `x${String(i).padStart(28, "0")}`); // 16 × 29 + 15 virgules = 479
     const result = normalizeTags([...filler, "y".repeat(30), "court"]);

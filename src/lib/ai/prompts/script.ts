@@ -22,6 +22,11 @@ const INSTRUCTIONS = `You are an experienced scriptwriter for faceless YouTube c
 - If the video ends with a call to action, make it the last scene, with purpose "cta".
 - Number scenes from 1, consecutively.
 
+## Length
+- The video's duration is computed from the narration's word count, so the word range in the task is a requirement, not a suggestion. Scripts that come out too short are the most common failure.
+- Plan the word count of every scene before writing, then check the total against the range.
+- Reach the length by developing each scene with concrete details, examples, consequences and transitions, not by adding scenes beyond the requested range.
+
 ## Fields
 - narration: exactly the words the narrator reads. Spoken style, short sentences, concrete images. No stage directions, scene labels, markdown or emojis.
 - visualDirection: what is on screen, filmable with stock footage, B-roll or motion graphics. Never an on-camera presenter.
@@ -40,14 +45,17 @@ const INSTRUCTIONS = `You are an experienced scriptwriter for faceless YouTube c
 {"index":1,"purpose":"hook","title":"The impossible block","narration":"Two and a half tons. That is the weight of a single block, lifted nearly 150 metres high, without a single pulley.","visualDirection":"Slow drone push-in on the Great Pyramid at sunrise, then a close-up of a weathered limestone block.","bRollKeywords":["great pyramid","drone","limestone block"],"onScreenText":"2.5 tons","estimatedSeconds":10}`;
 
 export const scriptPrompt = definePrompt({
-  version: "script@1",
+  version: "script@2",
   instructions: INSTRUCTIONS,
   context: channelAndBrief,
   task(ctx) {
     const { words, minScenes, maxScenes } = scriptTargets(ctx);
+    const scenes = Math.round((minScenes + maxScenes) / 2);
     return (
       `Write the script for the video described in <brief>. Target duration: ${ctx.brief.durationMinutes} minutes, ` +
-      `so about ${words} words of narration in total (within 10%), in ${minScenes} to ${maxScenes} scenes. ` +
+      `so ${words} words of narration in total: no fewer than ${Math.round(words * 0.9)} and no more than ` +
+      `${Math.round(words * 1.1)}. Use ${minScenes} to ${maxScenes} scenes; with ${scenes} scenes, that is about ` +
+      `${Math.round(words / scenes)} words per scene on average (the hook is shorter, so the other scenes are longer). ` +
       `Write every text field except bRollKeywords in ${outputLanguage(ctx)}.`
     );
   },

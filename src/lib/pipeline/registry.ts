@@ -4,7 +4,10 @@ import { prompts, type PromptContext, type PromptTemplate } from "@/lib/ai/promp
 import { requireScript } from "@/lib/ai/prompts/shared";
 import {
   ScriptSchema,
+  MAX_OVERLAY_WORDS,
+  SeoOutputSchema,
   SeoSchema,
+  ThumbnailsOutputSchema,
   ThumbnailsSchema,
   TitlesSchema,
   VoiceoverSchema,
@@ -15,6 +18,7 @@ import {
   type Thumbnails,
   type Titles,
   type Voiceover,
+  overlayWords,
 } from "@/lib/ai/schemas";
 import { WORDS_PER_MINUTE, applyTiming } from "./postprocess/timing";
 import { buildChapters } from "./postprocess/chapters";
@@ -41,6 +45,10 @@ export type AssetDefinition<K extends AssetType> = {
   // Schéma complété par les règles qui dépendent du pipeline (scènes, titres) : un écart passe par
   // la réparation Zod de callStructured, comme une erreur de format.
   schema: (ctx: PromptContext) => z.ZodType<AssetContent[K]>;
+  // Validation de la sortie du modèle, quand elle est plus souple que le contrat stocké : ce que le
+  // post-traitement sait corriger seul (tag trop long, concept écarté) ne coûte pas une réparation.
+  // Les éditions manuelles restent validées par `schema`.
+  outputSchema?: (ctx: PromptContext) => z.ZodType<AssetContent[K]>;
   // Le thinking adaptatif est actif sur les trois modèles et compte dans max_tokens.
   maxTokens: (brief: Brief) => number;
   credits: (brief: Brief, tier: ModelTier) => number;
@@ -54,6 +62,34 @@ const unchanged = <T>(content: T) => content;
 const light = () => "light" as const;
 
 const missingScene = (count: number) => `Scène inexistante (le script en compte ${count})`;
+
+// Règles qui dépendent du pipeline, partagées par le contrat stocké et la sortie du modèle.
+function withChapterRule(schema: z.ZodType<Seo>, ctx: PromptContext) {
+  const sceneCount = requireScript(ctx).scenes.length;
+  return schema.superRefine((seo, issues) => {
+    seo.chapterTitles.forEach(({ startsAtSceneIndex }, i) => {
+      if (startsAtSceneIndex > sceneCount) {
+        issues.addIssue({ code: "custom", path: ["chapterTitles", i, "startsAtSceneIndex"], message: missingScene(sceneCount) });
+      }
+    });
+  });
+}
+
+function withTitleRule(schema: z.ZodType<Thumbnails>, ctx: PromptContext) {
+  const titleCount = ctx.titles?.variants.length ?? 0;
+  return schema.superRefine((thumbnails, issues) => {
+    const used = new Set<number>();
+    thumbnails.concepts.forEach(({ pairedTitleIndex }, i) => {
+      const path = ["concepts", i, "pairedTitleIndex"];
+      if (pairedTitleIndex >= titleCount) {
+        issues.addIssue({ code: "custom", path, message: `Titre inexistant (${titleCount} variantes)` });
+      } else if (used.has(pairedTitleIndex)) {
+        issues.addIssue({ code: "custom", path, message: "Titre déjà utilisé par un autre concept" });
+      }
+      used.add(pairedTitleIndex);
+    });
+  });
+}
 
 export const registry: { [K in AssetType]: AssetDefinition<K> } = {
   script: {
@@ -87,16 +123,8 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     schemaVersion: "seo@1",
     prompt: prompts.seo,
     modelKey: light,
-    schema: (ctx) => {
-      const sceneCount = requireScript(ctx).scenes.length;
-      return SeoSchema.superRefine((seo, issues) => {
-        seo.chapterTitles.forEach(({ startsAtSceneIndex }, i) => {
-          if (startsAtSceneIndex > sceneCount) {
-            issues.addIssue({ code: "custom", path: ["chapterTitles", i, "startsAtSceneIndex"], message: missingScene(sceneCount) });
-          }
-        });
-      });
-    },
+    schema: (ctx) => withChapterRule(SeoSchema, ctx),
+    outputSchema: (ctx) => withChapterRule(SeoOutputSchema, ctx), // tags trop longs écartés par normalizeTags
     maxTokens: () => 6000,
     credits: () => 2,
     postProcess: (seo, ctx) => {
@@ -141,23 +169,14 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     schemaVersion: "thumbnails@1",
     prompt: prompts.thumbnails,
     modelKey: light,
-    schema: (ctx) => {
-      const titleCount = ctx.titles?.variants.length ?? 0;
-      return ThumbnailsSchema.superRefine((thumbnails, issues) => {
-        const used = new Set<number>();
-        thumbnails.concepts.forEach(({ pairedTitleIndex }, i) => {
-          const path = ["concepts", i, "pairedTitleIndex"];
-          if (pairedTitleIndex >= titleCount) {
-            issues.addIssue({ code: "custom", path, message: `Titre inexistant (${titleCount} variantes)` });
-          } else if (used.has(pairedTitleIndex)) {
-            issues.addIssue({ code: "custom", path, message: "Titre déjà utilisé par un autre concept" });
-          }
-          used.add(pairedTitleIndex);
-        });
-      });
-    },
+    schema: (ctx) => withTitleRule(ThumbnailsSchema, ctx),
+    outputSchema: (ctx) => withTitleRule(ThumbnailsOutputSchema, ctx),
     maxTokens: () => 6000,
     credits: () => 1,
-    postProcess: unchanged,
+    // Écarte les concepts dont le texte dépasse 4 mots ; la sortie du modèle en garantit au moins 3.
+    postProcess: (thumbnails) => ({
+      ...thumbnails,
+      concepts: thumbnails.concepts.filter(({ textOverlay }) => overlayWords(textOverlay.text) <= MAX_OVERLAY_WORDS),
+    }),
   },
 };

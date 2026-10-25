@@ -57,7 +57,7 @@ describe("generateAsset", () => {
     expect(generation).toMatchObject({ status: "succeeded", attempt: 1, versionId, credits: 12 });
     expect(generation.telemetry).toMatchObject({
       model: "claude-sonnet-5-5",
-      promptVersion: "script@1",
+      promptVersion: "script@2",
       usage: { inputTokens: 1000, outputTokens: 500 },
       costUsdMicros: 1000 * 2 + 500 * 10,
       repairs: 0,

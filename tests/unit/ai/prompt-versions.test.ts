@@ -15,6 +15,13 @@ const FINGERPRINTS: Record<string, string> = {
   "seo@1": "2284d9e63c71b0f0",
   "voiceover@1": "c399ecf0d4a33143",
   "thumbnails@1": "fc2001bf21e61619",
+  // Corrections après l'évaluation v0 (evals/RESULTS.md) : durée du script, titres, texte des miniatures.
+  "script@2": "dba720e2fbddb87a",
+  "titles@2": "620628b0f4061f6e",
+  "thumbnails@2": "3e0f0a420f2d996d",
+  // Après l'évaluation v2 : titres sans mention du script, 4 concepts de miniatures.
+  "titles@3": "876c72b165ccde98",
+  "thumbnails@3": "af17c6450d3e6152",
 };
 
 const ctx = {
