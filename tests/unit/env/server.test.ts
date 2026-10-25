@@ -26,4 +26,19 @@ describe("serverEnv", () => {
     vi.stubEnv(name, "");
     await expect(loadServerEnv()).rejects.toThrow();
   });
+
+  it("ne demande pas les clés Inngest hors de Vercel", async () => {
+    vi.stubEnv("VERCEL_ENV", undefined);
+    const env = await loadServerEnv();
+    expect(env.INNGEST_SIGNING_KEY).toBeUndefined();
+  });
+
+  it.each(["production", "preview"])("exige les clés Inngest sur Vercel (%s)", async (vercelEnv) => {
+    vi.stubEnv("VERCEL_ENV", vercelEnv);
+    vi.stubEnv("INNGEST_SIGNING_KEY", "signkey-test");
+    await expect(loadServerEnv()).rejects.toThrow(/INNGEST_EVENT_KEY/);
+
+    vi.stubEnv("INNGEST_EVENT_KEY", "event-key-test");
+    await expect(loadServerEnv()).resolves.toMatchObject({ INNGEST_SIGNING_KEY: "signkey-test", INNGEST_EVENT_KEY: "event-key-test" });
+  });
 });

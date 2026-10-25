@@ -907,6 +907,8 @@ from pipelines p join generations g on g.pipeline_id = p.id group by p.id;
   - disjoncteur de dépense déclenché ;
   - écart de réconciliation Stripe/registre.
 
+> **Révision (octobre 2026, tâche 0.8).** La mise en place des comptes (Vercel, Supabase staging, Inngest Cloud, Sentry) est décrite dans [DEPLOYMENT.md](DEPLOYMENT.md). Sentry (`@sentry/nextjs` 11) est initialisé dans `src/instrumentation.ts` et `src/instrumentation-client.ts`, à partir de `src/lib/observability/sentry.ts` ; il reste inactif sans `NEXT_PUBLIC_SENTRY_DSN`. Les erreurs des jobs passent par `@inngest/middleware-sentry`, étapes comprises, à la dernière tentative. Pas de Session Replay ni de données personnelles. Les tags `pipelineId` et `workspaceId` restent à poser avec les Server Actions (phase 2). Sur Vercel, le build échoue sans `INNGEST_SIGNING_KEY` et `INNGEST_EVENT_KEY`.
+
 ### Ordre de mise en œuvre suggéré
 
 1. Migrations, RLS et tests d'isolation.

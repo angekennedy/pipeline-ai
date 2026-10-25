@@ -28,4 +28,17 @@ describe("publicEnv", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "");
     await expect(loadPublicEnv()).rejects.toThrow();
   });
+
+  it("accepte un DSN Sentry, facultatif, et refuse un DSN qui n'est pas une URL", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+    vi.stubEnv("NEXT_PUBLIC_SENTRY_DSN", "");
+    expect((await loadPublicEnv()).NEXT_PUBLIC_SENTRY_DSN).toBeUndefined();
+
+    vi.stubEnv("NEXT_PUBLIC_SENTRY_DSN", "https://abc@o1.ingest.sentry.io/2");
+    expect((await loadPublicEnv()).NEXT_PUBLIC_SENTRY_DSN).toBe("https://abc@o1.ingest.sentry.io/2");
+
+    vi.stubEnv("NEXT_PUBLIC_SENTRY_DSN", "pas-un-dsn");
+    await expect(loadPublicEnv()).rejects.toThrow();
+  });
 });
