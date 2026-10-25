@@ -1,4 +1,6 @@
 import type { AssetType } from "@/lib/ai/schemas";
+import { safePublish } from "@/lib/realtime/broadcast";
+import type { PipelineEventPublisher } from "@/lib/realtime/events";
 import { PIPELINE_STAGES } from "./dag";
 import { registry } from "./registry";
 import type { PipelineStatus, PipelineStore } from "./store";
@@ -29,9 +31,23 @@ function finalStatus(assets: Record<AssetType, AssetOutcome>): PipelineOutcome["
 // id de version, petit : le contenu reste en base (limite de taille de l'état des étapes).
 export async function runPipelineSteps(
   pipelineId: string,
-  { step, store, generate }: { step: StepRunner; store: PipelineStore; generate: (type: AssetType) => Promise<string> },
+  {
+    step,
+    store,
+    generate,
+    publish,
+  }: {
+    step: StepRunner;
+    store: PipelineStore;
+    generate: (type: AssetType) => Promise<string>;
+    publish?: PipelineEventPublisher;
+  },
 ): Promise<PipelineOutcome> {
-  await step.run("mark-running", () => store.setPipelineStatus(pipelineId, "running"));
+  // Publication dans les étapes : une étape mémoïsée n'est pas rejouée, l'événement non plus.
+  await step.run("mark-running", async () => {
+    await store.setPipelineStatus(pipelineId, "running");
+    await safePublish(publish, { type: "pipeline.status", status: "running" });
+  });
 
   const assets = {} as Record<AssetType, AssetOutcome>;
   for (const stage of PIPELINE_STAGES) {
@@ -49,6 +65,9 @@ export async function runPipelineSteps(
 
   const status = finalStatus(assets);
   // Phase 3 : capture des crédits consommés et libération de ceux des assets échoués ou sautés.
-  await step.run("finalize", () => store.setPipelineStatus(pipelineId, status));
+  await step.run("finalize", async () => {
+    await store.setPipelineStatus(pipelineId, status);
+    await safePublish(publish, { type: "pipeline.status", status });
+  });
   return { status, assets };
 }

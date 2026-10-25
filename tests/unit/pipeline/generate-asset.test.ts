@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { HttpResponse } from "msw/http";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LlmRefusalError } from "@/lib/ai/structured";
+import type { PipelineEvent } from "@/lib/realtime/events";
 import type { Brief, ChannelPreset } from "@/lib/ai/schemas";
 import { MissingDependencyError, generateAsset } from "@/lib/pipeline/generate-asset";
 import type { ModelTier } from "@/lib/pipeline/registry";
@@ -159,5 +160,57 @@ describe("generateAsset", () => {
     const onText = vi.fn();
     await run("script", { onText });
     expect(onText.mock.calls.length).toBeGreaterThan(5);
+  });
+});
+
+describe("generateAsset : événements Realtime", () => {
+  const recorder = () => {
+    const events: PipelineEvent[] = [];
+    return { events, publish: async (event: PipelineEvent) => void events.push(event) };
+  };
+  const types = (events: PipelineEvent[]) => events.map((event) => event.type);
+
+  it("script : started, scènes au fil du stream, puis completed avec l'id de version", async () => {
+    mock(() => jsonReplyStream(validScript, { chunkSize: 40 }));
+    const { events, publish } = recorder();
+    const versionId = await run("script", { publish });
+
+    expect(types(events)[0]).toBe("asset.started");
+    expect(events.at(-1)).toEqual({ type: "asset.completed", asset: "script", versionId });
+    const sent = events.flatMap((event) => (event.type === "asset.partial" ? event.scenes.map((s) => s.index) : []));
+    expect(sent).toEqual([1, 2, 3, 4]); // chaque scène une fois, avant completed
+  });
+
+  it("dérivé : started puis completed, sans scènes partielles", async () => {
+    store.seedVersion(PIPELINE_ID, "script", validScript);
+    mock(() => jsonReplyStream(validTitles, { model: "claude-haiku-5-5" }));
+    const { events, publish } = recorder();
+    await run("titles", { publish });
+    expect(types(events)).toEqual(["asset.started", "asset.completed"]);
+  });
+
+  it("échec : asset.failed avec le code, sans scène après l'échec", async () => {
+    mock(() => refusalStream("cyber"));
+    const { events, publish } = recorder();
+    await expect(run("script", { publish })).rejects.toBeInstanceOf(LlmRefusalError);
+    expect(events).toEqual([
+      { type: "asset.started", asset: "script" },
+      { type: "asset.failed", asset: "script", code: "CONTENT_REFUSED" },
+    ]);
+  });
+
+  it("étape rejouée après un succès : aucun événement", async () => {
+    mock(() => jsonReplyStream(validScript));
+    await run("script");
+    const { events, publish } = recorder();
+    await run("script", { publish });
+    expect(events).toEqual([]);
+  });
+
+  it("un envoi en échec ne fait pas échouer la génération", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    mock(() => jsonReplyStream(validScript));
+    await expect(run("script", { publish: async () => Promise.reject(new Error("réseau")) })).resolves.toEqual(expect.any(String));
+    vi.restoreAllMocks();
   });
 });

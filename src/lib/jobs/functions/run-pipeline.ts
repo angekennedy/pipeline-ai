@@ -4,12 +4,14 @@ import { NonRetriableError } from "inngest";
 import { generateAsset } from "@/lib/pipeline/generate-asset";
 import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
 import type { PipelineStore } from "@/lib/pipeline/store";
+import type { PipelineEventPublisher } from "@/lib/realtime/events";
 import { inngest } from "../client";
 import { pipelineCanceled, pipelineRequested } from "../events";
 
 type Deps = {
   store: () => PipelineStore;
   anthropic?: Anthropic; // injecté par les tests ; sinon le client partagé de lib/ai
+  publisher?: (pipelineId: string) => PipelineEventPublisher; // Realtime Broadcast du pipeline
 };
 
 // Les erreurs marquées `retryable: false` (refus, schéma invalide après réparation, sortie tronquée,
@@ -29,7 +31,7 @@ export const markPipelineFailed =
     await store().setPipelineStatus(event.data.event.data.pipelineId, "failed");
   };
 
-export function createRunPipelineFunction({ store, anthropic }: Deps) {
+export function createRunPipelineFunction({ store, anthropic, publisher }: Deps) {
   return inngest.createFunction(
     {
       id: "run-pipeline",
@@ -44,11 +46,13 @@ export function createRunPipelineFunction({ store, anthropic }: Deps) {
       const { pipelineId } = event.data;
       // Les étapes renvoient des ids ou rien : valeurs JSON, que la sérialisation d'Inngest conserve.
       const steps: StepRunner = { run: (id, fn) => step.run(id, fn) as never };
+      const publish = publisher?.(pipelineId);
       return runPipelineSteps(pipelineId, {
         step: steps,
         store: store(),
+        publish,
         generate: (type) =>
-          generateAsset(pipelineId, type, { store: store(), client: anthropic }).catch((error: unknown) => {
+          generateAsset(pipelineId, type, { store: store(), client: anthropic, publish }).catch((error: unknown) => {
             throw toStepError(error);
           }),
       });

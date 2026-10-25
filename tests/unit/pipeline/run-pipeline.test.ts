@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AssetType, Brief } from "@/lib/ai/schemas";
 import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
+import type { PipelineEvent } from "@/lib/realtime/events";
 import { MemoryPipelineStore } from "../../mocks/memory-store";
 import { validBrief } from "../../fixtures/assets";
 
@@ -92,5 +93,23 @@ describe("runPipelineSteps", () => {
     };
     await runPipelineSteps(PIPELINE_ID, { step: fakeStep().step, store, generate });
     expect(maxRunning).toBe(3); // titles, seo, voiceover
+  });
+
+  it("publie le statut du pipeline au démarrage et à la fin", async () => {
+    const { store, step } = setup(["seo"]);
+    const events: PipelineEvent[] = [];
+    await runPipelineSteps(PIPELINE_ID, {
+      step,
+      store,
+      generate: async (type) => {
+        if (type === "seo") throw new Error("échec");
+        return `v-${type}`;
+      },
+      publish: async (event) => void events.push(event),
+    });
+    expect(events).toEqual([
+      { type: "pipeline.status", status: "running" },
+      { type: "pipeline.status", status: "partial" },
+    ]);
   });
 });

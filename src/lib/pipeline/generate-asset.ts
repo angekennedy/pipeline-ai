@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { PromptContext } from "@/lib/ai/prompts";
 import { assetSchemas, type AssetType, type Script, type Titles } from "@/lib/ai/schemas";
 import { LlmError, callStructured } from "@/lib/ai/structured";
+import { createSceneThrottle, safePublish } from "@/lib/realtime/broadcast";
+import type { PipelineEventPublisher } from "@/lib/realtime/events";
 import { registry, type AssetDefinition } from "./registry";
 import type { GenerationFailure, PipelineRecord, PipelineStore } from "./store";
 
@@ -21,6 +23,8 @@ export type GenerateAssetOptions = {
   store: PipelineStore;
   client?: Anthropic;
   onText?: (delta: string, snapshot: string) => void;
+  // Affichage en direct (Realtime Broadcast), sans effet sur le résultat si l'envoi échoue.
+  publish?: PipelineEventPublisher;
   signal?: AbortSignal;
 };
 
@@ -55,7 +59,7 @@ function failureOf(error: unknown): GenerationFailure {
 // elle renvoie la version déjà enregistrée sans rappeler le modèle. Renvoie l'id de version : le
 // contenu reste en base, hors de l'état des étapes Inngest.
 export async function generateAsset(pipelineId: string, type: AssetType, options: GenerateAssetOptions): Promise<string> {
-  const { store } = options;
+  const { store, publish } = options;
   // Vue non corrélée : schema(ctx) et postProcess portent le même type d'asset, ce que TypeScript
   // ne sait pas relier à travers l'union des clés.
   const def = registry[type] as unknown as AssetDefinition<AssetType>;
@@ -68,9 +72,12 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
   });
   if (generation.status === "succeeded" && generation.versionId) return generation.versionId;
 
+  // Seul le script est assez long pour mériter un affichage scène par scène.
+  const scenes = type === "script" && publish ? createSceneThrottle(publish) : null;
   try {
     const { ctx, sourceScriptVersionId } = await loadContext(store, pipeline, type);
     await store.markRunning(generation.id, generation.attempt + 1);
+    await safePublish(publish, { type: "asset.started", asset: type });
 
     const prompt = def.prompt.build(ctx);
     const startedAt = performance.now();
@@ -81,13 +88,21 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
         messages: prompt.messages,
         schema: def.schema(ctx),
         maxTokens: def.maxTokens(pipeline.brief),
-        onText: options.onText,
+        onText:
+          scenes || options.onText
+            ? (delta, snapshot) => {
+                scenes?.onText(delta, snapshot);
+                options.onText?.(delta, snapshot);
+              }
+            : undefined,
         signal: options.signal,
       },
       options.client ? { client: options.client } : {},
     );
 
-    return await store.commitAssetVersion({
+    await scenes?.flush();
+
+    const versionId = await store.commitAssetVersion({
       generationId: generation.id,
       pipelineId,
       assetType: type,
@@ -104,8 +119,13 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
         attempts: result.attempts,
       },
     });
+    await safePublish(publish, { type: "asset.completed", asset: type, versionId });
+    return versionId;
   } catch (error) {
-    await store.markFailed(generation.id, failureOf(error));
+    scenes?.cancel();
+    const failure = failureOf(error);
+    await store.markFailed(generation.id, failure);
+    await safePublish(publish, { type: "asset.failed", asset: type, code: failure.code });
     throw error;
   }
 }

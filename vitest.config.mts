@@ -27,7 +27,7 @@ export default defineConfig({
       provider: "v8",
       // Pas de rapport HTML : ses scripts générés seraient analysés par ESLint.
       reporter: ["text", "json-summary"],
-      include: ["src/lib/**", "src/components/**"],
+      include: ["src/lib/**", "src/components/**", "src/hooks/**"],
       exclude: [
         "src/components/ui/**", // composants shadcn générés
         "src/lib/supabase/**", // wrappers couverts par les tests d'intégration (Supabase local)

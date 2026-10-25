@@ -642,6 +642,8 @@ export async function generateAsset(pipelineId: string, type: AssetType): Promis
 
 ### 4.6 Streaming vers l'UI
 
+> **Révision (octobre 2026, tâche 1.8).** Le JSON du script arrive en deltas de texte (sorties structurées), lus par `SceneStreamParser` (`src/lib/ai/partial-json.ts`, incrémental). `createSceneThrottle` (`src/lib/realtime/broadcast.ts`) envoie au plus 4 messages par seconde, avec seulement les scènes complètes et conformes à `SceneSchema`. Il repart de zéro à chaque nouveau stream (réparation, relance sur `max_tokens`) : le navigateur remplace les scènes par index. Les événements sont un seul type Broadcast (`pipeline`), validé par `PipelineEventSchema` des deux côtés. L'envoi serveur passe par `httpSend` (REST) et ne fait jamais échouer une génération. `usePipelineChannel` appelle `router.refresh()` à chaque asset terminé, à chaque changement de statut et à **chaque** abonnement réussi, y compris le premier, pour couvrir l'intervalle entre le rendu serveur et l'abonnement. Reste à faire avec les migrations (0.4) : la politique RLS de `realtime.messages` pour les canaux `pipeline:<id>`.
+
 ```ts
 // lib/ai/structured.ts (extrait)
 const stream = anthropic.messages.stream({

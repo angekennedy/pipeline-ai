@@ -1,6 +1,7 @@
 import type { UsageTotals } from "@/lib/ai/structured";
 import type { AssetType, Brief, ChannelPreset } from "@/lib/ai/schemas";
 import type { ModelTier } from "./registry";
+import type { PipelineStatus } from "./status";
 
 // Accès aux données du pipeline, découplé de Supabase : lib/pipeline ne dépend ni de la base ni
 // d'Inngest. L'implémentation Supabase (service role, RPC transactionnelles) vient avec les migrations.
@@ -13,8 +14,7 @@ export type PipelineRecord = {
   tier: ModelTier;
 };
 
-// Statuts de `pipelines.status`. `canceled` est posé par la Server Action qui annule le pipeline.
-export type PipelineStatus = "queued" | "running" | "completed" | "partial" | "failed" | "canceled";
+export type { PipelineStatus } from "./status";
 
 export type GenerationStatus = "queued" | "running" | "succeeded" | "failed";
 

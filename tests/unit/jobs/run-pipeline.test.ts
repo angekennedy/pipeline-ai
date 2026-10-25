@@ -86,6 +86,24 @@ describe("fonction Inngest run-pipeline", () => {
     expect(store.statuses.at(-1)).toEqual([PIPELINE_ID, "completed"]);
   });
 
+  it("publie le statut du pipeline et la fin de chaque asset sur le canal du pipeline", async () => {
+    mockAssets();
+    const events: Array<{ pipelineId: string; type: string; asset?: string; status?: string }> = [];
+    const fn = createRunPipelineFunction({
+      store: () => store,
+      anthropic: client,
+      publisher: (pipelineId) => async (event) => void events.push({ pipelineId, ...event }),
+    });
+    await new InngestTestEngine({ function: fn, events: [{ name: "pipeline/requested", data: { pipelineId: PIPELINE_ID, workspaceId: WORKSPACE_ID } }] }).execute();
+
+    expect(events.every((event) => event.pipelineId === PIPELINE_ID)).toBe(true);
+    expect(events[0]).toMatchObject({ type: "pipeline.status", status: "running" });
+    expect(events.at(-1)).toMatchObject({ type: "pipeline.status", status: "completed" });
+    const completed = new Set(events.filter((e) => e.type === "asset.completed").map((e) => e.asset));
+    expect([...completed].sort()).toEqual([...ASSET_TYPES].sort());
+    expect(events.some((e) => e.type === "asset.partial")).toBe(true);
+  });
+
   it("transforme un refus en erreur non relançable, après l'avoir enregistré", async () => {
     const requested = mockAssets({ script: () => refusalStream("cyber") });
     const { error } = await engine().execute();
