@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
+import { CreditBadge } from "@/components/billing/credit-badge";
+import { DEMO_CREDITS } from "@/lib/demo/credits";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,9 +32,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/" className="font-semibold">
               Pipeline AI
             </Link>
-            <Link href="/pipelines/new" className="text-sm text-muted-foreground hover:text-foreground">
-              Nouveau pipeline
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground">
+                Tarifs
+              </Link>
+              <Link href="/pipelines/new" className="text-sm text-muted-foreground hover:text-foreground">
+                Nouveau pipeline
+              </Link>
+              {/* Mode démo : le solde du workspace courant viendra avec l'authentification (phase 2). */}
+              <CreditBadge credits={DEMO_CREDITS} />
+            </div>
           </nav>
         </header>
         {children}

@@ -52,7 +52,7 @@ describe("AssetTabs", () => {
     const alert = within(await openTab(/SEO/)).getByRole("alert");
     expect(alert).toHaveTextContent("Échec de la génération");
     expect(alert).toHaveTextContent("CONTENT_REFUSED");
-    expect(within(alert).getByRole("button", { name: /Régénérer/ })).toBeDisabled();
+    expect(within(alert).getByRole("button", { name: "Régénérer (2 crédits)" })).toBeDisabled(); // le coût du SEO, affiché avant l'action
   });
 
   it("état d'échec : les dérivés expliquent pourquoi ils n'ont pas été générés", async () => {

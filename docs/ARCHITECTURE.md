@@ -797,6 +797,23 @@ La double facturation est impossible à trois niveaux : la contrainte `unique(id
 > **Balayage.** `sweep_stale_reservations` tourne en cron Inngest (`sweep-reservations`, toutes les 15 min).
 > - Il passe en échec les pipelines `queued` ou `running` **sans activité** depuis 30 min, et libère leur réservation.
 > - L'activité tient compte de la dernière prise ou fin de génération, pour épargner un pipeline lent ou en file d'attente.
+
+> **Révision (octobre 2026, tâche 3.5).** Le coût est affiché avant chaque action payante.
+>
+> **Une seule grille.** `src/lib/billing/credit-rules.ts` (`CREDIT_RULES`) est un module pur. Le registre l'utilise pour facturer, et l'interface pour afficher les coûts : le formulaire, les boutons « Régénérer » et la page des tarifs. Ainsi `costs.ts` ne tire plus le registre, ni donc les prompts, dans le bundle client.
+>
+> **Catalogue.** `src/lib/billing/plans.ts` liste les plans et les packs de ce paragraphe, avec leurs limites affichées : durée maximale, Premium, presets, sièges.
+> - Les **prix sont provisoires** (19, 49 et 149 € par mois ; packs à 15 et 59 €), en attendant la décision sur la grille et la devise (PLAN §8, question 1).
+> - Les limites sont appliquées côté serveur à la tâche 3.6.
+>
+> **Solde.** `getCreditSummary` (`src/lib/billing/balance.ts`) lit `plan_key` et `credit_accounts` sous RLS. Le disponible vaut `balance − reserved`.
+>
+> **Interface.**
+> - Un badge de solde dans l'en-tête mène à `/pricing`.
+> - Le formulaire du brief affiche une estimation en direct (total, détail par asset, solde restant).
+> - Le modal « crédits insuffisants » s'ouvre sur la réponse `insufficient: {required, available}` de la Server Action, et la saisie est conservée.
+>
+> **Mode démo.** En attendant l'authentification (phase 2), le solde vient de `src/lib/demo/credits.ts` (Free, 30 crédits). La Server Action compare le coût à ce solde ; elle s'appuiera ensuite sur l'`InsufficientCreditsError` de la réservation.
 >
 > **Tests.** `tests/integration/billing-flow.test.ts` fait tourner la vraie orchestration sur le vrai store, avec un client Anthropic hors réseau. La suppression de la capture et la suppression du plafond ont été testées par mutation : elles font échouer les tests.
 

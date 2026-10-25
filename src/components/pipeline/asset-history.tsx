@@ -1,5 +1,6 @@
 import { History, TriangleAlert } from "lucide-react";
 import type { AssetType } from "@/lib/ai/schemas";
+import { formatCredits } from "@/lib/billing/plans";
 import { VERSION_SOURCE_LABELS } from "@/lib/pipeline/labels";
 import type { VersionSummary } from "@/lib/pipeline/view";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ const STALE_BECAUSE: Partial<Record<AssetType, string>> = {
   thumbnails: "le script ou les titres ont changé depuis",
 };
 
-export function StaleNotice({ type }: { type: AssetType }) {
+export function StaleNotice({ type, credits }: { type: AssetType; credits: number }) {
   return (
     <div role="status" className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
       <TriangleAlert aria-hidden="true" className="size-4 text-amber-600" />
@@ -24,7 +25,7 @@ export function StaleNotice({ type }: { type: AssetType }) {
         {STALE_BECAUSE[type] ?? "le script a changé depuis"}.
       </p>
       <Button type="button" variant="outline" size="sm" disabled title={PENDING_ACTION}>
-        Régénérer
+        Régénérer ({formatCredits(credits)})
       </Button>
     </div>
   );
@@ -67,7 +68,7 @@ export function StaleBanner({ count, credits }: { count: number; credits: number
         Le script a changé : {count} {count > 1 ? "assets sont obsolètes" : "asset est obsolète"}.
       </p>
       <Button type="button" size="sm" disabled title={PENDING_ACTION}>
-        Régénérer les dérivés ({credits} crédits)
+        Régénérer les dérivés ({formatCredits(credits)})
       </Button>
     </div>
   );

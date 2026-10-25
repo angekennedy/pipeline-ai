@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { ModelKey } from "@/lib/ai/models";
+import { CREDIT_RULES } from "@/lib/billing/credit-rules";
 import { prompts, type PromptContext, type PromptTemplate } from "@/lib/ai/prompts";
 import { requireScript } from "@/lib/ai/prompts/shared";
 import {
@@ -101,7 +102,7 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     schema: () => ScriptSchema,
     // Environ 4 tokens par mot de narration : narration, direction visuelle, JSON et thinking.
     maxTokens: (brief) => capped(8000 + narrationWords(brief) * 4),
-    credits: (brief, tier) => (tier === "premium" ? 8 + 2 * brief.durationMinutes : 4 + brief.durationMinutes),
+    credits: CREDIT_RULES.script,
     postProcess: (script, ctx) => applyTiming(script, ctx.brief).script,
   },
 
@@ -113,7 +114,7 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     modelKey: light,
     schema: () => TitlesSchema,
     maxTokens: () => 4000,
-    credits: () => 1,
+    credits: CREDIT_RULES.titles,
     postProcess: recountTitles,
   },
 
@@ -126,7 +127,7 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     schema: (ctx) => withChapterRule(SeoSchema, ctx),
     outputSchema: (ctx) => withChapterRule(SeoOutputSchema, ctx), // tags trop longs écartés par normalizeTags
     maxTokens: () => 6000,
-    credits: () => 2,
+    credits: CREDIT_RULES.seo,
     postProcess: (seo, ctx) => {
       // Sans 3 chapitres d'au moins 10 s, YouTube ignore la liste : on n'en publie pas.
       const result = buildChapters(requireScript(ctx).scenes, seo.chapterTitles);
@@ -159,7 +160,7 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     // La narration est reprise mot pour mot, avec ses indications de lecture.
     maxTokens: (brief) => capped(4000 + narrationWords(brief) * 3),
     // Hypothèse ARCHITECTURE §5.1 : 1 crédit par tranche complète de 10 minutes.
-    credits: (brief) => 2 + Math.floor(brief.durationMinutes / 10),
+    credits: CREDIT_RULES.voiceover,
     postProcess: unchanged,
   },
 
@@ -172,7 +173,7 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     schema: (ctx) => withTitleRule(ThumbnailsSchema, ctx),
     outputSchema: (ctx) => withTitleRule(ThumbnailsOutputSchema, ctx),
     maxTokens: () => 6000,
-    credits: () => 1,
+    credits: CREDIT_RULES.thumbnails,
     // Écarte les concepts dont le texte dépasse 4 mots ; la sortie du modèle en garantit au moins 3.
     postProcess: (thumbnails) => ({
       ...thumbnails,

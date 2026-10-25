@@ -32,6 +32,7 @@ describe("parseBriefForm", () => {
         style: "documentary",
         durationMinutes: 8,
       },
+      values: valid,
     });
   });
 

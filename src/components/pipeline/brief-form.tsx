@@ -1,9 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createPipeline, type CreatePipelineState } from "@/app/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
+import type { CreditSummary } from "@/lib/billing/balance";
 import type { BriefFormField } from "@/lib/pipeline/brief-form";
+import type { ModelTier } from "@/lib/pipeline/registry";
+import { CostEstimate } from "@/components/billing/cost-estimate";
+import { InsufficientCreditsDialog } from "@/components/billing/insufficient-credits-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,9 +77,23 @@ function Field({
   );
 }
 
-export function BriefForm() {
+export function BriefForm({ credits }: { credits: CreditSummary }) {
   const [state, formAction, pending] = useActionState(createPipeline, initialState);
   const { fieldErrors: errors, values } = state;
+
+  // Durée et formule suivies en direct pour afficher le coût. Chaque réponse de la Server Action
+  // réinitialise le formulaire avec la saisie renvoyée : on s'y recale, et le modal s'ouvre si la
+  // réservation a échoué faute de crédits.
+  const [duration, setDuration] = useState(values.durationMinutes ?? "8");
+  const [tier, setTier] = useState<ModelTier>("standard");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [answered, setAnswered] = useState(state);
+  if (answered !== state) {
+    setAnswered(state);
+    setDuration(values.durationMinutes ?? "8");
+    setTier(values.tier === "premium" ? "premium" : "standard");
+    setDialogOpen(Boolean(state.insufficient));
+  }
 
   return (
     <form action={formAction} className="grid gap-5" noValidate>
@@ -84,7 +102,19 @@ export function BriefForm() {
           {(props) => <Input {...props} defaultValue={values.niche} required maxLength={80} />}
         </Field>
         <Field name="durationMinutes" label="Durée cible (minutes)" error={errors.durationMinutes}>
-          {(props) => <Input {...props} type="number" inputMode="numeric" min={1} max={60} step={1} defaultValue={values.durationMinutes ?? "8"} required />}
+          {(props) => (
+            <Input
+              {...props}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={60}
+              step={1}
+              defaultValue={values.durationMinutes ?? "8"}
+              onChange={(event) => setDuration(event.target.value)}
+              required
+            />
+          )}
         </Field>
       </div>
 
@@ -144,15 +174,17 @@ export function BriefForm() {
       <fieldset className="grid gap-2">
         <legend className="mb-1 text-sm font-medium">Formule</legend>
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="tier" value="standard" defaultChecked={values.tier !== "premium"} />
+          <input type="radio" name="tier" value="standard" defaultChecked={values.tier !== "premium"} onChange={() => setTier("standard")} />
           Standard : script rédigé par Claude Sonnet
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="tier" value="premium" defaultChecked={values.tier === "premium"} />
+          <input type="radio" name="tier" value="premium" defaultChecked={values.tier === "premium"} onChange={() => setTier("premium")} />
           Premium : script rédigé par Claude Opus, plus de crédits
         </label>
         {errors.tier && <p className="text-sm text-destructive">{errors.tier}</p>}
       </fieldset>
+
+      <CostEstimate durationMinutes={Number(duration.trim() || Number.NaN)} tier={tier} available={credits.available} />
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>
@@ -162,6 +194,9 @@ export function BriefForm() {
           {Object.keys(errors).length > 0 ? "Corrigez les champs signalés." : ""}
         </p>
       </div>
+      {state.insufficient && (
+        <InsufficientCreditsDialog open={dialogOpen} onOpenChange={setDialogOpen} {...state.insufficient} />
+      )}
     </form>
   );
 }

@@ -2,6 +2,8 @@
 
 import { CircleAlert, CircleCheck, CircleDashed, CircleMinus, LoaderCircle } from "lucide-react";
 import { ASSET_TYPES, type AssetType, type Scene } from "@/lib/ai/schemas";
+import { assetCredits } from "@/lib/billing/costs";
+import { formatCredits } from "@/lib/billing/plans";
 import { ASSET_LABELS } from "@/lib/pipeline/labels";
 import type { AssetViewStatus, PipelineView } from "@/lib/pipeline/view";
 import { Button } from "@/components/ui/button";
@@ -74,6 +76,7 @@ function Generating({ type }: { type: AssetType }) {
 
 function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetType; scenes: Scene[] }) {
   const asset = view.assets[type];
+  const regenCredits = assetCredits(view.brief, view.tier)[type]; // une régénération coûte comme la génération
   switch (asset.status) {
     case "pending":
       return <p className="text-sm text-muted-foreground">{WAITING_FOR[type]}</p>;
@@ -86,7 +89,7 @@ function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetT
           <p className="mt-1 text-sm">{asset.error?.message ?? "Une erreur inattendue est survenue."}</p>
           {asset.error && <p className="mt-1 font-mono text-xs text-muted-foreground">{asset.error.code}</p>}
           <Button type="button" variant="outline" size="sm" className="mt-3" disabled title="Disponible quand la base de données sera branchée">
-            Régénérer
+            Régénérer ({formatCredits(regenCredits)})
           </Button>
         </div>
       );
@@ -96,7 +99,7 @@ function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetT
     case "ready":
       return (
         <>
-          {asset.stale && <StaleNotice type={type} />}
+          {asset.stale && <StaleNotice type={type} credits={regenCredits} />}
           <VersionHistory versions={asset.versions} />
           <ReadyAsset view={view} type={type} />
         </>

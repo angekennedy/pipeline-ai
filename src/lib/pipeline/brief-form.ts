@@ -37,7 +37,7 @@ const BriefFormSchema = BriefSchema.omit({ channelId: true }).extend({
 export type BriefFormValues = Partial<Record<BriefFormField, string>>;
 
 export type BriefFormResult =
-  | { ok: true; brief: Brief; tier: ModelTier }
+  | { ok: true; brief: Brief; tier: ModelTier; values: BriefFormValues }
   | { ok: false; fieldErrors: Partial<Record<BriefFormField, string>>; values: BriefFormValues };
 
 const text = (data: FormData, field: BriefFormField) => {
@@ -66,7 +66,7 @@ export function parseBriefForm(data: FormData): BriefFormResult {
 
   if (result.success) {
     const { tier, ...brief } = result.data;
-    return { ok: true, brief, tier };
+    return { ok: true, brief, tier, values };
   }
   const fieldErrors: Partial<Record<BriefFormField, string>> = {};
   for (const issue of result.error.issues) {

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Brief } from "@/lib/ai/schemas";
+import { getCreditSummary } from "@/lib/billing/balance";
 import { InsufficientCreditsError, createPipelineWithReservation } from "@/lib/billing/reservation";
 import { validBrief } from "../fixtures/assets";
 import { admin, anon, cleanup, createUser, createWorkspace, unwrap, withPg, type TestUser } from "./helpers";
@@ -172,5 +173,25 @@ describe("credit_op", () => {
     expect(results.every((r) => r.status === "fulfilled")).toBe(true); // aucune violation d'unicité
     expect(await account(workspaceId)).toEqual({ balance: 200, reserved: 0 });
     expect(await ledger(workspaceId)).toHaveLength(1);
+  });
+});
+
+describe("getCreditSummary", () => {
+  it("donne au membre, sous RLS, le solde et le disponible après réservation", async () => {
+    const workspaceId = await workspaceWith(100);
+    await createPipelineWithReservation(admin, { workspaceId, userId: owner.id, brief, tier: "standard", idempotencyKey: randomUUID() });
+
+    expect(await getCreditSummary(owner.client, workspaceId)).toEqual({ planKey: "free", balance: 100, reserved: 21, available: 79 });
+  });
+
+  it("donne un solde nul à un workspace qui n'a encore rien reçu", async () => {
+    const workspaceId = await workspaceWith(0);
+    expect(await getCreditSummary(owner.client, workspaceId)).toMatchObject({ balance: 0, reserved: 0, available: 0 });
+  });
+
+  it("ne lit pas le solde d'un autre workspace", async () => {
+    const workspaceId = await workspaceWith(100);
+    const outsider = await createUser("credits-outsider");
+    await expect(getCreditSummary(outsider.client, workspaceId)).rejects.toThrow(/Solde de crédits/);
   });
 });

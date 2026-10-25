@@ -62,7 +62,7 @@ test("un pipeline inconnu affiche une page introuvable, exclue de l'indexation",
 test.describe("sur mobile", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  for (const path of ["/", "/pipelines/new", "/pipelines/demo-completed", "/pipelines/demo-partial"]) {
+  for (const path of ["/", "/pipelines/new", "/pricing", "/pipelines/demo-completed", "/pipelines/demo-partial"]) {
     test(`${path} ne déborde pas horizontalement`, async ({ page }) => {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
