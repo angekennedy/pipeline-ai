@@ -22,7 +22,7 @@ export default defineConfig({
       ANTHROPIC_API_KEY: "test-anthropic-key",
     },
     setupFiles: ["./tests/setup.ts"],
-    include: ["tests/unit/**/*.test.{ts,tsx}", "tests/integration/**/*.test.{ts,tsx}"],
+    include: ["tests/unit/**/*.test.{ts,tsx}"], // intégration : vitest.integration.config.mts
     coverage: {
       provider: "v8",
       // Pas de rapport HTML : ses scripts générés seraient analysés par ESLint.

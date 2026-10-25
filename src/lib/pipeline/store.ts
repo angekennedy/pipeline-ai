@@ -4,7 +4,7 @@ import type { ModelTier } from "./registry";
 import type { PipelineStatus } from "./status";
 
 // Accès aux données du pipeline, découplé de Supabase : lib/pipeline ne dépend ni de la base ni
-// d'Inngest. L'implémentation Supabase (service role, RPC transactionnelles) vient avec les migrations.
+// d'Inngest. Implémentation Supabase : src/lib/supabase/pipeline-store.ts (service role, RPC transactionnelles).
 
 export type PipelineRecord = {
   id: string;
@@ -73,6 +73,17 @@ export type GenerationFailure = {
   costUsdMicros: number | null; // un appel refusé ou invalide reste facturé par l'API
 };
 
+// Une autre exécution tient déjà la génération (bail en cours). Erreur retentable : au retry, la
+// génération est soit terminée (version renvoyée), soit libérée par l'expiration du bail.
+export class GenerationInProgressError extends Error {
+  readonly code = "GENERATION_IN_PROGRESS";
+  readonly retryable = true;
+  constructor(generationId: string) {
+    super(`Génération ${generationId} déjà en cours dans une autre exécution`);
+    this.name = "GenerationInProgressError";
+  }
+}
+
 export interface PipelineStore {
   getPipeline(pipelineId: string): Promise<PipelineRecord>;
   getCurrentVersion(pipelineId: string, assetType: AssetType): Promise<StoredVersion | null>;
@@ -86,6 +97,7 @@ export interface PipelineStore {
     credits: number;
     userFeedback?: string; // consigne de régénération (`generations.user_feedback`, non fiable)
   }): Promise<GenerationRecord>;
+  // Prend la génération pour cette tentative ; GenerationInProgressError si une autre la tient.
   markRunning(generationId: string, attempt: number): Promise<void>;
   // Une seule transaction : version immuable, pointeur courant et, pour une génération, son statut
   // et sa télémétrie. Renvoie l'id de la version créée.

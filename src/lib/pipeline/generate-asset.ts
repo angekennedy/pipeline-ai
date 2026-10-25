@@ -6,7 +6,7 @@ import { LlmError, callStructured } from "@/lib/ai/structured";
 import { createSceneThrottle, safePublish } from "@/lib/realtime/broadcast";
 import type { PipelineEventPublisher } from "@/lib/realtime/events";
 import { registry, type AssetDefinition } from "./registry";
-import type { GenerationFailure, PipelineRecord, PipelineStore, SourceVersions } from "./store";
+import { GenerationInProgressError, type GenerationFailure, type PipelineRecord, type PipelineStore, type SourceVersions } from "./store";
 
 // Une dépendance absente ne se résout pas en relançant l'étape : erreur définitive.
 export class MissingDependencyError extends Error {
@@ -137,6 +137,8 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
     return versionId;
   } catch (error) {
     scenes?.cancel();
+    // La génération appartient à l'autre exécution : ne pas la marquer en échec à sa place.
+    if (error instanceof GenerationInProgressError) throw error;
     const failure = failureOf(error);
     await store.markFailed(generation.id, failure);
     await safePublish(publish, { type: "asset.failed", asset: type, code: failure.code });

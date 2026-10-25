@@ -6,6 +6,7 @@ import type { PipelineEvent } from "@/lib/realtime/events";
 import type { Brief, ChannelPreset } from "@/lib/ai/schemas";
 import { MissingDependencyError, generateAsset } from "@/lib/pipeline/generate-asset";
 import type { ModelTier } from "@/lib/pipeline/registry";
+import { GenerationInProgressError } from "@/lib/pipeline/store";
 import { anthropicSequence, jsonReplyStream, refusalStream } from "../../mocks/anthropic";
 import { MemoryPipelineStore } from "../../mocks/memory-store";
 import { server } from "../../mocks/server";
@@ -153,6 +154,20 @@ describe("generateAsset", () => {
     expect(error).toMatchObject({ code: "DEPENDENCY_MISSING", retryable: false, missing: ["titles"] });
     expect(calls).toHaveLength(0);
     expect(store.generation(`pipe:${PIPELINE_ID}:thumbnails`).failure).toMatchObject({ code: "DEPENDENCY_MISSING" });
+  });
+
+  it("laisse la génération à l'exécution qui la tient déjà, sans appeler le modèle ni la marquer en échec", async () => {
+    const calls = mock(() => jsonReplyStream(validScript));
+    vi.spyOn(store, "markRunning").mockImplementation(async (id) => {
+      throw new GenerationInProgressError(id);
+    });
+    const markFailed = vi.spyOn(store, "markFailed");
+
+    const error = await run("script").catch((e) => e);
+    expect(error).toBeInstanceOf(GenerationInProgressError);
+    expect(error).toMatchObject({ code: "GENERATION_IN_PROGRESS", retryable: true });
+    expect(calls).toHaveLength(0);
+    expect(markFailed).not.toHaveBeenCalled();
   });
 
   it("transmet le texte au fil du stream", async () => {

@@ -373,6 +373,32 @@ create policy rt_pipeline_read on realtime.messages for select to authenticated 
 
 Les éditions manuelles (`user_edit`) passent par une Server Action qui vérifie `has_role(…,'editor')`, valide le contenu par Zod, puis insère en service role. Les versions restent immuables et le chemin d'écriture est unique.
 
+> **Révision (octobre 2026, tâche 0.4).** Les migrations sont dans `supabase/migrations/20261025000001_core.sql` → `…05_realtime.sql`.
+>
+> **Écarts avec le schéma ci-dessus :**
+> - Les policies sont restreintes `to authenticated`.
+> - Le topic Realtime est validé par l'expression régulière `^pipeline:[0-9a-f-]{36}$`, et non plus par `like` : un topic mal formé ne fait plus échouer le cast en uuid.
+> - `generations` gagne `started_at`, `version_id` et `api_calls`.
+> - `asset_versions` gagne `source_versions` et `restored_from` (tâche 1.10).
+>
+> **Store et RPC.** `SupabasePipelineStore` (`src/lib/supabase/pipeline-store.ts`) implémente `PipelineStore` en service role. Il passe par quatre RPC réservées à `service_role` :
+> - `upsert_generation` ;
+> - `claim_generation`, qui prend la génération avec un bail de 15 minutes. Si la génération est déjà tenue, elle renvoie `false`, et le store lève `GenerationInProgressError`, une erreur retentable que `generateAsset` laisse passer sans marquer la génération en échec ;
+> - `commit_asset_version`, qui fait version, pointeur courant et télémétrie en une transaction ;
+> - `mark_generation_failed`. Après une régénération ratée, l'asset redevient `ready` s'il a une version.
+>
+> **Route Inngest.** `/api/inngest` (`maxDuration` 300) branche les deux fonctions sur ce store et sur `createBroadcastPublisher`. Elle est exclue du proxy de session.
+>
+> **Tests d'intégration.** `pnpm test:integration` tourne contre le Supabase local, sans MSW, avec un job CI dédié qui vérifie aussi que `database.types.ts` est à jour. Les tests couvrent :
+> - la RLS active sur toutes les tables de `public`, dont la liste est figée dans le test ;
+> - l'isolation entre workspaces A et B, table par table, pour B et pour anon ;
+> - les droits par rôle ;
+> - les RPC refusées aux clients ;
+> - le canal Realtime refusé à B et l'événement reçu par A ;
+> - le contrat du store.
+>
+> Chaque protection a été affaiblie volontairement au moins une fois pour vérifier qu'un test échoue.
+
 ---
 
 ## 4. Orchestration IA
