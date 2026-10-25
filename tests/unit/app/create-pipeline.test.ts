@@ -18,21 +18,34 @@ beforeEach(() => {
   redirect.mockClear();
 });
 
-// Mode démo : solde Free de 30 crédits (lib/demo/credits.ts).
+// Mode démo : plan Free, 20 crédits disponibles (lib/demo/credits.ts).
 describe("Server Action createPipeline", () => {
-  it("lance le pipeline quand le solde couvre son coût", async () => {
-    await expect(createPipeline(initial, form({ durationMinutes: "10", tier: "standard" }))).rejects.toThrow("NEXT_REDIRECT /pipelines/demo-running");
+  it("lance le pipeline quand le plan l'autorise et que le solde couvre son coût", async () => {
+    await expect(createPipeline(initial, form({ durationMinutes: "8", tier: "standard" }))).rejects.toThrow("NEXT_REDIRECT /pipelines/demo-running");
   });
 
   it("refuse sans rien lancer quand le coût dépasse le solde, et renvoie les montants du modal", async () => {
-    const values = { ...brief, durationMinutes: "10", tier: "premium" };
-    expect(await createPipeline(initial, form(values))).toEqual({ fieldErrors: {}, values, insufficient: { required: 35, available: 30 } });
+    const values = { ...brief, durationMinutes: "10", tier: "standard" };
+    expect(await createPipeline(initial, form(values))).toEqual({ fieldErrors: {}, values, insufficient: { required: 21, available: 20 } });
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("valide le brief avant de comparer le coût", async () => {
+  it("refuse une durée au-delà de la limite du plan, avant de regarder le solde", async () => {
+    const state = await createPipeline(initial, form({ durationMinutes: "15", tier: "standard" }));
+    expect(state.restriction).toEqual({ reason: "duration", plan: "free", limit: 10 });
+    expect(state.insufficient).toBeUndefined();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("refuse le script Premium à un plan qui ne l'inclut pas", async () => {
+    const state = await createPipeline(initial, form({ durationMinutes: "8", tier: "premium" }));
+    expect(state.restriction).toEqual({ reason: "premium", plan: "free" });
+  });
+
+  it("valide le brief avant le plan et le coût", async () => {
     const state = await createPipeline(initial, form({ durationMinutes: "90" }));
     expect(state.fieldErrors).toHaveProperty("durationMinutes");
+    expect(state.restriction).toBeUndefined();
     expect(state.insufficient).toBeUndefined();
   });
 });

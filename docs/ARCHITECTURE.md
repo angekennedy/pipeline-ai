@@ -813,7 +813,36 @@ La double facturation est impossible à trois niveaux : la contrainte `unique(id
 > - Le formulaire du brief affiche une estimation en direct (total, détail par asset, solde restant).
 > - Le modal « crédits insuffisants » s'ouvre sur la réponse `insufficient: {required, available}` de la Server Action, et la saisie est conservée.
 >
-> **Mode démo.** En attendant l'authentification (phase 2), le solde vient de `src/lib/demo/credits.ts` (Free, 30 crédits). La Server Action compare le coût à ce solde ; elle s'appuiera ensuite sur l'`InsufficientCreditsError` de la réservation.
+> **Mode démo.** En attendant l'authentification (phase 2), le solde vient de `src/lib/demo/credits.ts` (Free, 20 crédits disponibles depuis la tâche 3.6). La Server Action compare le coût à ce solde ; elle s'appuiera ensuite sur l'`InsufficientCreditsError` de la réservation.
+
+> **Révision (octobre 2026, tâche 3.6).** Migration `20261025000008_plan_limits.sql`. Les restrictions par plan sont vérifiées à deux niveaux :
+> 1. la Server Action, pour un message immédiat (`pipelineRestriction`, `src/lib/billing/entitlements.ts`) ;
+> 2. la base, qui refuse avec `PLAN_RESTRICTED` (`42501`) et un détail `{reason, plan, limit?}`. Côté TypeScript, ce refus devient une `PlanRestrictionError` : statut 403, avec un message qui dit quoi faire.
+>
+> **Création d'un pipeline.** `create_pipeline_with_reservation` refuse, dans l'ordre et avant toute écriture :
+> - un abonnement `past_due` ou `unpaid` : les nouveaux pipelines sont bloqués, la lecture est conservée ;
+> - une durée au-delà du plan (Free : 10 min) ;
+> - le palier Premium hors Studio.
+>
+> Une clé d'idempotence déjà acceptée renvoie toujours son pipeline, même après un changement de plan.
+>
+> **Presets de chaîne.** Les membres les créent directement (policy `ch_write`), donc la limite est un trigger `before insert`.
+> - Le trigger verrouille la ligne du workspace, ce qui sérialise deux créations simultanées.
+> - Il passe avant la RLS. Un non-éditeur est donc laissé au refus de la RLS : le trigger ne lit pas le plan d'un autre workspace et ne verrouille pas sa ligne.
+>
+> **Limites.** `private.plan_limits` reproduit `PLANS` ; un test d'intégration vérifie la parité. Un plan inconnu reçoit les limites de Free.
+>
+> **Faille corrigée.** La policy `ws_admin` permettait à un admin de réécrire `plan_key` et `stripe_customer_id` : il pouvait se passer lui-même en Studio. L'`UPDATE` client est désormais limité aux colonnes `name` et `slug`.
+>
+> **Interface.**
+> - Le champ durée est borné et annonce la limite du plan.
+> - L'option Premium est grisée hors Studio.
+> - Un refus s'affiche en alerte, avec un lien vers les tarifs.
+>
+> **Tests de mutation.** Les tests de `tests/integration/plan-limits.test.ts` détectent trois régressions :
+> - un trigger sans verrou (le test de concurrence est rendu déterministe par une transaction tenue ouverte) ;
+> - un trigger sans garde RLS ;
+> - un `UPDATE` complet sur `workspaces`.
 >
 > **Tests.** `tests/integration/billing-flow.test.ts` fait tourner la vraie orchestration sur le vrai store, avec un client Anthropic hors réseau. La suppression de la capture et la suppression du plafond ont été testées par mutation : elles font échouer les tests.
 

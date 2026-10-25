@@ -1,30 +1,44 @@
 import { expect, test } from "@playwright/test";
 
-// Mode démo : solde Free de 30 crédits (lib/demo/credits.ts).
+// Mode démo : plan Free, 20 crédits disponibles (lib/demo/credits.ts).
 
 test("le coût s'affiche avant le lancement, et un pipeline trop cher ouvre le modal sans rien lancer", async ({ page }) => {
   await page.goto("/pipelines/new");
-  await expect(page.getByRole("link", { name: /30 crédits disponibles, plan Free/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /20 crédits disponibles, plan Free/ })).toBeVisible();
   const estimate = page.getByRole("region", { name: /Coût/ });
   await expect(estimate).toContainText("Coût : 18 crédits");
 
   await page.getByLabel("Niche").fill("Histoire");
   await page.getByLabel("Sujet de la vidéo").fill("Comment les pyramides de Gizeh ont-elles été construites ?");
   await page.getByLabel("Durée cible (minutes)").fill("10");
-  await page.getByLabel(/Premium/).check();
-  await expect(estimate).toContainText("Il vous manque 5 crédits");
+  await expect(estimate).toContainText("Il vous manque 1 crédit");
   await page.getByRole("button", { name: "Générer le pipeline" }).click();
 
   const dialog = page.getByRole("dialog", { name: "Crédits insuffisants" });
-  await expect(dialog).toContainText("Ce pipeline coûte 35 crédits et vous en avez 30 disponibles");
+  await expect(dialog).toContainText("Ce pipeline coûte 21 crédits et vous en avez 20 disponibles");
   await expect(page).toHaveURL(/\/pipelines\/new$/);
 
   await dialog.getByRole("button", { name: "Modifier le brief" }).click();
   await expect(dialog).toBeHidden();
-  await page.getByLabel(/Standard/).check();
-  await expect(estimate).toContainText("Coût : 21 crédits");
+  await page.getByLabel("Durée cible (minutes)").fill("8");
+  await expect(estimate).toContainText("Coût : 18 crédits");
   await page.getByRole("button", { name: "Générer le pipeline" }).click();
   await expect(page).toHaveURL(/\/pipelines\/demo-running$/);
+});
+
+test("le plan Free refuse une vidéo de plus de 10 min avec un message explicite", async ({ page }) => {
+  await page.goto("/pipelines/new");
+  await expect(page.getByLabel(/Premium/)).toBeDisabled();
+  await page.getByLabel("Niche").fill("Histoire");
+  await page.getByLabel("Sujet de la vidéo").fill("Comment les pyramides de Gizeh ont-elles été construites ?");
+  await page.getByLabel("Durée cible (minutes)").fill("15");
+  await page.getByRole("button", { name: "Générer le pipeline" }).click();
+
+  const alert = page.getByRole("alert").filter({ hasText: "Le plan Free limite les vidéos à 10 min" });
+  await expect(alert).toBeVisible();
+  await expect(alert.getByRole("link", { name: "Voir les tarifs" })).toHaveAttribute("href", "/pricing");
+  await expect(page).toHaveURL(/\/pipelines\/new$/);
+  await expect(page.getByLabel("Durée cible (minutes)")).toHaveValue("15");
 });
 
 test("la page des tarifs présente les plans, les packs et la grille de crédits", async ({ page }) => {

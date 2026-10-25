@@ -7,6 +7,7 @@ import { creditSummary } from "@/lib/billing/balance";
 import { BRIEF_FIELD_MESSAGES } from "@/lib/pipeline/brief-form";
 
 const credits = creditSummary("free", 30);
+const studio = creditSummary("studio", 5000);
 
 const createPipeline = vi.fn();
 vi.mock("@/app/pipelines/new/actions", () => ({ createPipeline: (...args: unknown[]) => createPipeline(...args) }));
@@ -30,7 +31,7 @@ describe("BriefForm", () => {
   it("envoie la saisie à la Server Action", async () => {
     const user = userEvent.setup();
     createPipeline.mockResolvedValue({ fieldErrors: {}, values: {} });
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm credits={studio} />);
 
     await user.type(screen.getByLabelText("Niche"), "Histoire");
     await user.type(screen.getByLabelText("Sujet de la vidéo"), "Les pyramides");
@@ -60,7 +61,7 @@ describe("BriefForm", () => {
 
   it("affiche le coût avant le lancement et le recalcule selon la durée et la formule", async () => {
     const user = userEvent.setup();
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm credits={creditSummary("studio", 30)} />);
     const estimate = screen.getByRole("region", { name: /Coût/ });
     expect(estimate).toHaveTextContent("Coût : 18 crédits"); // 8 min en Standard
     expect(estimate).toHaveTextContent("Solde après le lancement : 12 crédits.");
@@ -88,7 +89,7 @@ describe("BriefForm", () => {
       values: { niche: "Histoire", topic: "Les pyramides", durationMinutes: "10", tier: "premium" },
       insufficient: { required: 35, available: 30 },
     });
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm credits={creditSummary("studio", 30)} />);
     await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
 
     const dialog = await screen.findByRole("dialog", { name: "Crédits insuffisants" });
@@ -100,5 +101,30 @@ describe("BriefForm", () => {
 
     await user.click(within(dialog).getByRole("button", { name: "Modifier le brief" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("annonce les limites du plan : durée maximale, Premium grisé hors Studio", () => {
+    render(<BriefForm credits={credits} />);
+    const duration = screen.getByLabelText("Durée cible (minutes)");
+    expect(duration).toHaveAttribute("max", "10");
+    expect(duration).toHaveAccessibleDescription("Jusqu'à 10 min avec le plan Free.");
+    expect(screen.getByLabelText(/Premium/)).toBeDisabled();
+    expect(screen.getByText("(inclus dans le plan Studio)")).toBeInTheDocument();
+  });
+
+  it("affiche le refus du plan avec son message et un lien vers les tarifs", async () => {
+    const user = userEvent.setup();
+    createPipeline.mockResolvedValue({
+      fieldErrors: {},
+      values: { niche: "Histoire", topic: "Les pyramides", durationMinutes: "15" },
+      restriction: { reason: "duration", plan: "free", limit: 10 },
+    });
+    render(<BriefForm credits={credits} />);
+    await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Le plan Free limite les vidéos à 10 min. Réduisez la durée, ou passez au plan Creator pour aller jusqu'à 60 min.");
+    expect(within(alert).getByRole("link", { name: "Voir les tarifs" })).toHaveAttribute("href", "/pricing");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

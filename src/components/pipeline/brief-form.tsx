@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { createPipeline, type CreatePipelineState } from "@/app/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
 import type { CreditSummary } from "@/lib/billing/balance";
+import { restrictionMessage } from "@/lib/billing/entitlements";
+import { PLANS, PLAN_KEYS } from "@/lib/billing/plans";
 import type { BriefFormField } from "@/lib/pipeline/brief-form";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import { CostEstimate } from "@/components/billing/cost-estimate";
@@ -43,6 +46,9 @@ const STYLE_LABELS: Record<(typeof STYLES)[number], string> = {
 const SELECT_CLASS =
   "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm dark:bg-input/30";
 
+// Premier plan qui inclut le script Premium, nommé à côté de l'option quand elle est grisée.
+const PREMIUM_PLAN = PLAN_KEYS.map((key) => PLANS[key]).find((plan) => plan.premium)?.name;
+
 const initialState: CreatePipelineState = { fieldErrors: {}, values: {} };
 
 function Field({
@@ -80,6 +86,7 @@ function Field({
 export function BriefForm({ credits }: { credits: CreditSummary }) {
   const [state, formAction, pending] = useActionState(createPipeline, initialState);
   const { fieldErrors: errors, values } = state;
+  const plan = PLANS[credits.planKey];
 
   // Durée et formule suivies en direct pour afficher le coût. Chaque réponse de la Server Action
   // réinitialise le formulaire avec la saisie renvoyée : on s'y recale, et le modal s'ouvre si la
@@ -101,14 +108,19 @@ export function BriefForm({ credits }: { credits: CreditSummary }) {
         <Field name="niche" label="Niche" hint="Le thème de la chaîne, par exemple Histoire ou Finances personnelles." error={errors.niche}>
           {(props) => <Input {...props} defaultValue={values.niche} required maxLength={80} />}
         </Field>
-        <Field name="durationMinutes" label="Durée cible (minutes)" error={errors.durationMinutes}>
+        <Field
+          name="durationMinutes"
+          label="Durée cible (minutes)"
+          hint={`Jusqu'à ${plan.maxDurationMinutes} min avec le plan ${plan.name}.`}
+          error={errors.durationMinutes}
+        >
           {(props) => (
             <Input
               {...props}
               type="number"
               inputMode="numeric"
               min={1}
-              max={60}
+              max={plan.maxDurationMinutes}
               step={1}
               defaultValue={values.durationMinutes ?? "8"}
               onChange={(event) => setDuration(event.target.value)}
@@ -178,11 +190,28 @@ export function BriefForm({ credits }: { credits: CreditSummary }) {
           Standard : script rédigé par Claude Sonnet
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="tier" value="premium" defaultChecked={values.tier === "premium"} onChange={() => setTier("premium")} />
+          <input
+            type="radio"
+            name="tier"
+            value="premium"
+            defaultChecked={values.tier === "premium"}
+            disabled={!plan.premium}
+            onChange={() => setTier("premium")}
+          />
           Premium : script rédigé par Claude Opus, plus de crédits
+          {!plan.premium && <span className="text-muted-foreground">(inclus dans le plan {PREMIUM_PLAN})</span>}
         </label>
         {errors.tier && <p className="text-sm text-destructive">{errors.tier}</p>}
       </fieldset>
+
+      {state.restriction && (
+        <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
+          <p>{restrictionMessage(state.restriction)}</p>
+          <Link href="/pricing" className="mt-2 inline-block font-medium underline underline-offset-4">
+            Voir les tarifs
+          </Link>
+        </div>
+      )}
 
       <CostEstimate durationMinutes={Number(duration.trim() || Number.NaN)} tier={tier} available={credits.available} />
 

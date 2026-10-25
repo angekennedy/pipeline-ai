@@ -4,6 +4,8 @@ import type { Brief, ChannelPreset } from "@/lib/ai/schemas";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { pipelineCredits } from "./costs";
+import { PlanRestrictionError, type PlanRestriction } from "./entitlements";
+import { isPlanKey } from "./plans";
 
 // Solde disponible (balance − reserved) insuffisant : rien n'a été créé. L'interface ouvre le modal
 // d'upgrade avec ces deux montants.
@@ -30,6 +32,8 @@ export type CreatePipelineInput = {
 export type CreatedPipeline = { pipelineId: string; created: boolean; credits: number };
 
 // Crée le pipeline et réserve son coût total en une transaction (create_pipeline_with_reservation).
+// La base refuse d'abord ce que le plan n'autorise pas (PlanRestrictionError, 403), puis un solde
+// insuffisant (InsufficientCreditsError).
 // `created: false` : la même clé a déjà créé ce pipeline, sans nouvelle réservation.
 export async function createPipelineWithReservation(db: SupabaseClient<Database>, input: CreatePipelineInput): Promise<CreatedPipeline> {
   const credits = pipelineCredits(input.brief, input.tier);
@@ -47,6 +51,10 @@ export async function createPipelineWithReservation(db: SupabaseClient<Database>
     if (error.message === "INSUFFICIENT_CREDITS") {
       const detail = JSON.parse(error.details) as { required: number; available: number };
       throw new InsufficientCreditsError(detail.required, detail.available);
+    }
+    if (error.message === "PLAN_RESTRICTED") {
+      const detail = JSON.parse(error.details) as PlanRestriction & { plan: string };
+      throw new PlanRestrictionError({ ...detail, plan: isPlanKey(detail.plan) ? detail.plan : "free" });
     }
     throw Object.assign(new Error(`Création du pipeline : ${error.message}`), { code: error.code });
   }

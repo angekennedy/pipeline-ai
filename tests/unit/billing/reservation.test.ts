@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 import type { Brief, ChannelPreset } from "@/lib/ai/schemas";
+import { PlanRestrictionError } from "@/lib/billing/entitlements";
 import { InsufficientCreditsError, createPipelineWithReservation, sweepStaleReservations } from "@/lib/billing/reservation";
 import type { Database } from "@/lib/supabase/database.types";
 import { validBrief, validChannel } from "../../fixtures/assets";
@@ -46,6 +47,22 @@ describe("createPipelineWithReservation", () => {
     const error = await createPipelineWithReservation(db, input).catch((e) => e);
     expect(error).toBeInstanceOf(InsufficientCreditsError);
     expect(error).toMatchObject({ code: "INSUFFICIENT_CREDITS", required: 21, available: 5 });
+  });
+
+  it("traduit un refus du plan en PlanRestrictionError (403) avec un message explicite", async () => {
+    const { db } = fakeDb({
+      data: null,
+      error: { message: "PLAN_RESTRICTED", code: "42501", details: '{"reason" : "duration", "plan" : "free", "limit" : 10}' },
+    });
+    const error = await createPipelineWithReservation(db, input).catch((e) => e);
+    expect(error).toBeInstanceOf(PlanRestrictionError);
+    expect(error).toMatchObject({ code: "PLAN_RESTRICTED", status: 403, restriction: { reason: "duration", plan: "free", limit: 10 } });
+    expect(error.message).toBe("Le plan Free limite les vidéos à 10 min. Réduisez la durée, ou passez au plan Creator pour aller jusqu'à 60 min.");
+  });
+
+  it("applique les messages de Free à un plan inconnu renvoyé par la base", async () => {
+    const { db } = fakeDb({ data: null, error: { message: "PLAN_RESTRICTED", code: "42501", details: '{"reason" : "premium", "plan" : "legacy"}' } });
+    await expect(createPipelineWithReservation(db, input)).rejects.toMatchObject({ restriction: { reason: "premium", plan: "free" } });
   });
 
   it("laisse remonter les autres erreurs avec leur code", async () => {
