@@ -564,6 +564,8 @@ Faire passer `titles` en premier coûte environ 2 à 4 s de latence. En échange
 
 ### 4.5 Jobs en arrière-plan : Inngest
 
+> **Révision (octobre 2026, tâche 1.7).** Inngest v4 (`inngest@4.23.0`) : les triggers passent dans les options et les événements sont typés par `eventType()` avec Zod (`src/lib/jobs/events.ts`). L'orchestration vit dans `src/lib/pipeline/run-pipeline.ts`, sans dépendance à Inngest ; `src/lib/jobs/functions/run-pipeline.ts` ne fait que la brancher et convertir les erreurs `retryable: false` en `NonRetriableError`. La fonction est construite par une factory qui reçoit le `PipelineStore`. La route `/api/inngest` arrivera avec l'implémentation Supabase (0.4). À prévoir dans cette implémentation : une prise de génération atomique avec bail d'expiration, pour que deux exécutions simultanées d'une même étape ne paient pas deux appels au modèle.
+
 ```ts
 // lib/jobs/events.ts
 type Events = {

@@ -6,6 +6,7 @@ import type {
   GenerationRecord,
   GenerationTelemetry,
   PipelineRecord,
+  PipelineStatus,
   PipelineStore,
   StoredVersion,
 } from "@/lib/pipeline/store";
@@ -26,6 +27,7 @@ export class MemoryPipelineStore implements PipelineStore {
   readonly pipelines = new Map<string, PipelineRecord>();
   readonly generations = new Map<string, Generation>(); // par clé d'idempotence
   readonly versions: Version[] = [];
+  readonly statuses: Array<[string, PipelineStatus]> = []; // historique des changements de statut
   private readonly current = new Map<string, string>(); // `${pipelineId}:${type}` → id de version
 
   addPipeline(pipeline: PipelineRecord) {
@@ -89,5 +91,9 @@ export class MemoryPipelineStore implements PipelineStore {
 
   async markFailed(generationId: string, failure: GenerationFailure) {
     Object.assign(this.byId(generationId), { status: "failed", failure });
+  }
+
+  async setPipelineStatus(pipelineId: string, status: PipelineStatus) {
+    this.statuses.push([pipelineId, status]);
   }
 }

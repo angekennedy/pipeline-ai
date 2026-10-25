@@ -1,3 +1,4 @@
 allowBuilds:
+  protobufjs: false # dépendance d'Inngest via OpenTelemetry : le postinstall ne fait qu'afficher un avertissement
   sharp: false
   unrs-resolver: false

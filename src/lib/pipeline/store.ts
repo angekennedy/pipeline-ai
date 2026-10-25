@@ -13,6 +13,9 @@ export type PipelineRecord = {
   tier: ModelTier;
 };
 
+// Statuts de `pipelines.status`. `canceled` est posé par la Server Action qui annule le pipeline.
+export type PipelineStatus = "queued" | "running" | "completed" | "partial" | "failed" | "canceled";
+
 export type GenerationStatus = "queued" | "running" | "succeeded" | "failed";
 
 export type GenerationRecord = {
@@ -66,4 +69,5 @@ export interface PipelineStore {
   // Renvoie l'id de la version créée.
   commitAssetVersion(input: CommitInput): Promise<string>;
   markFailed(generationId: string, failure: GenerationFailure): Promise<void>;
+  setPipelineStatus(pipelineId: string, status: PipelineStatus): Promise<void>;
 }
