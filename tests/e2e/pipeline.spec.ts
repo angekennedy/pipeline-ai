@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { signIn } from "./auth";
 
 // Parcours en mode démo (pas encore de base) : les composants, la Server Action et la
 // validation sont ceux de la production, seule la génération est rejouée.
 
 test("brief → génération en direct : première scène en moins de 10 s, puis pipeline terminé", async ({ page }) => {
+  await signIn(page);
   await page.goto("/");
   await page.getByRole("link", { name: "Créer un pipeline" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Nouveau pipeline" })).toBeVisible();
@@ -23,6 +25,7 @@ test("brief → génération en direct : première scène en moins de 10 s, puis
 });
 
 test("un brief invalide affiche l'erreur du champ, sans quitter le formulaire", async ({ page }) => {
+  await signIn(page);
   await page.goto("/pipelines/new");
   await page.getByLabel("Niche").fill("H");
   await page.getByLabel("Sujet de la vidéo").fill("Les pyramides de Gizeh");
@@ -64,6 +67,7 @@ test.describe("sur mobile", () => {
 
   for (const path of ["/", "/pipelines/new", "/pricing", "/pipelines/demo-completed", "/pipelines/demo-partial"]) {
     test(`${path} ne déborde pas horizontalement`, async ({ page }) => {
+      await signIn(page); // en-tête d'un utilisateur connecté, le plus chargé
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       const [scrollWidth, viewportWidth] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);

@@ -10,7 +10,7 @@ const credits = creditSummary("free", 30);
 const studio = creditSummary("studio", 5000);
 
 const createPipeline = vi.fn();
-vi.mock("@/app/pipelines/new/actions", () => ({ createPipeline: (...args: unknown[]) => createPipeline(...args) }));
+vi.mock("@/app/(app)/pipelines/new/actions", () => ({ createPipeline: (...args: unknown[]) => createPipeline(...args) }));
 
 beforeEach(() => {
   createPipeline.mockReset();

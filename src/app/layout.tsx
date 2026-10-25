@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AccountMenu } from "@/components/auth/account-menu";
 import { CreditBadge } from "@/components/billing/credit-badge";
 import { DEMO_CREDITS } from "@/lib/demo/credits";
 import "./globals.css";
@@ -28,11 +30,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <header className="border-b">
-          <nav className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3" aria-label="Navigation principale">
+          <nav className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3" aria-label="Navigation principale">
             <Link href="/" className="font-semibold">
               Pipeline AI
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground">
                 Tarifs
               </Link>
@@ -41,6 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </Link>
               {/* Mode démo : le solde du workspace courant viendra avec l'authentification (phase 2). */}
               <CreditBadge credits={DEMO_CREDITS} />
+              <Suspense>
+                <AccountMenu />
+              </Suspense>
             </div>
           </nav>
         </header>

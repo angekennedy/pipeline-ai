@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { signIn } from "./auth";
 
 // Mode démo : plan Free, 20 crédits disponibles (lib/demo/credits.ts).
 
 test("le coût s'affiche avant le lancement, et un pipeline trop cher ouvre le modal sans rien lancer", async ({ page }) => {
+  await signIn(page);
   await page.goto("/pipelines/new");
   await expect(page.getByRole("link", { name: /20 crédits disponibles, plan Free/ })).toBeVisible();
   const estimate = page.getByRole("region", { name: /Coût/ });
@@ -27,6 +29,7 @@ test("le coût s'affiche avant le lancement, et un pipeline trop cher ouvre le m
 });
 
 test("le plan Free refuse une vidéo de plus de 10 min avec un message explicite", async ({ page }) => {
+  await signIn(page);
   await page.goto("/pipelines/new");
   await expect(page.getByLabel(/Premium/)).toBeDisabled();
   await page.getByLabel("Niche").fill("Histoire");

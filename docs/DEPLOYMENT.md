@@ -39,6 +39,13 @@ main ──▶ GitHub Actions « Staging DB » ──▶ supabase db push sur le
 
    Le ref doit être une variable du dépôt et non de l'environnement : la condition du job est évaluée avant que l'environnement soit chargé.
 
+6. **Connexion (tâche 2.1)**, dans Authentication. Le fichier `supabase/config.toml` ne règle que la pile locale : sur le projet hébergé, ces réglages se font dans le tableau de bord.
+   - **URL Configuration** : **Site URL** reçoit l'URL de production. Ajoute dans **Redirect URLs** `https://<domaine>/auth/callback` et `https://*-<équipe>.vercel.app/auth/callback` (les previews).
+   - **Emails → Templates** : dans **Magic Link** et **Confirm signup**, remplace le lien par
+     `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`, comme dans `supabase/templates/magic-link.html`. Sans ce changement, le lien d'origine ne passe pas par `/auth/confirm` et la connexion échoue.
+   - **SMTP** : le serveur d'envoi intégré à Supabase est limité à quelques e-mails par heure, et réservé aux tests. Avant la bêta, branche un SMTP (Resend, Postmark, etc.) dans Settings → Auth.
+   - **Google** (facultatif) : crée un identifiant OAuth « Application Web » dans Google Cloud Console, avec comme URI de redirection `https://<ref>.supabase.co/auth/v1/callback`. Colle le Client ID et le secret dans Authentication → Providers → Google, puis pose `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true` sur Vercel pour afficher le bouton.
+
 > Les previews partagent la base de staging. Une PR qui ajoute une migration est donc déployée avant que sa migration soit appliquée : la preview peut échouer sur ces écrans jusqu'à la fusion. Si cela devient gênant, Supabase Branching, payant, donne une base par PR.
 
 ## 2. Vercel : previews par PR
@@ -103,6 +110,7 @@ Les réglages de confidentialité :
 | `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY` | Vercel | Oui (build) |
 | `INNGEST_SIGNING_KEY`, `INNGEST_EVENT_KEY` | Vercel (intégration Inngest) | Oui sur Vercel |
 | `NEXT_PUBLIC_SENTRY_DSN` | Vercel | Non : Sentry inactif sans DSN |
+| `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED` | Vercel | Non : `true` affiche le bouton Google, une fois le fournisseur configuré dans Supabase |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Vercel (build) | Non : pas de source maps sans eux |
 | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_DB_PASSWORD` | GitHub, environnement `staging` (secrets) | Pour `Staging DB` |
 | `SUPABASE_STAGING_PROJECT_REF` | GitHub, variable du dépôt | Active `Staging DB` |

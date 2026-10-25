@@ -14,7 +14,17 @@ describe("publicEnv", () => {
     await expect(loadPublicEnv()).resolves.toEqual({
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+      NEXT_PUBLIC_AUTH_GOOGLE_ENABLED: false, // bouton Google masqué par défaut
     });
+  });
+
+  it("n'affiche la connexion Google que si elle est activée explicitement", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+    vi.stubEnv("NEXT_PUBLIC_AUTH_GOOGLE_ENABLED", "true");
+    expect((await loadPublicEnv()).NEXT_PUBLIC_AUTH_GOOGLE_ENABLED).toBe(true);
+    vi.stubEnv("NEXT_PUBLIC_AUTH_GOOGLE_ENABLED", "oui");
+    await expect(loadPublicEnv()).rejects.toThrow();
   });
 
   it("échoue si l'URL est invalide", async () => {

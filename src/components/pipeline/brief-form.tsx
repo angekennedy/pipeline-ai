@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { createPipeline, type CreatePipelineState } from "@/app/pipelines/new/actions";
+import { createPipeline, type CreatePipelineState } from "@/app/(app)/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
 import type { CreditSummary } from "@/lib/billing/balance";
 import { restrictionMessage } from "@/lib/billing/entitlements";

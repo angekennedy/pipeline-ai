@@ -123,6 +123,25 @@ pipeline-ai/
 
 **Règle de répartition :** les Server Actions servent aux mutations déclenchées par l'UI authentifiée. Les Route Handlers servent aux appelants externes (Stripe, Inngest), aux téléchargements GET et à une éventuelle API publique future.
 
+> **Révision (octobre 2026, tâche 2.1).** Connexion Supabase Auth par lien magique et Google.
+>
+> **Filtre du proxy.** `src/lib/supabase/proxy.ts` rafraîchit la session. Il renvoie ensuite vers `/login?next=…` toute route listée dans `APP_ROUTE_PREFIXES` (`src/lib/auth/routes.ts` : `/pipelines/new`, `/w`, `/settings`). Une session ouverte sur `/login` est renvoyée vers sa destination.
+> - Ce filtre est optimiste, sur le cookie. Chaque page et chaque Server Action revérifient l'utilisateur avec `requireUser` (`src/lib/auth/session.ts`, couche d'accès aux données).
+> - `getUser` appelle `connection()` avant de créer le client Supabase. Celui-ci lit l'heure dès sa création, ce que Next refuse pendant le prérendu à la requête.
+>
+> **Lien magique.**
+> - Le gabarit d'e-mail (`supabase/templates/magic-link.html`) pointe vers `/auth/confirm?token_hash=…&type=email`, qui vérifie le jeton côté serveur avec `verifyOtp`. Le lien fonctionne donc aussi sur un autre appareil que celui qui l'a demandé.
+> - La destination est gardée dans le cookie `auth_next`, valable une heure et filtré par `safeNext` contre les redirections ouvertes, plutôt que dans l'URL de l'e-mail.
+> - La réponse est la même que l'adresse soit inscrite ou non.
+>
+> **Google.**
+> - Le flux OAuth PKCE revient sur `/auth/callback`, qui appelle `exchangeCodeForSession`.
+> - Le bouton n'apparaît qu'avec `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true`. En local, le fournisseur est désactivé faute d'identifiants.
+>
+> **Arborescence.** `/pipelines/new` passe dans le groupe `(app)`. Les pipelines de démonstration (`/pipelines/demo-*`), l'accueil et les tarifs restent publics.
+>
+> **CI.** Les e2e tournent dans un job `e2e` avec le Supabase local. La connexion y passe par un vrai lien magique : le jeton est généré par l'API admin (`tests/e2e/auth.ts`).
+
 ---
 
 ## 3. Modèle de données

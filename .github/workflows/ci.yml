@@ -31,14 +31,6 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test:coverage
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
 
   # Migrations, RLS et store sur un Supabase local (Postgres, Auth, PostgREST, Realtime).
   integration:
@@ -58,3 +50,45 @@ jobs:
           pnpm db:types
           git diff --exit-code src/lib/supabase/database.types.ts
       - run: pnpm test:integration
+
+  # Parcours navigateur sur le build de production, branché au Supabase local : la connexion par lien
+  # magique et les pages de l'application en ont besoin. Les clés sont celles, publiques, de la pile
+  # locale, et doivent être connues au build (NEXT_PUBLIC_* inscrites dans le bundle).
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,storage-api,postgres-meta,supavisor
+      - name: Variables du Supabase local
+        id: supabase
+        run: |
+          pnpm exec supabase status -o json > /tmp/supabase.json
+          {
+            echo "url=$(jq -r .API_URL /tmp/supabase.json)"
+            echo "publishable=$(jq -r .PUBLISHABLE_KEY /tmp/supabase.json)"
+            echo "secret=$(jq -r .SECRET_KEY /tmp/supabase.json)"
+          } >> "$GITHUB_OUTPUT"
+      # L'env d'étape l'emporte sur les valeurs factices du workflow.
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ steps.supabase.outputs.url }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ steps.supabase.outputs.publishable }}
+          SUPABASE_SECRET_KEY: ${{ steps.supabase.outputs.secret }}
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ steps.supabase.outputs.url }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ steps.supabase.outputs.publishable }}
+          SUPABASE_SECRET_KEY: ${{ steps.supabase.outputs.secret }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

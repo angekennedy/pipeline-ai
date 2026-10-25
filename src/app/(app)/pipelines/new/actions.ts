@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth/session";
 import { pipelineCredits } from "@/lib/billing/costs";
 import { pipelineRestriction, type PlanRestriction } from "@/lib/billing/entitlements";
 import { DEMO_CREDITS } from "@/lib/demo/credits";
@@ -13,11 +14,12 @@ export type CreatePipelineState = {
   insufficient?: { required: number; available: number }; // ouvre le modal « crédits insuffisants »
 };
 
-// Mode démo, en attendant l'authentification (phase 2) : le brief est validé comme en production,
+// Mode démo, en attendant les workspaces (tâche 2.3) : l'utilisateur est connecté, le brief est validé comme en production,
 // confronté au plan puis au solde de démonstration, et on affiche une génération de démonstration.
 // À venir ici : rate limit, createPipelineWithReservation (dont PlanRestrictionError et
 // InsufficientCreditsError donnent `restriction` et `insufficient`), événement `pipeline/requested`.
 export async function createPipeline(_previous: CreatePipelineState, formData: FormData): Promise<CreatePipelineState> {
+  await requireUser("/pipelines/new"); // une Server Action est appelable directement : revérifiée ici
   const result = parseBriefForm(formData);
   if (!result.ok) return { fieldErrors: result.fieldErrors, values: result.values };
 

@@ -1,9 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { LOGIN_PATH, isAppRoute, safeNext } from "@/lib/auth/routes";
 import { publicEnv } from "@/lib/env/public";
 import type { Database } from "./database.types";
 
-// Rafraîchit la session Supabase avant chaque requête et propage les cookies.
+// Rafraîchit la session Supabase avant chaque requête et propage les cookies. Filtre optimiste
+// ensuite : une route de l'application sans session renvoie vers /login, une session ouverte sur
+// /login renvoie vers sa destination.
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -29,7 +32,27 @@ export async function updateSession(request: NextRequest) {
 
   // Ne rien exécuter entre la création du client et cet appel :
   // il déclenche le rafraîchissement du jeton.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = Boolean(data?.claims?.sub);
 
+  const { pathname, search } = request.nextUrl;
+  if (!signedIn && isAppRoute(pathname)) {
+    const login = new URL(LOGIN_PATH, request.url);
+    login.searchParams.set("next", pathname + search);
+    return redirectWithCookies(login, response);
+  }
+  if (signedIn && pathname === LOGIN_PATH) {
+    return redirectWithCookies(new URL(safeNext(request.nextUrl.searchParams.get("next")), request.url), response);
+  }
   return response;
+}
+
+// Une redirection garde les cookies de session que le rafraîchissement vient de poser, et l'en-tête
+// anti-cache qui les accompagne.
+function redirectWithCookies(url: URL, from: NextResponse) {
+  const redirect = NextResponse.redirect(url);
+  from.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  const cacheControl = from.headers.get("cache-control");
+  if (cacheControl) redirect.headers.set("cache-control", cacheControl);
+  return redirect;
 }

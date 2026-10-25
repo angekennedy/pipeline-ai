@@ -1,0 +1,65 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const signInWithOtp = vi.fn();
+const signInWithOAuth = vi.fn();
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { signInWithOtp, signInWithOAuth } }) }));
+
+const cookieSet = vi.fn();
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ set: cookieSet }),
+  headers: async () => new Headers({ origin: "http://localhost:3000" }),
+}));
+const redirect = vi.fn((url: string) => {
+  throw new Error(`NEXT_REDIRECT ${url}`);
+});
+vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }));
+
+const { sendMagicLink, signInWithGoogle } = await import("@/app/(auth)/login/actions");
+const initial = { status: "idle" as const, email: "" };
+const form = (fields: Record<string, string>) => {
+  const data = new FormData();
+  for (const [key, value] of Object.entries(fields)) data.set(key, value);
+  return data;
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("sendMagicLink", () => {
+  it("envoie le lien, inscription comprise, et garde la destination en cookie", async () => {
+    signInWithOtp.mockResolvedValue({ error: null });
+    expect(await sendMagicLink(initial, form({ email: " a@test.local ", next: "/pipelines/new" }))).toEqual({ status: "sent", email: "a@test.local" });
+    expect(signInWithOtp).toHaveBeenCalledWith({ email: "a@test.local", options: { shouldCreateUser: true } });
+    expect(cookieSet).toHaveBeenCalledWith("auth_next", "/pipelines/new", expect.objectContaining({ httpOnly: true, sameSite: "lax", maxAge: 3600 }));
+  });
+
+  it("n'enregistre jamais une destination externe", async () => {
+    signInWithOtp.mockResolvedValue({ error: null });
+    await sendMagicLink(initial, form({ email: "a@test.local", next: "//evil.test" }));
+    expect(cookieSet).toHaveBeenCalledWith("auth_next", "/", expect.anything());
+  });
+
+  it("refuse une adresse invalide sans appeler Supabase", async () => {
+    expect(await sendMagicLink(initial, form({ email: "pas-une-adresse" }))).toMatchObject({ status: "error", message: "Saisissez une adresse e-mail valide." });
+    expect(signInWithOtp).not.toHaveBeenCalled();
+  });
+
+  it("explique une limite de fréquence", async () => {
+    signInWithOtp.mockResolvedValue({ error: { status: 429, message: "rate limit" } });
+    expect(await sendMagicLink(initial, form({ email: "a@test.local" }))).toMatchObject({ status: "error", message: expect.stringMatching(/Trop de demandes/) });
+  });
+});
+
+describe("signInWithGoogle", () => {
+  it("part vers Google avec un retour sur /auth/callback de ce site", async () => {
+    signInWithOAuth.mockResolvedValue({ data: { url: "https://accounts.google.test/auth" }, error: null });
+    await expect(signInWithGoogle(form({ next: "/w/demo" }))).rejects.toThrow("NEXT_REDIRECT https://accounts.google.test/auth");
+    expect(signInWithOAuth).toHaveBeenCalledWith({ provider: "google", options: { redirectTo: "http://localhost:3000/auth/callback" } });
+  });
+
+  it("revient sur /login avec une erreur si le fournisseur refuse", async () => {
+    signInWithOAuth.mockResolvedValue({ data: { url: null }, error: { message: "provider disabled" } });
+    await expect(signInWithGoogle(form({}))).rejects.toThrow("NEXT_REDIRECT /login?error=google");
+  });
+});

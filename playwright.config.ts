@@ -1,4 +1,17 @@
+import { execFileSync } from "node:child_process";
 import { defineConfig, devices } from "@playwright/test";
+
+// Parcours connectés : le build et les tests visent le Supabase local, dont les clés (publiques, celles
+// de la pile de développement) sont lues dans `supabase status`. Le build doit avoir été fait avec ces
+// mêmes variables, puisque Next inscrit les NEXT_PUBLIC_* dans le bundle.
+try {
+  const status = JSON.parse(execFileSync("supabase", ["status", "-o", "json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??= status.API_URL;
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??= status.PUBLISHABLE_KEY;
+  process.env.SUPABASE_SECRET_KEY ??= status.SECRET_KEY;
+} catch {
+  // Pas de Supabase local : seules les pages publiques sont testables (auth.ts le signale).
+}
 
 const PORT = Number(process.env.PORT ?? 3000);
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;

@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPipeline } from "@/app/pipelines/new/actions";
+import { createPipeline } from "@/app/(app)/pipelines/new/actions";
 
 const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT ${url}`);
 });
 vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }));
+
+// Session simulée : sans utilisateur, requireUser renvoie vers la connexion comme le vrai.
+let user: { id: string; email: string } | null = { id: "user-1", email: "a@test.local" };
+vi.mock("@/lib/auth/session", () => ({
+  requireUser: async (next: string) => user ?? redirect(`/login?next=${encodeURIComponent(next)}`),
+}));
 
 const brief = { niche: "Histoire", topic: "Les pyramides de Gizeh", language: "fr", tone: "educational", style: "documentary" };
 const form = (fields: Record<string, string>) => {
@@ -16,10 +22,16 @@ const initial = { fieldErrors: {}, values: {} };
 
 beforeEach(() => {
   redirect.mockClear();
+  user = { id: "user-1", email: "a@test.local" };
 });
 
 // Mode démo : plan Free, 20 crédits disponibles (lib/demo/credits.ts).
 describe("Server Action createPipeline", () => {
+  it("renvoie vers la connexion sans session, avant de lire le brief", async () => {
+    user = null;
+    await expect(createPipeline(initial, form({ durationMinutes: "8" }))).rejects.toThrow("NEXT_REDIRECT /login?next=%2Fpipelines%2Fnew");
+  });
+
   it("lance le pipeline quand le plan l'autorise et que le solde couvre son coût", async () => {
     await expect(createPipeline(initial, form({ durationMinutes: "8", tier: "standard" }))).rejects.toThrow("NEXT_REDIRECT /pipelines/demo-running");
   });
