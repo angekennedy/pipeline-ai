@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { signOut } from "@/lib/auth/actions";
 import { getUser } from "@/lib/auth/session";
+import { getCurrentWorkspace } from "@/lib/workspaces/current";
+import { CreditBadge } from "@/components/billing/credit-badge";
 import { Button } from "@/components/ui/button";
 
-// Lit la session : rendu à la requête, derrière un <Suspense> dans l'en-tête.
+// Lit la session : rendu à la requête, derrière un <Suspense> dans l'en-tête. Connecté, l'utilisateur
+// voit le solde de son workspace.
 export async function AccountMenu() {
   const user = await getUser();
   if (!user) {
@@ -13,8 +16,10 @@ export async function AccountMenu() {
       </Link>
     );
   }
+  const workspace = await getCurrentWorkspace();
   return (
-    <form action={signOut} className="flex items-center gap-2">
+    <form action={signOut} className="flex flex-wrap items-center gap-2">
+      {workspace && <CreditBadge credits={workspace.credits} />}
       <span className="hidden max-w-40 truncate text-sm text-muted-foreground sm:inline" title={user.email ?? undefined}>
         {user.email}
       </span>

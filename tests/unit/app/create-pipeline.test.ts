@@ -8,6 +8,11 @@ vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }))
 
 // Session simulée : sans utilisateur, requireUser renvoie vers la connexion comme le vrai.
 let user: { id: string; email: string } | null = { id: "user-1", email: "a@test.local" };
+// Workspace simulé : plan Free, 20 crédits disponibles.
+vi.mock("@/lib/workspaces/current", async () => {
+  const { creditSummary } = await import("@/lib/billing/balance");
+  return { requireWorkspace: async () => ({ id: "ws-1", slug: "a-1", name: "Espace de a", role: "owner", credits: creditSummary("free", 30, 10) }) };
+});
 vi.mock("@/lib/auth/session", () => ({
   requireUser: async (next: string) => user ?? redirect(`/login?next=${encodeURIComponent(next)}`),
 }));
@@ -25,7 +30,7 @@ beforeEach(() => {
   user = { id: "user-1", email: "a@test.local" };
 });
 
-// Mode démo : plan Free, 20 crédits disponibles (lib/demo/credits.ts).
+// Workspace Free : 30 crédits dont 10 réservés par un pipeline en cours, soit 20 disponibles.
 describe("Server Action createPipeline", () => {
   it("renvoie vers la connexion sans session, avant de lire le brief", async () => {
     user = null;

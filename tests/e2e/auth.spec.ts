@@ -42,3 +42,10 @@ test("une session ouverte saute la page de connexion, et la déconnexion referme
   await page.goto("/pipelines/new");
   await expect(page).toHaveURL(/\/login/);
 });
+
+test("un nouvel inscrit arrive avec son workspace Free et ses 30 crédits, prêt à générer", async ({ page }) => {
+  await signIn(page);
+  await expect(page.getByRole("link", { name: /30 crédits disponibles, plan Free/ })).toBeVisible();
+  await page.goto("/pipelines/new");
+  await expect(page.getByRole("region", { name: /Coût/ })).toContainText("Solde après le lancement : 12 crédits.");
+});

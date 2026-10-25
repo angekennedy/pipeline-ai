@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BriefForm } from "@/components/pipeline/brief-form";
 import { requireUser } from "@/lib/auth/session";
-import { DEMO_CREDITS } from "@/lib/demo/credits";
+import { requireWorkspace } from "@/lib/workspaces/current";
 
 export const metadata: Metadata = { title: "Nouveau pipeline · Pipeline AI" };
 
@@ -23,5 +23,6 @@ export default function NewPipelinePage() {
 // Le proxy a déjà renvoyé vers /login sans session ; la page le revérifie (DAL).
 async function AuthenticatedBriefForm() {
   await requireUser("/pipelines/new");
-  return <BriefForm credits={DEMO_CREDITS} />;
+  const workspace = await requireWorkspace();
+  return <BriefForm credits={workspace.credits} />;
 }

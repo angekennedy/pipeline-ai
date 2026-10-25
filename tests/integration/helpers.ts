@@ -69,8 +69,13 @@ export async function createPipeline(workspaceId: string, createdBy: string): Pr
   return pipeline.id;
 }
 
-// Workspaces d'abord : `pipelines.created_by` référence auth.users sans cascade.
+// Workspaces d'abord : `pipelines.created_by` référence auth.users sans cascade. Les workspaces
+// personnels, créés à l'inscription (migration 0009), partent avec ceux des tests.
 export async function cleanup() {
+  if (created.users.length) {
+    const personal = unwrap(await admin.from("workspace_members").select("workspace_id").in("user_id", created.users).eq("role", "owner"));
+    created.workspaces.push(...personal.map((m) => m.workspace_id));
+  }
   if (created.workspaces.length) unwrap(await admin.from("workspaces").delete().in("id", created.workspaces).select());
   for (const id of created.users) unwrap(await admin.auth.admin.deleteUser(id));
   created.users.length = 0;

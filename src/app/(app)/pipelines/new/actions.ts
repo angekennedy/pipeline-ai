@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { pipelineCredits } from "@/lib/billing/costs";
 import { pipelineRestriction, type PlanRestriction } from "@/lib/billing/entitlements";
-import { DEMO_CREDITS } from "@/lib/demo/credits";
+import { requireWorkspace } from "@/lib/workspaces/current";
 import { parseBriefForm, type BriefFormField, type BriefFormValues } from "@/lib/pipeline/brief-form";
 
 export type CreatePipelineState = {
@@ -14,8 +14,8 @@ export type CreatePipelineState = {
   insufficient?: { required: number; available: number }; // ouvre le modal « crédits insuffisants »
 };
 
-// Mode démo, en attendant les workspaces (tâche 2.3) : l'utilisateur est connecté, le brief est validé comme en production,
-// confronté au plan puis au solde de démonstration, et on affiche une génération de démonstration.
+// L'utilisateur est connecté et le brief validé comme en production, puis confronté au plan et au
+// solde de son workspace. La génération reste celle de démonstration jusqu'aux routes /w (tâche 2.3).
 // À venir ici : rate limit, createPipelineWithReservation (dont PlanRestrictionError et
 // InsufficientCreditsError donnent `restriction` et `insufficient`), événement `pipeline/requested`.
 export async function createPipeline(_previous: CreatePipelineState, formData: FormData): Promise<CreatePipelineState> {
@@ -23,12 +23,13 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   const result = parseBriefForm(formData);
   if (!result.ok) return { fieldErrors: result.fieldErrors, values: result.values };
 
-  const restriction = pipelineRestriction(DEMO_CREDITS.planKey, result.brief, result.tier);
+  const { credits } = await requireWorkspace();
+  const restriction = pipelineRestriction(credits.planKey, result.brief, result.tier);
   if (restriction) return { fieldErrors: {}, values: result.values, restriction };
 
   const required = pipelineCredits(result.brief, result.tier);
-  if (required > DEMO_CREDITS.available) {
-    return { fieldErrors: {}, values: result.values, insufficient: { required, available: DEMO_CREDITS.available } };
+  if (required > credits.available) {
+    return { fieldErrors: {}, values: result.values, insufficient: { required, available: credits.available } };
   }
   redirect("/pipelines/demo-running");
 }

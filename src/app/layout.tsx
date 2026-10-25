@@ -3,8 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AccountMenu } from "@/components/auth/account-menu";
-import { CreditBadge } from "@/components/billing/credit-badge";
-import { DEMO_CREDITS } from "@/lib/demo/credits";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,8 +39,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/pipelines/new" className="text-sm text-muted-foreground hover:text-foreground">
                 Nouveau pipeline
               </Link>
-              {/* Mode démo : le solde du workspace courant viendra avec l'authentification (phase 2). */}
-              <CreditBadge credits={DEMO_CREDITS} />
               <Suspense>
                 <AccountMenu />
               </Suspense>

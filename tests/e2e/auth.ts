@@ -20,8 +20,24 @@ export async function magicLinkPath(email: string) {
   return `/auth/confirm?token_hash=${data.properties.hashed_token}&type=email`;
 }
 
-export async function signIn(page: Page, email = testEmail()) {
-  await admin().auth.admin.createUser({ email, email_confirm: true });
+// Le trigger d'inscription crée le workspace personnel et ses 30 crédits Free. `reserved` simule un
+// pipeline en cours qui en bloque une partie, par la vraie RPC de réservation.
+export async function signIn(page: Page, { email = testEmail(), reserved = 0 }: { email?: string; reserved?: number } = {}) {
+  const db = admin();
+  const { data, error } = await db.auth.admin.createUser({ email, email_confirm: true });
+  if (error) throw error;
+  if (reserved > 0) {
+    const { data: membership } = await db.from("workspace_members").select("workspace_id").eq("user_id", data.user.id).single();
+    const { error: rpcError } = await db.rpc("create_pipeline_with_reservation", {
+      p_workspace: membership!.workspace_id,
+      p_user: data.user.id,
+      p_brief: { niche: "Histoire", topic: "Pipeline en cours", language: "fr", tone: "educational", style: "documentary", durationMinutes: 5 },
+      p_tier: "standard",
+      p_credits: reserved,
+      p_key: randomUUID(),
+    });
+    if (rpcError) throw rpcError;
+  }
   await page.goto(await magicLinkPath(email));
   return email;
 }

@@ -53,7 +53,6 @@ beforeAll(async () => {
     generation: null,
     createdBy: a.id,
   });
-  unwrap(await admin.from("profiles").insert([{ id: a.id }, { id: b.id }]).select());
   unwrap(await admin.from("channels").insert({ workspace_id: wsA, name: "Chaîne A", niche: "histoire" }).select());
   unwrap(await admin.from("credit_accounts").insert({ workspace_id: wsA, balance: 30 }).select());
   unwrap(

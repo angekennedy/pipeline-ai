@@ -142,6 +142,19 @@ pipeline-ai/
 >
 > **CI.** Les e2e tournent dans un job `e2e` avec le Supabase local. La connexion y passe par un vrai lien magique : le jeton est généré par l'API admin (`tests/e2e/auth.ts`).
 
+> **Révision (octobre 2026, tâche 2.2).** Migration `20261025000009_signup.sql`. Le trigger `on_auth_user_created` (`after insert on auth.users`) appelle `private.provision_user` pour toutes les voies d'inscription : lien magique, Google, API admin.
+>
+> **Ce qu'il crée :**
+> - le profil, dont le nom vient de Google s'il existe, sinon de la partie locale de l'e-mail ;
+> - un workspace personnel Free dont l'utilisateur est owner, avec un slug lisible : la partie locale translittérée et normalisée, suivie de 8 caractères de l'id ;
+> - les crédits offerts (`private.signup_credits()`, en parité testée avec `PLANS.free.credits`), sous la clé `grant:signup:<user>`.
+>
+> **Idempotence.** La fonction est idempotente. La migration rattrape aussi les comptes créés avant elle (staging).
+>
+> **Côté application.** `getCurrentWorkspace` (`src/lib/workspaces/current.ts`) lit sous RLS le workspace personnel et son solde. Il alimente le badge de l'en-tête, le formulaire et la Server Action. Le solde de démonstration (`src/lib/demo/credits.ts`) est supprimé. La génération reste celle de démonstration jusqu'aux routes `/w/[workspaceSlug]` (tâche 2.3).
+>
+> **Abus.** Les 30 crédits offerts par inscription incitent à multiplier les comptes. La parade (rate limit à l'inscription, détection des adresses jetables) relève de la tâche 4.5.
+
 ---
 
 ## 3. Modèle de données

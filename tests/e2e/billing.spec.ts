@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { signIn } from "./auth";
 
-// Mode démo : plan Free, 20 crédits disponibles (lib/demo/credits.ts).
+// Compte Free tout juste inscrit (30 crédits), dont 10 sont réservés par un pipeline en cours.
 
 test("le coût s'affiche avant le lancement, et un pipeline trop cher ouvre le modal sans rien lancer", async ({ page }) => {
-  await signIn(page);
+  await signIn(page, { reserved: 10 });
   await page.goto("/pipelines/new");
   await expect(page.getByRole("link", { name: /20 crédits disponibles, plan Free/ })).toBeVisible();
   const estimate = page.getByRole("region", { name: /Coût/ });
