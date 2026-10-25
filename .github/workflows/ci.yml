@@ -64,7 +64,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,storage-api,postgres-meta,supavisor
+      # Mailpit reste démarré : il reçoit l'e-mail du lien magique envoyé depuis le formulaire.
+      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,storage-api,postgres-meta,supavisor
       - name: Variables du Supabase local
         id: supabase
         run: |
