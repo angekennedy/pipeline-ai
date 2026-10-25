@@ -11,7 +11,7 @@ const completed = demoPipeline("demo-completed")!.view;
 
 describe("pipelines de démonstration", () => {
   it("expose un pipeline par état à montrer", () => {
-    expect(DEMO_PIPELINE_IDS).toEqual(["demo-running", "demo-completed", "demo-partial", "demo-failed"]);
+    expect(DEMO_PIPELINE_IDS).toEqual(["demo-running", "demo-completed", "demo-partial", "demo-failed", "demo-stale"]);
     expect(demoPipeline("inconnu")).toBeNull();
   });
 
@@ -49,6 +49,18 @@ describe("pipelines de démonstration", () => {
     expect(view.status).toBe("failed");
     expect(view.assets.script.status).toBe("failed");
     expect(ASSET_TYPES.slice(1).map((t) => view.assets[t].status)).toEqual(["skipped", "skipped", "skipped", "skipped"]);
+  });
+
+  it("stale : script édité à la main, quatre dérivés obsolètes et coût de leur régénération", () => {
+    const { view } = demoPipeline("demo-stale")!;
+    expect(view.assets.script.versions.map((v) => [v.version, v.source])).toEqual([
+      [2, "user_edit"],
+      [1, "ai"],
+    ]);
+    expect(view.assets.script.stale).toBe(false);
+    expect(ASSET_TYPES.filter((t) => view.assets[t].stale)).toEqual(["titles", "seo", "voiceover", "thumbnails"]);
+    expect(view.staleCredits).toBe(1 + 2 + 2 + 1);
+    expect(view.assets.script.content!.workingTitle).not.toBe(completed.assets.script.content!.workingTitle);
   });
 
   it("running : rejoue la génération depuis un pipeline vide", () => {

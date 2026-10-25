@@ -1,12 +1,13 @@
 "use client";
 
-import type { Scene } from "@/lib/ai/schemas";
+import { ASSET_TYPES, type Scene } from "@/lib/ai/schemas";
 import { useDemoPipeline } from "@/hooks/use-demo-pipeline";
 import { usePipelineChannel } from "@/hooks/use-pipeline-channel";
 import { PIPELINE_STATUS_LABELS } from "@/lib/pipeline/labels";
 import type { PipelineStatus } from "@/lib/pipeline/status";
 import { mergeLiveState, type PipelineView } from "@/lib/pipeline/view";
 import { Badge } from "@/components/ui/badge";
+import { StaleBanner } from "./asset-history";
 import { AssetTabs } from "./asset-tabs";
 
 const STATUS_VARIANTS: Record<PipelineStatus, "default" | "secondary" | "destructive" | "outline"> = {
@@ -33,12 +34,14 @@ const STATUS_HINTS: Partial<Record<PipelineStatus, string>> = {
 
 function PipelineBody({ view, scenes }: { view: PipelineView; scenes: Scene[] }) {
   const hint = STATUS_HINTS[view.status];
+  const staleCount = ASSET_TYPES.filter((type) => view.assets[type].stale).length;
   return (
     <div className="grid grid-cols-1 gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <PipelineStatusBadge status={view.status} />
         {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
       </div>
+      {staleCount > 0 && <StaleBanner count={staleCount} credits={view.staleCredits} />}
       <AssetTabs view={view} scenes={scenes} />
     </div>
   );

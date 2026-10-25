@@ -68,7 +68,7 @@ describe("AssetTabs", () => {
   });
 
   it("chargement : le script en cours affiche les scènes déjà reçues, puis un emplacement", () => {
-    const running: PipelineView = { ...pending(), status: "running", assets: { ...pending().assets, script: { status: "running", content: null, error: null } } };
+    const running: PipelineView = { ...pending(), status: "running", assets: { ...pending().assets, script: { ...pending().assets.script, status: "running" } } };
     render(<AssetTabs view={running} scenes={validScript.scenes.slice(0, 2) as Scene[]} />);
     const panel = screen.getByRole("tabpanel");
     expect(within(panel).getByText("1. Le bloc impossible")).toBeInTheDocument();
@@ -77,8 +77,26 @@ describe("AssetTabs", () => {
   });
 
   it("chargement : un dérivé en cours affiche un squelette", async () => {
-    const running: PipelineView = { ...pending(), assets: { ...pending().assets, seo: { status: "running", content: null, error: null } } };
+    const running: PipelineView = { ...pending(), assets: { ...pending().assets, seo: { ...pending().assets.seo, status: "running" } } };
     render(<AssetTabs view={running} scenes={[]} />);
     expect(within(await openTab(/SEO/)).getByRole("status")).toHaveTextContent("Génération : seo…");
+  });
+
+  it("asset obsolète : avertissement, marqueur sur l'onglet et historique des versions", async () => {
+    render(<AssetTabs view={view("demo-stale")} scenes={[]} />);
+    expect(screen.getByRole("tab", { name: /Titres\s*\(prêt, obsolète\)/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Script\s*\(prêt\)/ })).toBeInTheDocument();
+
+    const script = screen.getByRole("tabpanel");
+    expect(within(script).queryByText(/Obsolète :/)).not.toBeInTheDocument();
+    expect(within(script).getByText("Historique · 2 versions")).toBeInTheDocument();
+    expect(within(script).getByText("Édition manuelle")).toBeInTheDocument();
+    expect(within(script).getByText("(version actuelle)")).toBeInTheDocument();
+    expect(within(script).getByRole("button", { name: "Restaurer" })).toBeDisabled();
+
+    const titles = await openTab(/Titres/);
+    expect(within(titles).getByRole("status")).toHaveTextContent("Obsolète : cet asset a été produit à partir d'une version précédente, le script a changé depuis.");
+    expect(within(titles).queryByText(/Historique/)).not.toBeInTheDocument(); // une seule version
+    expect(within(await openTab(/Miniatures/)).getByRole("status")).toHaveTextContent("le script ou les titres ont changé depuis");
   });
 });

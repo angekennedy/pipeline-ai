@@ -2,15 +2,20 @@ import { ASSET_TYPES, type AssetType, type Brief } from "@/lib/ai/schemas";
 import type { PipelineLiveState } from "@/lib/realtime/pipeline-state";
 import type { AssetContent, ModelTier } from "./registry";
 import type { PipelineStatus } from "./status";
+import type { VersionSource } from "./store";
 
 // Pipeline tel que la page le lit en base : version courante de chaque asset, ou son état.
 
 export type AssetViewStatus = "pending" | "running" | "ready" | "failed" | "skipped";
 
+export type VersionSummary = { id: string; version: number; source: VersionSource; createdAt: string };
+
 export type AssetView<K extends AssetType> = {
   status: AssetViewStatus;
   content: AssetContent[K] | null; // renseigné quand status = ready
   error: { code: string; message: string } | null; // renseigné quand status = failed
+  stale: boolean; // produit à partir d'une version précédente d'une dépendance (staleness.ts)
+  versions: VersionSummary[]; // historique, la plus récente (courante) d'abord
 };
 
 export type PipelineAssets = { [K in AssetType]: AssetView<K> };
@@ -22,13 +27,19 @@ export type PipelineView = {
   status: PipelineStatus;
   createdAt: string; // ISO 8601
   assets: PipelineAssets;
+  staleCredits: number; // coût de « Régénérer les dérivés » obsolètes, 0 s'il n'y en a pas
 };
 
 const mapAssets = (fn: (type: AssetType) => AssetView<AssetType>) =>
   Object.fromEntries(ASSET_TYPES.map((type) => [type, fn(type)])) as PipelineAssets;
 
 export function emptyPipelineView(pipeline: Pick<PipelineView, "id" | "brief" | "tier" | "createdAt">): PipelineView {
-  return { ...pipeline, status: "queued", assets: mapAssets(() => ({ status: "pending", content: null, error: null })) };
+  return {
+    ...pipeline,
+    status: "queued",
+    staleCredits: 0,
+    assets: mapAssets(() => ({ status: "pending", content: null, error: null, stale: false, versions: [] })),
+  };
 }
 
 const SETTLED: ReadonlySet<AssetViewStatus> = new Set(["ready", "failed", "skipped"]);

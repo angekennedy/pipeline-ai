@@ -1,13 +1,14 @@
 import "server-only";
 import type { PromptContext } from "@/lib/ai/prompts";
-import type { Brief, Script, Seo, Thumbnails, Titles, Voiceover } from "@/lib/ai/schemas";
+import type { AssetType, Brief, Script, Seo, Thumbnails, Titles, Voiceover } from "@/lib/ai/schemas";
 import { registry } from "@/lib/pipeline/registry";
-import { emptyPipelineView, type PipelineView } from "@/lib/pipeline/view";
+import { regenerationCredits } from "@/lib/pipeline/staleness";
+import { emptyPipelineView, type AssetView, type PipelineView, type VersionSummary } from "@/lib/pipeline/view";
 
 // Pipelines de démonstration, en attendant la base (tâche 0.4) : un par état à montrer.
 // Le contenu passe par les vrais post-traitements (durées, chapitres, tags), comme une génération.
 
-export const DEMO_PIPELINE_IDS = ["demo-running", "demo-completed", "demo-partial", "demo-failed"] as const;
+export const DEMO_PIPELINE_IDS = ["demo-running", "demo-completed", "demo-partial", "demo-failed", "demo-stale"] as const;
 export type DemoPipelineId = (typeof DEMO_PIPELINE_IDS)[number];
 
 const brief: Brief = {
@@ -219,17 +220,35 @@ function buildContent() {
 const content = buildContent();
 const base = { brief, tier: "standard" as const, createdAt: "2026-10-24T09:30:00.000Z" };
 
+const firstVersion = (type: string, minutes = 0): VersionSummary[] => [
+  { id: `${type}-v1`, version: 1, source: "ai", createdAt: new Date(Date.parse(base.createdAt) + 60_000 * (1 + minutes)).toISOString() },
+];
+const ready = <K extends AssetType>(value: AssetView<K>["content"], versions: VersionSummary[]): AssetView<K> => ({
+  status: "ready",
+  content: value,
+  error: null,
+  stale: false,
+  versions,
+});
+const failed = <K extends AssetType>(code: string, message: string): AssetView<K> => ({
+  status: "failed",
+  content: null,
+  error: { code, message },
+  stale: false,
+  versions: [],
+});
+const skipped = <K extends AssetType>(): AssetView<K> => ({ status: "skipped", content: null, error: null, stale: false, versions: [] });
+
 function completedView(id: string): PipelineView {
-  const view = emptyPipelineView({ id, ...base });
   return {
-    ...view,
+    ...emptyPipelineView({ id, ...base }),
     status: "completed",
     assets: {
-      script: { status: "ready", content: content.script, error: null },
-      titles: { status: "ready", content: content.titles, error: null },
-      seo: { status: "ready", content: content.seo, error: null },
-      voiceover: { status: "ready", content: content.voiceover, error: null },
-      thumbnails: { status: "ready", content: content.thumbnails, error: null },
+      script: ready(content.script, firstVersion("script")),
+      titles: ready(content.titles, firstVersion("titles", 1)),
+      seo: ready(content.seo, firstVersion("seo", 1)),
+      voiceover: ready(content.voiceover, firstVersion("voiceover", 1)),
+      thumbnails: ready(content.thumbnails, firstVersion("thumbnails", 2)),
     },
   };
 }
@@ -241,31 +260,51 @@ function partialView(): PipelineView {
     status: "partial",
     assets: {
       ...view.assets,
-      seo: {
-        status: "failed",
-        content: null,
-        error: { code: "CONTENT_REFUSED", message: "Le modèle a refusé de générer cet asset. Reformulez le brief puis régénérez le SEO." },
-      },
+      seo: failed("CONTENT_REFUSED", "Le modèle a refusé de générer cet asset. Reformulez le brief puis régénérez le SEO."),
     },
   };
 }
 
 function failedView(): PipelineView {
-  const view = emptyPipelineView({ id: "demo-failed", ...base });
-  const skipped = { status: "skipped" as const, content: null, error: null };
   return {
-    ...view,
+    ...emptyPipelineView({ id: "demo-failed", ...base }),
     status: "failed",
     assets: {
-      script: {
-        status: "failed",
-        content: null,
-        error: { code: "PROVIDER_ERROR", message: "Le service de génération est surchargé. Les crédits ont été restitués : relancez dans quelques minutes." },
-      },
-      titles: skipped,
-      seo: skipped,
-      voiceover: skipped,
-      thumbnails: skipped,
+      script: failed("PROVIDER_ERROR", "Le service de génération est surchargé. Les crédits ont été restitués : relancez dans quelques minutes."),
+      titles: skipped(),
+      seo: skipped(),
+      voiceover: skipped(),
+      thumbnails: skipped(),
+    },
+  };
+}
+
+// Script retouché à la main après la génération : les quatre dérivés, produits à partir de la
+// première version, sont obsolètes.
+function staleView(): PipelineView {
+  const view = completedView("demo-stale");
+  const editedScript = registry.script.postProcess(
+    {
+      ...content.script,
+      workingTitle: "Gizeh : le chantier qui défie les ingénieurs",
+      scenes: content.script.scenes.map((scene, i) =>
+        i === 0 ? { ...scene, narration: "Deux tonnes et demie par bloc. Plus de deux millions de blocs. Et toujours aucune certitude sur la façon dont ils ont été hissés." } : scene,
+      ),
+    },
+    { brief, channel: null },
+  );
+  const derived = ["titles", "seo", "voiceover", "thumbnails"] as const;
+  const assets = { ...view.assets };
+  for (const type of derived) assets[type] = { ...view.assets[type], stale: true } as never;
+  return {
+    ...view,
+    staleCredits: regenerationCredits([...derived], brief, base.tier),
+    assets: {
+      ...assets,
+      script: ready(editedScript, [
+        { id: "script-v2", version: 2, source: "user_edit", createdAt: "2026-10-24T11:05:00.000Z" },
+        ...firstVersion("script"),
+      ]),
     },
   };
 }
@@ -284,6 +323,8 @@ export function demoPipeline(id: string): DemoPipeline | null {
       return { replay: false, view: partialView() };
     case "demo-failed":
       return { replay: false, view: failedView() };
+    case "demo-stale":
+      return { replay: false, view: staleView() };
     default:
       return null;
   }

@@ -41,6 +41,16 @@ test("pipeline partiel : l'asset en échec l'explique, les autres sont prêts à
   await expect(page.getByRole("tabpanel").getByRole("alert")).toContainText("Échec de la génération");
 });
 
+test("script modifié : les dérivés sont signalés obsolètes, avec le coût de leur régénération", async ({ page }) => {
+  await page.goto("/pipelines/demo-stale");
+  await expect(page.getByText("Le script a changé : 4 assets sont obsolètes.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Régénérer les dérivés (6 crédits)" })).toBeDisabled();
+  await page.getByText("Historique · 2 versions").click();
+  await expect(page.getByText("Édition manuelle")).toBeVisible();
+  await page.getByRole("tab", { name: /Titres/ }).click();
+  await expect(page.getByRole("tabpanel").getByText(/Obsolète :/)).toBeVisible();
+});
+
 // La page est streamée (loading.tsx) : la réponse part en 200 avant que notFound() soit atteint.
 // Next ajoute alors une balise noindex (documenté dans file-conventions/loading, « Status codes »).
 test("un pipeline inconnu affiche une page introuvable, exclue de l'indexation", async ({ page }) => {

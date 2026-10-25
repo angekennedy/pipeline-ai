@@ -12,7 +12,8 @@ describe("emptyPipelineView", () => {
   it("crée un pipeline en file d'attente, tous ses assets en attente", () => {
     const view = pending();
     expect(view.status).toBe("queued");
-    for (const type of ASSET_TYPES) expect(view.assets[type]).toEqual({ status: "pending", content: null, error: null });
+    expect(view.staleCredits).toBe(0);
+    for (const type of ASSET_TYPES) expect(view.assets[type]).toEqual({ status: "pending", content: null, error: null, stale: false, versions: [] });
   });
 });
 

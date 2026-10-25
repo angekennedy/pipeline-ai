@@ -7,6 +7,7 @@ import type { AssetViewStatus, PipelineView } from "@/lib/pipeline/view";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StaleNotice, VersionHistory } from "./asset-history";
 import { ScriptPanel, SeoPanel, ThumbnailsPanel, TitlesPanel, VoiceoverPanel } from "./asset-panels";
 import { SceneStream } from "./scene-stream";
 
@@ -84,9 +85,8 @@ function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetT
           <p className="font-medium text-destructive">Échec de la génération</p>
           <p className="mt-1 text-sm">{asset.error?.message ?? "Une erreur inattendue est survenue."}</p>
           {asset.error && <p className="mt-1 font-mono text-xs text-muted-foreground">{asset.error.code}</p>}
-          {/* Régénération par asset : tâche 1.10. */}
-          <Button type="button" variant="outline" size="sm" className="mt-3" disabled>
-            Régénérer (bientôt disponible)
+          <Button type="button" variant="outline" size="sm" className="mt-3" disabled title="Disponible quand la base de données sera branchée">
+            Régénérer
           </Button>
         </div>
       );
@@ -94,7 +94,13 @@ function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetT
       // Le script s'affiche scène par scène pendant le stream.
       return type === "script" && scenes.length > 0 ? <SceneStream scenes={scenes} streaming /> : <Generating type={type} />;
     case "ready":
-      return <ReadyAsset view={view} type={type} />;
+      return (
+        <>
+          {asset.stale && <StaleNotice type={type} />}
+          <VersionHistory versions={asset.versions} />
+          <ReadyAsset view={view} type={type} />
+        </>
+      );
   }
 }
 
@@ -122,7 +128,11 @@ export function AssetTabs({ view, scenes }: { view: PipelineView; scenes: Scene[
           <TabsTrigger key={type} value={type}>
             <AssetStatusIcon status={view.assets[type].status} />
             {ASSET_LABELS[type]}
-            <span className="sr-only">({ASSET_STATUS_LABELS[view.assets[type].status]})</span>
+            {view.assets[type].stale && <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />}
+            <span className="sr-only">
+              ({ASSET_STATUS_LABELS[view.assets[type].status]}
+              {view.assets[type].stale ? ", obsolète" : ""})
+            </span>
           </TabsTrigger>
         ))}
       </TabsList>

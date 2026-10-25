@@ -1,5 +1,6 @@
 import type { AssetType, Scene, VoiceoverSegment } from "@/lib/ai/schemas";
 import type { PipelineStatus } from "./status";
+import type { VersionSource } from "./store";
 
 // Libellés affichés à l'utilisateur, partagés par l'interface et les exports texte.
 
@@ -33,4 +34,11 @@ export const PIPELINE_STATUS_LABELS: Record<PipelineStatus, string> = {
   partial: "Partiel",
   failed: "Échec",
   canceled: "Annulé",
+};
+
+export const VERSION_SOURCE_LABELS: Record<VersionSource, string> = {
+  ai: "Génération",
+  ai_regen: "Régénération",
+  user_edit: "Édition manuelle",
+  restore: "Restauration",
 };

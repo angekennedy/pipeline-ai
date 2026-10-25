@@ -49,7 +49,7 @@ describe("generateAsset", () => {
     const versionId = await run("script");
 
     const version = store.versions.find((v) => v.id === versionId)!;
-    expect(version).toMatchObject({ assetType: "script", version: 1, schemaVersion: "script@1", sourceScriptVersionId: null });
+    expect(version).toMatchObject({ assetType: "script", version: 1, schemaVersion: "script@1", source: "ai", sourceVersions: {} });
     // Durées recalculées depuis la narration : 20 mots à 150 mots/min, soit 8 s par scène.
     expect((version.content as typeof validScript).scenes.map((s) => s.estimatedSeconds)).toEqual([8, 8, 8, 8]);
 
@@ -122,7 +122,7 @@ describe("generateAsset", () => {
     const versionId = await run("seo");
 
     const version = store.versions.find((v) => v.id === versionId)!;
-    expect(version.sourceScriptVersionId).toBe(scriptVersionId);
+    expect(version.sourceVersions).toEqual({ script: scriptVersionId });
     expect((version.content as { chapters: unknown[] }).chapters).toHaveLength(3);
 
     const body = calls[0]!.body as { model: string; messages: Array<{ content: Array<{ text: string }> }> };

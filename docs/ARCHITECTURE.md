@@ -631,6 +631,8 @@ export async function generateAsset(pipelineId: string, type: AssetType): Promis
 | Échec d'un dérivé | Pipeline `partial`. Seuls les crédits de cet asset sont libérés. L'utilisateur peut le régénérer. |
 
 **Régénération par asset :**
+
+> **Révision (octobre 2026, tâche 1.10).** Chaque version enregistre la version de **chaque** dépendance utilisée (`sourceVersions`, colonne jsonb `source_versions` à la place de `source_script_version_id`) : régénérer les titres rend aussi les miniatures obsolètes, puisque `pairedTitleIndex` s'y réfère. L'obsolescence est calculée (`src/lib/pipeline/staleness.ts`), jamais stockée : un asset est `stale` quand une dépendance a changé de version depuis sa production. Une restauration crée une copie `source='restore'` avec `restored_from` ; les dépendances sont enregistrées par leur origine, si bien qu'un dérivé redevient à jour quand on restaure la version du script dont il est issu. Édition et restauration : `src/lib/pipeline/versions.ts`. Régénération : `generateAsset` avec `regeneration: { key, feedback }`, appelé par la fonction Inngest `regenerate-asset`.
 1. La Server Action `regenerateAsset(pipelineId, type, feedback?, nonce)` applique le rate limit, puis `reserve` avec la clé `regen:<nonce>`.
 2. Elle crée la `generation`, puis envoie `asset/regenerate.requested`. L'idempotence Inngest porte sur `generationId`.
 3. Une nouvelle version est créée avec `source='ai_regen'`.

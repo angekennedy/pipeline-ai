@@ -10,9 +10,9 @@ describe("page d'accueil", () => {
     expect(screen.getByRole("link", { name: "Créer un pipeline" })).toHaveAttribute("href", "/pipelines/new");
   });
 
-  it("donne accès aux quatre démonstrations", () => {
+  it("donne accès aux démonstrations", () => {
     render(<Home />);
     const hrefs = screen.getAllByRole("link").map((link) => link.getAttribute("href"));
-    expect(hrefs).toEqual(expect.arrayContaining(["/pipelines/demo-running", "/pipelines/demo-completed", "/pipelines/demo-partial", "/pipelines/demo-failed"]));
+    expect(hrefs).toEqual(expect.arrayContaining(["/pipelines/demo-running", "/pipelines/demo-completed", "/pipelines/demo-partial", "/pipelines/demo-failed", "/pipelines/demo-stale"]));
   });
 });

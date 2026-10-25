@@ -1,27 +1,10 @@
 import "server-only";
-import type Anthropic from "@anthropic-ai/sdk";
-import { NonRetriableError } from "inngest";
 import { generateAsset } from "@/lib/pipeline/generate-asset";
 import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
 import type { PipelineStore } from "@/lib/pipeline/store";
-import type { PipelineEventPublisher } from "@/lib/realtime/events";
 import { inngest } from "../client";
 import { pipelineCanceled, pipelineRequested } from "../events";
-
-type Deps = {
-  store: () => PipelineStore;
-  anthropic?: Anthropic; // injecté par les tests ; sinon le client partagé de lib/ai
-  publisher?: (pipelineId: string) => PipelineEventPublisher; // Realtime Broadcast du pipeline
-};
-
-// Les erreurs marquées `retryable: false` (refus, schéma invalide après réparation, sortie tronquée,
-// dépendance manquante) ne changeraient pas en relançant : Inngest ne les retente pas.
-function toStepError(error: unknown): unknown {
-  if (error instanceof Error && (error as { retryable?: unknown }).retryable === false) {
-    return new NonRetriableError(error.message, { cause: error });
-  }
-  return error;
-}
+import { toStepError, type JobDeps } from "../step-errors";
 
 // Appelé quand la fonction échoue après ses retries (erreur hors des étapes d'assets).
 export const markPipelineFailed =
@@ -31,7 +14,7 @@ export const markPipelineFailed =
     await store().setPipelineStatus(event.data.event.data.pipelineId, "failed");
   };
 
-export function createRunPipelineFunction({ store, anthropic, publisher }: Deps) {
+export function createRunPipelineFunction({ store, anthropic, publisher }: JobDeps) {
   return inngest.createFunction(
     {
       id: "run-pipeline",

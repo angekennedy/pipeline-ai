@@ -6,6 +6,7 @@ const DEMOS = [
   { id: "demo-completed", label: "Pipeline terminé", description: "Les cinq assets, prêts à copier." },
   { id: "demo-partial", label: "Pipeline partiel", description: "Le SEO a échoué, les autres assets sont prêts." },
   { id: "demo-failed", label: "Pipeline en échec", description: "Le script a échoué : rien d'autre n'est lancé." },
+  { id: "demo-stale", label: "Script modifié", description: "Le script a été retouché : les autres assets sont obsolètes." },
 ] as const;
 
 export default function Home() {

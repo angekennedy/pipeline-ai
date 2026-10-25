@@ -6,7 +6,7 @@ import { LlmError, callStructured } from "@/lib/ai/structured";
 import { createSceneThrottle, safePublish } from "@/lib/realtime/broadcast";
 import type { PipelineEventPublisher } from "@/lib/realtime/events";
 import { registry, type AssetDefinition } from "./registry";
-import type { GenerationFailure, PipelineRecord, PipelineStore } from "./store";
+import type { GenerationFailure, PipelineRecord, PipelineStore, SourceVersions } from "./store";
 
 // Une dépendance absente ne se résout pas en relançant l'étape : erreur définitive.
 export class MissingDependencyError extends Error {
@@ -25,12 +25,17 @@ export type GenerateAssetOptions = {
   onText?: (delta: string, snapshot: string) => void;
   // Affichage en direct (Realtime Broadcast), sans effet sur le résultat si l'envoi échoue.
   publish?: PipelineEventPublisher;
+  // Régénération demandée par l'utilisateur : génération distincte (clé `regen:<nonce>`) et
+  // consigne libre, transmise au modèle comme donnée non fiable.
+  regeneration?: { key: string; feedback?: string };
   signal?: AbortSignal;
 };
 
 export const generationKey = (pipelineId: string, type: AssetType) => `pipe:${pipelineId}:${type}`;
 
-async function loadContext(store: PipelineStore, pipeline: PipelineRecord, type: AssetType) {
+// Contexte d'un asset : brief, preset et version courante de chaque dépendance. Partagé par la
+// génération et l'édition manuelle.
+export async function loadContext(store: PipelineStore, pipeline: PipelineRecord, type: AssetType) {
   const deps = await Promise.all(
     registry[type].dependsOn.map(async (dep) => [dep, await store.getCurrentVersion(pipeline.id, dep)] as const),
   );
@@ -45,7 +50,9 @@ async function loadContext(store: PipelineStore, pipeline: PipelineRecord, type:
     script: versions.script?.content as Script | undefined,
     titles: versions.titles?.content as Titles | undefined,
   };
-  return { ctx, sourceScriptVersionId: versions.script?.id ?? null };
+  // Chaque dépendance est enregistrée par son origine : une copie restaurée vaut sa version d'origine.
+  const sourceVersions: SourceVersions = Object.fromEntries(deps.map(([dep, version]) => [dep, version!.restoredFrom ?? version!.id]));
+  return { ctx, sourceVersions };
 }
 
 function failureOf(error: unknown): GenerationFailure {
@@ -59,7 +66,7 @@ function failureOf(error: unknown): GenerationFailure {
 // elle renvoie la version déjà enregistrée sans rappeler le modèle. Renvoie l'id de version : le
 // contenu reste en base, hors de l'état des étapes Inngest.
 export async function generateAsset(pipelineId: string, type: AssetType, options: GenerateAssetOptions): Promise<string> {
-  const { store, publish } = options;
+  const { store, publish, regeneration } = options;
   // Vue non corrélée : schema(ctx) et postProcess portent le même type d'asset, ce que TypeScript
   // ne sait pas relier à travers l'union des clés.
   const def = registry[type] as unknown as AssetDefinition<AssetType>;
@@ -67,15 +74,17 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
   const generation = await store.upsertGeneration({
     pipelineId,
     assetType: type,
-    idempotencyKey: generationKey(pipelineId, type),
+    idempotencyKey: regeneration?.key ?? generationKey(pipelineId, type),
     credits: def.credits(pipeline.brief, pipeline.tier),
+    userFeedback: regeneration?.feedback,
   });
   if (generation.status === "succeeded" && generation.versionId) return generation.versionId;
 
   // Seul le script est assez long pour mériter un affichage scène par scène.
   const scenes = type === "script" && publish ? createSceneThrottle(publish) : null;
   try {
-    const { ctx, sourceScriptVersionId } = await loadContext(store, pipeline, type);
+    const loaded = await loadContext(store, pipeline, type);
+    const ctx: PromptContext = { ...loaded.ctx, feedback: regeneration?.feedback };
     await store.markRunning(generation.id, generation.attempt + 1);
     await safePublish(publish, { type: "asset.started", asset: type });
 
@@ -103,20 +112,25 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
     await scenes?.flush();
 
     const versionId = await store.commitAssetVersion({
-      generationId: generation.id,
       pipelineId,
       assetType: type,
       content: def.postProcess(result.data, ctx),
       schemaVersion: def.schemaVersion,
-      sourceScriptVersionId: type === "script" ? null : sourceScriptVersionId,
-      telemetry: {
-        model: result.model,
-        promptVersion: def.prompt.version,
-        usage: result.usage,
-        costUsdMicros: result.costUsdMicros,
-        latencyMs: Math.round(performance.now() - startedAt),
-        repairs: result.repairs,
-        attempts: result.attempts,
+      source: regeneration ? "ai_regen" : "ai",
+      sourceVersions: loaded.sourceVersions,
+      restoredFrom: null,
+      createdBy: null,
+      generation: {
+        id: generation.id,
+        telemetry: {
+          model: result.model,
+          promptVersion: def.prompt.version,
+          usage: result.usage,
+          costUsdMicros: result.costUsdMicros,
+          latencyMs: Math.round(performance.now() - startedAt),
+          repairs: result.repairs,
+          attempts: result.attempts,
+        },
       },
     });
     await safePublish(publish, { type: "asset.completed", asset: type, versionId });
