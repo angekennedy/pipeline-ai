@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "evals": "vitest run --config evals/vitest.config.mts",
+    "evals:report": "node evals/report-tool/build-report-lite.mjs evals/report"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.2.0",

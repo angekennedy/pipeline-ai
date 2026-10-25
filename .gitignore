@@ -49,3 +49,9 @@ next-env.d.ts
 # supabase
 supabase/.temp/
 supabase/.branches/
+
+# Évaluations : sorties dérivées ou volumineuses (voir evals/RESULTS.md)
+evals/report/**/traces/
+evals/report/report.html
+evals/report/trajectory/
+evals/report/_*/

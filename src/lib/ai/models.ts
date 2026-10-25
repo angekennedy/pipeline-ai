@@ -1,6 +1,6 @@
 import { serverEnv } from "@/lib/env/server";
 
-export const MODEL_KEYS = ["script.standard", "script.premium", "light"] as const;
+export const MODEL_KEYS = ["script.standard", "script.premium", "light", "eval.judge"] as const;
 export type ModelKey = (typeof MODEL_KEYS)[number];
 export type Effort = "low" | "medium" | "high";
 
@@ -10,12 +10,16 @@ const DEFAULTS: Record<ModelKey, { id: string; effort: Effort }> = {
   "script.standard": { id: "claude-sonnet-5-5", effort: "medium" },
   "script.premium": { id: "claude-opus-5-5", effort: "high" },
   light: { id: "claude-haiku-5-5", effort: "low" },
+  // Juge des évaluations (evals/) : ni Sonnet ni Opus, pour ne favoriser aucune des deux formules
+  // comparées (un juge tend à préférer les textes de sa propre famille).
+  "eval.judge": { id: "claude-fable-5-1", effort: "medium" },
 };
 
 const OVERRIDES: Record<ModelKey, string | undefined> = {
   "script.standard": serverEnv.MODEL_SCRIPT_STANDARD,
   "script.premium": serverEnv.MODEL_SCRIPT_PREMIUM,
   light: serverEnv.MODEL_LIGHT,
+  "eval.judge": serverEnv.MODEL_EVAL_JUDGE,
 };
 
 // Modèles dont les classifieurs de sécurité peuvent refuser une requête et qui acceptent

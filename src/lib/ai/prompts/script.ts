@@ -5,7 +5,7 @@ import { channelAndBrief, definePrompt, outputLanguage, type PromptContext } fro
 const SCENES_PER_MINUTE = 1.2;
 const clampScenes = (n: number) => Math.min(80, Math.max(3, Math.round(n)));
 
-function scriptTargets({ brief }: PromptContext) {
+export function scriptTargets({ brief }: PromptContext) {
   const scenes = brief.durationMinutes * SCENES_PER_MINUTE;
   return {
     words: brief.durationMinutes * WORDS_PER_MINUTE[brief.language],

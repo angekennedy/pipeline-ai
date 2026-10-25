@@ -8,6 +8,8 @@ export const PRICING: Record<string, Price> = {
   "claude-opus-5-5": { input: 4, output: 20, cacheRead: 0.2 },
   "claude-sonnet-5-5": { input: 2, output: 10, cacheRead: 0.2 },
   "claude-haiku-5-5": { input: 0.1, output: 0.5, cacheRead: 0.01 },
+  // Juge des évaluations (evals/) : ni Sonnet ni Opus, neutre entre les deux formules comparées.
+  "claude-fable-5-1": { input: 10, output: 50, cacheRead: 0.25 },
   // Modèles vers lesquels `fallbacks: "default"` peut rediriger une requête refusée.
   "claude-opus-5": { input: 5, output: 25, cacheRead: 0.5 },
   "claude-opus-4-8": { input: 5, output: 25, cacheRead: 0.5 },

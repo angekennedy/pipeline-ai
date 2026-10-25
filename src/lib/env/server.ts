@@ -10,6 +10,7 @@ const ServerEnvSchema = z.object({
   MODEL_SCRIPT_STANDARD: z.string().min(1).optional(),
   MODEL_SCRIPT_PREMIUM: z.string().min(1).optional(),
   MODEL_LIGHT: z.string().min(1).optional(),
+  MODEL_EVAL_JUDGE: z.string().min(1).optional(),
 });
 
 export const serverEnv = ServerEnvSchema.parse(process.env);
