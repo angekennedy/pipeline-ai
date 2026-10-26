@@ -61,6 +61,36 @@ describe("BriefForm", () => {
     expect(screen.getByLabelText(/Standard/)).toBeChecked();
   });
 
+  it("préremplit le brief avec le preset choisi et l'envoie avec", async () => {
+    const user = userEvent.setup();
+    createPipeline.mockResolvedValue({ fieldErrors: {}, values: {} });
+    const channels = [
+      { id: "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f", name: "Mystères d'Égypte", niche: "Histoire", defaultLanguage: "en" as const, tone: "mysterious" as const, audience: "Curieux" },
+      { id: "2c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f", name: "Sciences", niche: "Science", defaultLanguage: "fr" as const },
+    ];
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} channels={channels} />);
+    await user.selectOptions(screen.getByLabelText("Ton"), "humorous");
+    await user.selectOptions(screen.getByLabelText("Style"), "listicle");
+
+    await user.selectOptions(screen.getByLabelText("Preset de chaîne"), "Mystères d'Égypte");
+    expect(screen.getByLabelText("Niche")).toHaveValue("Histoire");
+    expect(screen.getByLabelText("Langue")).toHaveValue("en");
+    expect(screen.getByLabelText("Ton")).toHaveValue("mysterious");
+    expect(screen.getByLabelText("Style")).toHaveValue("listicle"); // le preset ne fixe pas de style : saisie gardée
+    expect(screen.getByLabelText("Public visé (facultatif)")).toHaveValue("Curieux");
+
+    await user.type(screen.getByLabelText("Sujet de la vidéo"), "Les pyramides");
+    await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
+    const data = createPipeline.mock.calls[0]![1] as FormData;
+    expect(Object.fromEntries(data)).toMatchObject({ channelId: channels[0]!.id, niche: "Histoire", language: "en", tone: "mysterious" });
+  });
+
+  it("propose de créer un preset quand le workspace n'en a aucun", () => {
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
+    expect(screen.queryByLabelText("Preset de chaîne")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Créez un preset de chaîne" })).toHaveAttribute("href", "/w/mon-espace/channels/new");
+  });
+
   it("envoie la saisie à la Server Action", async () => {
     const user = userEvent.setup();
     createPipeline.mockResolvedValue({ fieldErrors: {}, values: {} });

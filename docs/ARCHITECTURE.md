@@ -181,6 +181,13 @@ pipeline-ai/
 > - **Recherche** `?q=` : `ilike` sur la colonne générée `title` (le sujet), jokers `%` et `_` échappés, 100 caractères au plus. Pas d'index trigramme : suffisant aux volumes d'un workspace au MVP.
 > - **Duplication** : `pipelines/new?from=<id>` préremplit le formulaire avec le brief et la formule (`loadBriefValues`, sous RLS et filtré par workspace). Une nouvelle clé d'idempotence est tirée : c'est un nouveau pipeline, réservé et débité normalement. Premium repasse en Standard si le plan ne l'inclut pas. Le preset de chaîne n'est pas repris avant la tâche 2.5.
 > - **État vide** : CTA « Créer mon premier pipeline » pour un éditeur, message d'attente pour un lecteur.
+>
+> **Révision (octobre 2026, tâche 2.5).** Presets de chaîne : `/w/[workspaceSlug]/channels` (liste), `channels/new`, `channels/[channelId]` (modification, suppression).
+> - **Écriture** (`src/lib/channels/store.ts`) avec le client de l'utilisateur : la RLS `ch_write` réserve les presets aux éditeurs, le trigger `channels_plan_limit` (migration 0008) refuse un preset au-delà du plan (`PlanRestrictionError`, message et lien vers les tarifs). Les Server Actions revérifient le rôle `editor`. Le proxy répond 404 sur le preset d'un autre workspace, comme pour un pipeline.
+> - **Formulaire** (`src/lib/channels/form.ts`) : FormData ↔ `ChannelPresetSchema`. Mots interdits et palette saisis en listes séparées par des virgules.
+> - **Brief** : choisir un preset préremplit niche, langue, ton, style et public (ceux que le preset fixe, la saisie est gardée sinon). `channelId` fait partie du brief.
+> - **Copie figée.** `createPipeline` relit le preset sous RLS dans le workspace et le passe à `create_pipeline_with_reservation` (`channel_snapshot`). Les prompts lisent cette copie : modifier ou supprimer le preset ne change pas un pipeline lancé (`channel_id` passe à null, la copie reste). La page du pipeline affiche le nom du preset figé.
+> - **Évaluation** (`evals/preset-influence.eval.ts`, `EVAL_PRESET=1`) : sur un même script, trois jeux de titres. Le premier, sans preset, désigne les mots que le modèle emploie spontanément ; ils deviennent les mots interdits d'un preset minimal. On compare la part de titres qui les emploient : témoin sans preset contre passage avec preset.
 
 ---
 

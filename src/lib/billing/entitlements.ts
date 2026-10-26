@@ -1,6 +1,6 @@
 import type { Brief } from "@/lib/ai/schemas";
 import type { ModelTier } from "@/lib/pipeline/registry";
-import { PLANS, PLAN_KEYS, type PlanKey } from "./plans";
+import { PLANS, PLAN_KEYS, isPlanKey, type PlanKey } from "./plans";
 
 // Ce que le plan interdit (tâche 3.6). Vérifié par la Server Action pour un message immédiat, puis
 // en base (migration 0008, PLAN_RESTRICTED) : la RPC de création et le trigger des presets.
@@ -18,6 +18,12 @@ export class PlanRestrictionError extends Error {
     super(restrictionMessage(restriction));
     this.name = "PlanRestrictionError";
   }
+}
+
+// Détail JSON d'une erreur PLAN_RESTRICTED levée en base (RPC de création, trigger des presets).
+export function restrictionFromDetails(details: string): PlanRestriction {
+  const detail = JSON.parse(details) as PlanRestriction & { plan: string };
+  return { ...detail, plan: isPlanKey(detail.plan) ? detail.plan : "free" };
 }
 
 // Premier plan, dans l'ordre du catalogue, qui lève la restriction.

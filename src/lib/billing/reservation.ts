@@ -4,8 +4,7 @@ import type { Brief, ChannelPreset } from "@/lib/ai/schemas";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { pipelineCredits } from "./costs";
-import { PlanRestrictionError, type PlanRestriction } from "./entitlements";
-import { isPlanKey } from "./plans";
+import { PlanRestrictionError, restrictionFromDetails } from "./entitlements";
 
 // Solde disponible (balance − reserved) insuffisant : rien n'a été créé. L'interface ouvre le modal
 // d'upgrade avec ces deux montants.
@@ -52,10 +51,7 @@ export async function createPipelineWithReservation(db: SupabaseClient<Database>
       const detail = JSON.parse(error.details) as { required: number; available: number };
       throw new InsufficientCreditsError(detail.required, detail.available);
     }
-    if (error.message === "PLAN_RESTRICTED") {
-      const detail = JSON.parse(error.details) as PlanRestriction & { plan: string };
-      throw new PlanRestrictionError({ ...detail, plan: isPlanKey(detail.plan) ? detail.plan : "free" });
-    }
+    if (error.message === "PLAN_RESTRICTED") throw new PlanRestrictionError(restrictionFromDetails(error.details));
     throw Object.assign(new Error(`Création du pipeline : ${error.message}`), { code: error.code });
   }
   const row = data[0];

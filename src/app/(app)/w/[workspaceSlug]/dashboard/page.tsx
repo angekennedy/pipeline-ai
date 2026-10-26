@@ -71,11 +71,16 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
           <h1 className="text-2xl font-semibold tracking-tight">Pipelines</h1>
           <p className="mt-1 text-muted-foreground">{workspace.name}</p>
         </div>
-        {canEdit && !empty && (
-          <Link href={newPipelineHref} className={buttonVariants()}>
-            Nouveau pipeline
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/w/${workspace.slug}/channels`} className={buttonVariants({ variant: "outline" })}>
+            Presets de chaîne
           </Link>
-        )}
+          {canEdit && !empty && (
+            <Link href={newPipelineHref} className={buttonVariants()}>
+              Nouveau pipeline
+            </Link>
+          )}
+        </div>
       </div>
 
       {empty ? (

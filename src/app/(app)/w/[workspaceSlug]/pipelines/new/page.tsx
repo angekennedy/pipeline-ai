@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { BriefForm } from "@/components/pipeline/brief-form";
+import { channelOption } from "@/lib/channels/form";
+import { listChannels } from "@/lib/channels/store";
 import { loadBriefValues } from "@/lib/pipeline/list";
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
@@ -17,10 +19,13 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
   // `?from=<pipeline>` : duplication d'un brief du même workspace. Un id inconnu ou d'un autre
   // workspace (RLS et filtre) laisse simplement le formulaire vide.
   const { from } = await searchParams;
-  const source =
-    canEdit && typeof from === "string" && z.uuid().safeParse(from).success
-      ? await loadBriefValues(await createClient(), workspace.id, from)
-      : null;
+  const db = await createClient();
+  const [source, channels] = canEdit
+    ? await Promise.all([
+        typeof from === "string" && z.uuid().safeParse(from).success ? loadBriefValues(db, workspace.id, from) : null,
+        listChannels(db, workspace.id),
+      ])
+    : [null, []];
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10">
@@ -36,7 +41,13 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
             </p>
           )}
           {/* Une clé par affichage du formulaire : un double envoi ne crée et ne débite qu'un pipeline. */}
-          <BriefForm workspaceSlug={workspace.slug} credits={credits} idempotencyKey={randomUUID()} initialValues={source?.values} />
+          <BriefForm
+            workspaceSlug={workspace.slug}
+            credits={credits}
+            idempotencyKey={randomUUID()}
+            initialValues={source?.values}
+            channels={channels.map(channelOption)}
+          />
         </>
       ) : (
         <p role="status" className="rounded-xl border p-4 text-sm">

@@ -126,6 +126,25 @@ ayant désactivé l'organisation en cours de route (« This organization has bee
 sur 7 cas. Aucun titre de la v3 ne mentionne le script ou une scène ; sur 2 briefs, un concept de
 miniature trop verbeux a été écarté et 3 concepts sont restés.
 
+## Influence du preset sur les titres (tâche 2.5)
+
+**Non mesurée à ce jour** : l'organisation Anthropic est désactivée, et l'évaluation fait des appels
+payants. Méthode (`preset-influence.eval.ts`, cas `fr-histoire-rome`, `en-finance-compound`,
+`es-ciencia-cielo`) :
+
+- un script Standard par cas, puis trois jeux de titres sur ce même script ;
+- le premier, sans preset, désigne les 3 mots les plus fréquents des titres (5 lettres au moins,
+  présents dans 2 titres, hors sujet et niche) ;
+- ces mots deviennent les `bannedWords` d'un preset qui ne fixe rien d'autre ;
+- on compare la part de titres qui les emploient : témoin sans preset contre passage avec preset.
+
+Le test réussit si le passage avec preset en emploie moins que le témoin. Coût estimé : moins de
+1 $ (un script Sonnet et trois appels Haiku par cas).
+
+```
+EVAL_PRESET=1 pnpm evals preset-influence
+```
+
 ## Relancer
 
 ```

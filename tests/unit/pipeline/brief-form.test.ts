@@ -77,11 +77,19 @@ describe("parseBriefForm", () => {
     expect(result.ok === false && result.values).not.toHaveProperty("injected");
   });
 
+  it("garde le preset choisi, et aucun pour « Aucun preset »", () => {
+    const channelId = "4d1f7c3e-2b6a-4f8e-9c0d-1a2b3c4d5e6f";
+    expect(parseBriefForm(form({ ...valid, channelId }))).toMatchObject({ ok: true, brief: { channelId } });
+    const none = parseBriefForm(form({ ...valid, channelId: "" }));
+    expect(none.ok && none.brief.channelId).toBeUndefined();
+    expect(parseBriefForm(form({ ...valid, channelId: "pas-un-uuid" }))).toMatchObject({ ok: false, fieldErrors: { channelId: BRIEF_FIELD_MESSAGES.channelId } });
+  });
+
   it("relit sans perte un brief remis en formulaire (duplication)", () => {
     const parsed = parseBriefForm(form({ ...valid, targetAudience: "Curieux", tier: "premium" }));
     if (!parsed.ok) throw new Error("brief invalide");
     const values = briefToFormValues(parsed.brief, parsed.tier);
-    expect(values).toEqual({ ...valid, targetAudience: "Curieux", tier: "premium" });
+    expect(values).toEqual({ ...valid, targetAudience: "Curieux", tier: "premium", channelId: "" });
     expect(parseBriefForm(form(values as Record<string, string>))).toMatchObject({ ok: true, brief: parsed.brief, tier: "premium" });
   });
 });

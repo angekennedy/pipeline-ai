@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Session simulée : getClaims renvoie un utilisateur ou rien, et pose un cookie rafraîchi.
 let claims: { sub: string } | null = null;
-// Lignes visibles sous RLS par l'utilisateur simulé : workspaces par slug, pipelines par id.
-let visible: { workspaces: Record<string, string>; pipelines: Record<string, string> } = { workspaces: {}, pipelines: {} };
-const query = (table: "workspaces" | "pipelines") => {
+// Lignes visibles sous RLS par l'utilisateur simulé : workspaces par slug, pipelines et presets par id
+// (valeur : leur workspace).
+type Visible = { workspaces: Record<string, string>; pipelines: Record<string, string>; channels: Record<string, string> };
+let visible: Visible = { workspaces: {}, pipelines: {}, channels: {} };
+const query = (table: keyof Visible) => {
   const filters: Record<string, string> = {};
   const builder = {
     select: () => builder,
@@ -15,7 +17,7 @@ const query = (table: "workspaces" | "pipelines") => {
         const id = visible.workspaces[filters.slug!];
         return { data: id ? { id } : null, error: null };
       }
-      const ws = visible.pipelines[filters.id!];
+      const ws = visible[table][filters.id!];
       return { data: ws && ws === filters.workspace_id ? { id: filters.id } : null, error: null };
     },
   };
@@ -38,7 +40,7 @@ const request = (path: string) => new NextRequest(new URL(path, "http://localhos
 
 beforeEach(() => {
   claims = null;
-  visible = { workspaces: {}, pipelines: {} };
+  visible = { workspaces: {}, pipelines: {}, channels: {} };
 });
 
 describe("proxy : filtre de session", () => {
@@ -66,21 +68,29 @@ describe("proxy : filtre de session", () => {
 
 describe("proxy : portée des workspaces", () => {
   const PIPELINE = "4d1f7c3e-2b6a-4f8e-9c0d-1a2b3c4d5e6f";
+  const CHANNEL = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
   beforeEach(() => {
     claims = { sub: "user-1" };
-    visible = { workspaces: { "mon-espace": "ws-1" }, pipelines: { [PIPELINE]: "ws-1" } };
+    visible = { workspaces: { "mon-espace": "ws-1" }, pipelines: { [PIPELINE]: "ws-1" }, channels: { [CHANNEL]: "ws-1" } };
   });
   const rewrittenTo = (response: Response) => response.headers.get("x-middleware-rewrite");
 
-  it("laisse passer un workspace et un pipeline de l'utilisateur", async () => {
-    for (const path of ["/w/mon-espace", "/w/mon-espace/pipelines/new", `/w/mon-espace/pipelines/${PIPELINE}`]) {
+  it("laisse passer un workspace, un pipeline et un preset de l'utilisateur", async () => {
+    for (const path of ["/w/mon-espace", "/w/mon-espace/pipelines/new", `/w/mon-espace/pipelines/${PIPELINE}`, `/w/mon-espace/channels/${CHANNEL}`]) {
       expect(rewrittenTo(await updateSession(request(path))), path).toBeNull();
     }
   });
 
-  it("répond 404 pour un workspace hors de portée, un pipeline d'un autre workspace ou un id invalide", async () => {
+  it("répond 404 pour un workspace hors de portée, une ressource d'un autre workspace ou un id invalide", async () => {
     visible.workspaces["autre"] = "ws-2";
-    for (const path of ["/w/inconnu", "/w/inconnu/pipelines/new", `/w/autre/pipelines/${PIPELINE}`, "/w/mon-espace/pipelines/pas-un-uuid"]) {
+    for (const path of [
+      "/w/inconnu",
+      "/w/inconnu/pipelines/new",
+      `/w/autre/pipelines/${PIPELINE}`,
+      `/w/autre/channels/${CHANNEL}`,
+      `/w/mon-espace/channels/${PIPELINE}`, // un id de pipeline n'est pas un preset
+      "/w/mon-espace/pipelines/pas-un-uuid",
+    ]) {
       expect(rewrittenTo(await updateSession(request(path))), path).toBe("http://localhost:3000/introuvable");
     }
   });

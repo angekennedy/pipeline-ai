@@ -1,4 +1,4 @@
-import type { AssetType, Scene, VoiceoverSegment } from "@/lib/ai/schemas";
+import type { AssetType, Brief, Language, Scene, VoiceoverSegment } from "@/lib/ai/schemas";
 import type { PipelineStatus } from "./status";
 import type { VersionSource } from "./store";
 
@@ -41,4 +41,31 @@ export const VERSION_SOURCE_LABELS: Record<VersionSource, string> = {
   ai_regen: "Régénération",
   user_edit: "Édition manuelle",
   restore: "Restauration",
+};
+
+export const LANGUAGE_LABELS: Record<Language, string> = {
+  fr: "Français",
+  en: "Anglais",
+  es: "Espagnol",
+  pt: "Portugais",
+  de: "Allemand",
+  it: "Italien",
+};
+
+export const TONE_LABELS: Record<Brief["tone"], string> = {
+  educational: "Pédagogique",
+  dramatic: "Dramatique",
+  humorous: "Humoristique",
+  mysterious: "Mystérieux",
+  inspirational: "Inspirant",
+  neutral: "Neutre",
+};
+
+export const STYLE_LABELS: Record<Brief["style"], string> = {
+  listicle: "Liste",
+  storytelling: "Récit",
+  documentary: "Documentaire",
+  explainer: "Explication",
+  "top-n": "Top N",
+  "true-crime": "Faits divers",
 };

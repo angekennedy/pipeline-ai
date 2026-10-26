@@ -8,17 +8,19 @@ export const LOGIN_PATH = "/login";
 // Cookie qui garde la page demandée le temps du parcours de connexion (lien magique ou Google).
 export const NEXT_COOKIE = "auth_next";
 
-// Ressource d'un workspace visée par l'URL : /w/<slug>[/pipelines/<id>]. `pipelineId` vaut null pour
-// les autres pages du workspace (`new` compris).
-const WORKSPACE_PATH = /^\/w\/([^/]+)(?:\/pipelines\/([^/]+))?/;
+// Ressource d'un workspace visée par l'URL : /w/<slug>[/pipelines/<id> | /channels/<id>]. `resource`
+// vaut null pour les autres pages du workspace (`new` compris).
+const WORKSPACE_PATH = /^\/w\/([^/]+)(?:\/(pipelines|channels)\/([^/]+))?/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function workspaceTarget(pathname: string): { slug: string; pipelineId: string | null; invalid: boolean } | null {
+export type WorkspaceTarget = { slug: string; resource: { table: "pipelines" | "channels"; id: string } | null; invalid: boolean };
+
+export function workspaceTarget(pathname: string): WorkspaceTarget | null {
   const match = WORKSPACE_PATH.exec(pathname);
   if (!match) return null;
-  const [, slug, segment] = match;
-  const pipelineId = segment && segment !== "new" ? segment : null;
-  return { slug: slug!, pipelineId, invalid: pipelineId !== null && !UUID.test(pipelineId) };
+  const [, slug, table, segment] = match;
+  const resource = segment && segment !== "new" ? { table: table as "pipelines" | "channels", id: segment } : null;
+  return { slug: slug!, resource, invalid: resource !== null && !UUID.test(resource.id) };
 }
 
 export function isAppRoute(pathname: string): boolean {

@@ -26,7 +26,7 @@ const GENERIC_FAILURE = "Une erreur inattendue est survenue. Régénérez cet as
 
 export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId: string, pipelineId: string): Promise<PipelineView | null> {
   const pipeline = check(
-    await db.from("pipelines").select("id, brief, model_tier, status, created_at").eq("id", pipelineId).eq("workspace_id", workspaceId).maybeSingle(),
+    await db.from("pipelines").select("id, brief, model_tier, status, created_at, channel_name:channel_snapshot->>name").eq("id", pipelineId).eq("workspace_id", workspaceId).maybeSingle(),
     "Pipeline",
   );
   if (!pipeline) return null;
@@ -77,6 +77,7 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
     createdAt: pipeline.created_at,
     assets: views as PipelineAssets,
     staleCredits: regenerationCredits(stale, brief, tier),
+    ...(typeof pipeline.channel_name === "string" && { channelName: pipeline.channel_name }),
   };
 }
 

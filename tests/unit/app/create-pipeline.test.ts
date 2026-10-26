@@ -31,6 +31,8 @@ vi.mock("@/lib/billing/reservation", async (original) => ({
   ...(await original<typeof import("@/lib/billing/reservation")>()),
   createPipelineWithReservation: (...args: unknown[]) => reserve(...args),
 }));
+const getChannel = vi.fn();
+vi.mock("@/lib/channels/store", () => ({ getChannel: (...args: unknown[]) => getChannel(...args) }));
 const send = vi.fn();
 vi.mock("@/lib/jobs/client", () => ({ inngest: { send: (...args: unknown[]) => send(...args) } }));
 
@@ -69,6 +71,25 @@ describe("Server Action createPipeline", () => {
       expect.objectContaining({ name: "pipeline/requested", data: { pipelineId: PIPELINE, workspaceId: WS }, id: `pipeline-requested:${PIPELINE}` }),
     );
     expect(refresh).toHaveBeenCalledOnce(); // solde de l'en-tête relu
+  });
+
+  it("fige le preset choisi dans le pipeline, relu dans ce workspace", async () => {
+    const CHANNEL = "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f";
+    const preset = { name: "Mystères", niche: "Histoire", defaultLanguage: "fr", voiceProfile: {}, brandRules: { bannedWords: ["secret"], thumbnailPalette: [] } };
+    getChannel.mockResolvedValue({ id: CHANNEL, preset, updatedAt: "2026-10-26T00:00:00Z" });
+    await expect(createPipeline(initial, form({ channelId: CHANNEL }))).rejects.toThrow("NEXT_REDIRECT");
+    expect(getChannel).toHaveBeenCalledWith(expect.anything(), WS, CHANNEL);
+    expect(reserve).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ brief: expect.objectContaining({ channelId: CHANNEL }), channel: { id: CHANNEL, snapshot: preset } }),
+    );
+  });
+
+  it("signale un preset supprimé ou d'un autre workspace, sans rien réserver", async () => {
+    getChannel.mockResolvedValue(null);
+    const state = await createPipeline(initial, form({ channelId: "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f" }));
+    expect(state.fieldErrors).toEqual({ channelId: expect.stringMatching(/n'existe plus/) });
+    expect(reserve).not.toHaveBeenCalled();
   });
 
   it("renvoie vers la connexion sans session", async () => {

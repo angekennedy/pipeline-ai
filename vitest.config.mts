@@ -31,7 +31,8 @@ export default defineConfig({
       exclude: [
         "src/components/ui/**", // composants shadcn générés
         "src/lib/supabase/**", // wrappers couverts par les tests d'intégration (Supabase local)
-        // Requêtes sous RLS, couvertes par les tests d'intégration (dashboard.test.ts, workspaces.test.ts)
+        // Requêtes sous RLS, couvertes par les tests d'intégration (dashboard, workspaces, channels)
+        "src/lib/channels/store.ts",
         "src/lib/pipeline/list.ts",
         "src/lib/pipeline/load-view.ts",
         "src/lib/workspaces/**",

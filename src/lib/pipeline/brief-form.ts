@@ -14,6 +14,7 @@ export const BRIEF_FORM_FIELDS = [
   "targetAudience",
   "extraNotes",
   "tier",
+  "channelId",
 ] as const;
 export type BriefFormField = (typeof BRIEF_FORM_FIELDS)[number];
 
@@ -28,9 +29,10 @@ export const BRIEF_FIELD_MESSAGES: Record<BriefFormField, string> = {
   targetAudience: "Décrivez le public en 200 caractères au plus.",
   extraNotes: "Les consignes tiennent en 2 000 caractères au plus.",
   tier: "Choisissez la formule Standard ou Premium.",
+  channelId: "Ce preset n'existe plus. Choisissez-en un autre, ou aucun.",
 };
 
-const BriefFormSchema = BriefSchema.omit({ channelId: true }).extend({
+const BriefFormSchema = BriefSchema.extend({
   tier: z.enum(["standard", "premium"]),
 });
 
@@ -61,6 +63,7 @@ export function parseBriefForm(data: FormData): BriefFormResult {
     durationMinutes: duration ? Number(duration) : undefined,
     targetAudience: optional(values.targetAudience),
     extraNotes: optional(values.extraNotes),
+    channelId: optional(values.channelId), // « Aucun preset » envoie une chaîne vide
     tier: values.tier ?? "standard",
   });
 
@@ -76,8 +79,7 @@ export function parseBriefForm(data: FormData): BriefFormResult {
   return { ok: false, fieldErrors, values };
 }
 
-// Duplication d'un brief (tableau de bord) : brief enregistré → saisie du formulaire. Le preset de
-// chaîne n'est pas repris : le formulaire ne le propose pas encore (tâche 2.5).
+// Duplication d'un brief (tableau de bord) : brief enregistré → saisie du formulaire, preset compris.
 export function briefToFormValues(brief: Brief, tier: ModelTier): BriefFormValues {
   return {
     niche: brief.niche,
@@ -89,5 +91,6 @@ export function briefToFormValues(brief: Brief, tier: ModelTier): BriefFormValue
     targetAudience: brief.targetAudience ?? "",
     extraNotes: brief.extraNotes ?? "",
     tier,
+    channelId: brief.channelId ?? "",
   };
 }

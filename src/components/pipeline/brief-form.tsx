@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { createPipeline, type CreatePipelineState } from "@/app/(app)/w/[workspaceSlug]/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
 import type { CreditSummary } from "@/lib/billing/balance";
 import { restrictionMessage } from "@/lib/billing/entitlements";
 import { PLANS, PLAN_KEYS } from "@/lib/billing/plans";
+import { briefPrefill, type ChannelOption } from "@/lib/channels/form";
 import type { BriefFormField, BriefFormValues } from "@/lib/pipeline/brief-form";
+import { LANGUAGE_LABELS, STYLE_LABELS, TONE_LABELS } from "@/lib/pipeline/labels";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import { CostEstimate } from "@/components/billing/cost-estimate";
 import { InsufficientCreditsDialog } from "@/components/billing/insufficient-credits-dialog";
@@ -15,33 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-const LANGUAGE_LABELS: Record<(typeof LANGUAGES)[number], string> = {
-  fr: "Français",
-  en: "Anglais",
-  es: "Espagnol",
-  pt: "Portugais",
-  de: "Allemand",
-  it: "Italien",
-};
-
-const TONE_LABELS: Record<(typeof TONES)[number], string> = {
-  educational: "Pédagogique",
-  dramatic: "Dramatique",
-  humorous: "Humoristique",
-  mysterious: "Mystérieux",
-  inspirational: "Inspirant",
-  neutral: "Neutre",
-};
-
-const STYLE_LABELS: Record<(typeof STYLES)[number], string> = {
-  listicle: "Liste",
-  storytelling: "Récit",
-  documentary: "Documentaire",
-  explainer: "Explication",
-  "top-n": "Top N",
-  "true-crime": "Faits divers",
-};
 
 const SELECT_CLASS =
   "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm dark:bg-input/30";
@@ -82,16 +57,19 @@ function Field({
 }
 
 // `initialValues` préremplit le formulaire (duplication d'un brief depuis le tableau de bord).
+// `channels` : presets du workspace ; en choisir un préremplit le brief.
 export function BriefForm({
   workspaceSlug,
   credits,
   idempotencyKey,
   initialValues = {},
+  channels = [],
 }: {
   workspaceSlug: string;
   credits: CreditSummary;
   idempotencyKey: string;
   initialValues?: BriefFormValues;
+  channels?: ChannelOption[];
 }) {
   const [state, formAction, pending] = useActionState<CreatePipelineState, FormData>(createPipeline, { fieldErrors: {}, values: initialValues });
   const { fieldErrors: errors, values } = state;
@@ -105,6 +83,18 @@ export function BriefForm({
   const [duration, setDuration] = useState(values.durationMinutes ?? "8");
   const [tier, setTier] = useState<ModelTier>(tierOf(values));
   const [dialogOpen, setDialogOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Les champs gardent leur saisie (defaultValue) : le preset choisi les remplace directement.
+  function applyPreset(channelId: string) {
+    const option = channels.find((channel) => channel.id === channelId);
+    const form = formRef.current;
+    if (!option || !form) return;
+    for (const [field, value] of Object.entries(briefPrefill(option))) {
+      const element = form.elements.namedItem(field);
+      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) element.value = value;
+    }
+  }
   const [answered, setAnswered] = useState(state);
   if (answered !== state) {
     setAnswered(state);
@@ -114,9 +104,35 @@ export function BriefForm({
   }
 
   return (
-    <form action={formAction} className="grid gap-5" noValidate>
+    <form ref={formRef} action={formAction} className="grid gap-5" noValidate>
       <input type="hidden" name="workspaceSlug" value={workspaceSlug} />
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+      {channels.length > 0 ? (
+        <Field
+          name="channelId"
+          label="Preset de chaîne"
+          hint="Préremplit la niche, la langue, le ton, le style et le public. La voix et les règles de marque du preset guident la génération."
+          error={errors.channelId}
+        >
+          {(props) => (
+            <select key={values.channelId} {...props} defaultValue={values.channelId ?? ""} onChange={(event) => applyPreset(event.target.value)} className={SELECT_CLASS}>
+              <option value="">Aucun preset</option>
+              {channels.map((channel) => (
+                <option key={channel.id} value={channel.id}>
+                  {channel.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          <Link href={`/w/${workspaceSlug}/channels/new`} className="font-medium underline underline-offset-4">
+            Créez un preset de chaîne
+          </Link>{" "}
+          pour préremplir vos briefs et garder le même ton d&apos;une vidéo à l&apos;autre.
+        </p>
+      )}
       <div className="grid gap-5 md:grid-cols-2">
         <Field name="niche" label="Niche" hint="Le thème de la chaîne, par exemple Histoire ou Finances personnelles." error={errors.niche}>
           {(props) => <Input {...props} defaultValue={values.niche} required maxLength={80} />}
@@ -150,7 +166,7 @@ export function BriefForm({
       <div className="grid gap-5 md:grid-cols-3">
         <Field name="language" label="Langue" error={errors.language}>
           {(props) => (
-            <select {...props} defaultValue={values.language ?? "fr"} className={SELECT_CLASS}>
+            <select key={values.language} {...props} defaultValue={values.language ?? "fr"} className={SELECT_CLASS}>
               {LANGUAGES.map((language) => (
                 <option key={language} value={language}>
                   {LANGUAGE_LABELS[language]}
@@ -161,7 +177,7 @@ export function BriefForm({
         </Field>
         <Field name="tone" label="Ton" error={errors.tone}>
           {(props) => (
-            <select {...props} defaultValue={values.tone ?? "educational"} className={SELECT_CLASS}>
+            <select key={values.tone} {...props} defaultValue={values.tone ?? "educational"} className={SELECT_CLASS}>
               {TONES.map((tone) => (
                 <option key={tone} value={tone}>
                   {TONE_LABELS[tone]}
@@ -172,7 +188,7 @@ export function BriefForm({
         </Field>
         <Field name="style" label="Style" error={errors.style}>
           {(props) => (
-            <select {...props} defaultValue={values.style ?? "documentary"} className={SELECT_CLASS}>
+            <select key={values.style} {...props} defaultValue={values.style ?? "documentary"} className={SELECT_CLASS}>
               {STYLES.map((style) => (
                 <option key={style} value={style}>
                   {STYLE_LABELS[style]}

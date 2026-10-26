@@ -98,6 +98,7 @@ describe("duplication d'un brief", () => {
         targetAudience: "",
         extraNotes: "",
         tier: "premium",
+        channelId: "",
       },
     });
   });

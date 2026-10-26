@@ -29,11 +29,14 @@ describe("safeNext", () => {
 
 describe("workspaceTarget", () => {
   const id = "4d1f7c3e-2b6a-4f8e-9c0d-1a2b3c4d5e6f";
-  it("repère le workspace et le pipeline visés par l'URL", () => {
-    expect(workspaceTarget("/w/mon-espace")).toEqual({ slug: "mon-espace", pipelineId: null, invalid: false });
-    expect(workspaceTarget("/w/mon-espace/pipelines/new")).toEqual({ slug: "mon-espace", pipelineId: null, invalid: false });
-    expect(workspaceTarget(`/w/mon-espace/pipelines/${id}`)).toEqual({ slug: "mon-espace", pipelineId: id, invalid: false });
+  it("repère le workspace et le pipeline ou le preset visés par l'URL", () => {
+    expect(workspaceTarget("/w/mon-espace")).toEqual({ slug: "mon-espace", resource: null, invalid: false });
+    expect(workspaceTarget("/w/mon-espace/pipelines/new")).toEqual({ slug: "mon-espace", resource: null, invalid: false });
+    expect(workspaceTarget("/w/mon-espace/channels/new")).toEqual({ slug: "mon-espace", resource: null, invalid: false });
+    expect(workspaceTarget(`/w/mon-espace/pipelines/${id}`)).toEqual({ slug: "mon-espace", resource: { table: "pipelines", id }, invalid: false });
+    expect(workspaceTarget(`/w/mon-espace/channels/${id}`)).toEqual({ slug: "mon-espace", resource: { table: "channels", id }, invalid: false });
     expect(workspaceTarget("/w/mon-espace/pipelines/pas-un-uuid")).toMatchObject({ invalid: true });
+    expect(workspaceTarget("/w/mon-espace/channels/pas-un-uuid")).toMatchObject({ invalid: true });
   });
 
   it("ignore les autres routes", () => {

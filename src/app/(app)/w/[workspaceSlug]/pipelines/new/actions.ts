@@ -6,9 +6,10 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
 import { PlanRestrictionError, type PlanRestriction } from "@/lib/billing/entitlements";
 import { InsufficientCreditsError, createPipelineWithReservation } from "@/lib/billing/reservation";
+import { getChannel } from "@/lib/channels/store";
 import { inngest } from "@/lib/jobs/client";
 import { pipelineRequested } from "@/lib/jobs/events";
-import { parseBriefForm, type BriefFormField, type BriefFormValues } from "@/lib/pipeline/brief-form";
+import { BRIEF_FIELD_MESSAGES, parseBriefForm, type BriefFormField, type BriefFormValues } from "@/lib/pipeline/brief-form";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
@@ -38,6 +39,12 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   const key = KeySchema.safeParse(formData.get("idempotencyKey"));
   if (!key.success) throw new Error("Clé de soumission invalide");
 
+  // Preset relu sous RLS dans ce workspace, puis figé dans le pipeline (`channel_snapshot`) : le
+  // modifier ensuite ne change pas les pipelines déjà créés.
+  const { channelId } = result.brief;
+  const channel = channelId ? await getChannel(await createClient(), membership.workspace.id, channelId) : null;
+  if (channelId && !channel) return { fieldErrors: { channelId: BRIEF_FIELD_MESSAGES.channelId }, values: result.values };
+
   const admin = createAdminClient();
   let pipelineId: string;
   try {
@@ -47,6 +54,7 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
       brief: result.brief,
       tier: result.tier,
       idempotencyKey: key.data,
+      channel: channel ? { id: channel.id, snapshot: channel.preset } : undefined,
     }));
   } catch (error) {
     if (error instanceof PlanRestrictionError) return { fieldErrors: {}, values: result.values, restriction: error.restriction };

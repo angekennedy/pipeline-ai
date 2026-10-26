@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
-import { LOGIN_PATH, isAppRoute, safeNext, workspaceTarget } from "@/lib/auth/routes";
+import { LOGIN_PATH, isAppRoute, safeNext, workspaceTarget, type WorkspaceTarget } from "@/lib/auth/routes";
 import { publicEnv } from "@/lib/env/public";
 import type { Database } from "./database.types";
 
@@ -59,13 +59,13 @@ export async function updateSession(request: NextRequest) {
   return response;
 }
 
-async function canReach(supabase: SupabaseClient<Database>, { slug, pipelineId, invalid }: NonNullable<ReturnType<typeof workspaceTarget>>) {
+async function canReach(supabase: SupabaseClient<Database>, { slug, resource, invalid }: WorkspaceTarget) {
   if (invalid) return false;
   const { data: workspace } = await supabase.from("workspaces").select("id").eq("slug", slug).maybeSingle();
   if (!workspace) return false;
-  if (!pipelineId) return true;
-  const { data: pipeline } = await supabase.from("pipelines").select("id").eq("id", pipelineId).eq("workspace_id", workspace.id).maybeSingle();
-  return Boolean(pipeline);
+  if (!resource) return true;
+  const { data } = await supabase.from(resource.table).select("id").eq("id", resource.id).eq("workspace_id", workspace.id).maybeSingle();
+  return Boolean(data);
 }
 
 // Une redirection garde les cookies de session que le rafraîchissement vient de poser, et l'en-tête

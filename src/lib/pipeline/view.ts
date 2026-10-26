@@ -28,6 +28,7 @@ export type PipelineView = {
   createdAt: string; // ISO 8601
   assets: PipelineAssets;
   staleCredits: number; // coût de « Régénérer les dérivés » obsolètes, 0 s'il n'y en a pas
+  channelName?: string; // preset de chaîne figé au lancement (`channel_snapshot`)
 };
 
 const mapAssets = (fn: (type: AssetType) => AssetView<AssetType>) =>

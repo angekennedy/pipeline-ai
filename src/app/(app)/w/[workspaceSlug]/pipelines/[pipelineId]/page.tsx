@@ -36,7 +36,9 @@ export default async function PipelinePage({ params }: PageProps<"/w/[workspaceS
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">{brief.topic}</h1>
       <p className="mt-1 mb-6 text-sm text-muted-foreground">
-        {brief.niche} · {brief.durationMinutes} min · {brief.language.toUpperCase()}
+        {[brief.niche, `${brief.durationMinutes} min`, brief.language.toUpperCase(), view.channelName && `Preset ${view.channelName}`]
+          .filter(Boolean)
+          .join(" · ")}
       </p>
       {TERMINAL.has(view.status) ? <StaticPipeline view={view} /> : <LivePipeline view={view} />}
     </main>
