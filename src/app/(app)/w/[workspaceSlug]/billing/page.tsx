@@ -5,6 +5,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { DATE, PRICE, SHORT_DATE_TIME } from "@/i18n/format";
 import { CREDIT_PACKS, PLAN_KEYS, PLANS } from "@/lib/billing/plans";
 import { ACCESS_STATUSES, billingEnabled } from "@/lib/billing/stripe";
+import { LEGAL_PATHS } from "@/lib/legal";
 import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
@@ -176,6 +177,21 @@ export default async function BillingPage({ params, searchParams }: PageProps<"/
               ))}
             </ul>
           </section>
+
+          <p className="text-xs text-muted-foreground">
+            {t.rich("consent", {
+              terms: (chunks) => (
+                <Link href={LEGAL_PATHS.terms} className="underline underline-offset-4">
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link href={LEGAL_PATHS.privacy} className="underline underline-offset-4">
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
         </>
       )}
 

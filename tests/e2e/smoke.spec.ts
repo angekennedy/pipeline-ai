@@ -9,6 +9,18 @@ test("la page d'accueil se charge et mène à l'exemple réel", async ({ page })
   await expect(page.getByText(/^Exemple réel, sans retouche : script rédigé par Claude Sonnet 5\.5, dérivés par Claude Haiku 5\.5\./)).toBeVisible();
 });
 
+test("le pied de page mène aux documents légaux", async ({ page }) => {
+  await page.goto("/");
+  const legal = page.getByRole("navigation", { name: "Informations légales" });
+  await legal.getByRole("link", { name: "CGU" }).click();
+  await expect(page).toHaveURL(/\/cgu$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Conditions générales d'utilisation et de vente" })).toBeVisible();
+  for (const [name, heading] of [["Confidentialité", "Politique de confidentialité"], ["Charte d'usage", "Charte d'usage de l'IA et de YouTube"], ["Mentions légales", "Mentions légales"]]) {
+    await legal.getByRole("link", { name }).click();
+    await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+  }
+});
+
 test("sitemap, robots et image de partage sont servis", async ({ request }) => {
   const sitemap = await request.get("/sitemap.xml");
   expect(sitemap.ok()).toBe(true);

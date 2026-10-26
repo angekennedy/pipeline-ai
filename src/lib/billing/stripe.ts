@@ -75,7 +75,13 @@ const billingUrl = (origin: string, slug: string, query: string) => `${origin}/w
 export async function createCheckoutSession(
   stripe: Stripe,
   admin: Db,
-  { workspace, email, item, origin }: { workspace: BillingWorkspace; email: string | null; item: CatalogItem; origin: string },
+  {
+    workspace,
+    email,
+    item,
+    origin,
+    consentMessage,
+  }: { workspace: BillingWorkspace; email: string | null; item: CatalogItem; origin: string; consentMessage?: string },
 ): Promise<string> {
   if (item.type === "plan" && (await hasAccessSubscription(admin, workspace.id))) throw new AlreadySubscribedError();
 
@@ -90,6 +96,9 @@ export async function createCheckoutSession(
     success_url: billingUrl(origin, workspace.slug, "success=1"),
     cancel_url: billingUrl(origin, workspace.slug, "canceled=1"),
     locale: "fr",
+    // Rappel des CGU sous le bouton de paiement (tâche 5.2). La case à cocher de Stripe
+    // (consent_collection) demande l'URL des CGU dans le Dashboard : à activer à la mise en production.
+    ...(consentMessage && { custom_text: { submit: { message: consentMessage } } }),
   });
   if (!session.url) throw new Error(`Session Checkout ${session.id} sans URL`);
   return session.url;

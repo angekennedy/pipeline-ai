@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { SiteFooter } from "@/components/site-footer";
 import { AccountMenu } from "@/components/auth/account-menu";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
@@ -76,6 +77,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </nav>
         </header>
         {children}
+        <SiteFooter />
         </NextIntlClientProvider>
       </body>
     </html>
