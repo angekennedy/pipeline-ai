@@ -10,7 +10,12 @@ const notFound = vi.fn(() => {
 vi.mock("next/navigation", () => ({ notFound: () => notFound() }));
 const responses: Record<string, unknown> = {};
 const rpc = vi.fn(async (name: string) => ({ data: responses[name], error: null }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc }) }));
+let comments: { score: number; comment: string; updated_at: string }[] = [];
+const from = () => {
+  const builder = { select: () => builder, not: () => builder, order: () => builder, limit: async () => ({ data: comments, error: null }) };
+  return builder;
+};
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc, from }) }));
 
 const { default: AdminPage } = await import("@/app/admin/page");
 const page = (days?: string) => AdminPage({ searchParams: Promise.resolve(days ? { days } : {}), params: Promise.resolve({}) } as never);
@@ -41,7 +46,10 @@ beforeEach(() => {
     cost_outliers: [],
     generation_failures: [{ finished: 40, failed: 4 }],
     stale_reservations: 0,
+    beta_settings: [{ invite_only: true, invites: [{ email: "ada@test.local", note: "Chaîne Histoire", invited_at: "2026-10-26T08:00:00.000Z" }] }],
+    nps_summary: [{ responses: 10, promoters: 6, passives: 2, detractors: 2 }],
   });
+  comments = [{ score: 9, comment: "Les titres sont excellents", updated_at: "2026-10-26T09:00:00.000Z" }];
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -74,5 +82,19 @@ describe("page d'administration", () => {
     const [, args] = rpc.mock.calls.find(([name]) => name === "pipeline_economics") as unknown as [string, { p_since: string; p_limit: number }];
     expect(Math.abs(Date.now() - new Date(args.p_since).getTime() - 7 * 24 * 3600 * 1000)).toBeLessThan(5000);
     expect(args.p_limit).toBe(200);
+  });
+
+  it("gère la bêta fermée et affiche le NPS avec les derniers commentaires", async () => {
+    render(await page());
+    const beta = screen.getByRole("region", { name: "Bêta fermée" });
+    expect(beta).toHaveTextContent("Inscriptions sur invitation : activées.");
+    expect(within(beta).getByRole("button", { name: "Ouvrir les inscriptions à tous" })).toBeInTheDocument();
+    expect(within(beta).getByText("1 invitation")).toBeInTheDocument();
+    expect(within(beta).getByRole("button", { name: "Retirer l'invitation de ada@test.local" })).toBeInTheDocument();
+
+    const nps = screen.getByRole("region", { name: "NPS" });
+    expect(nps).toHaveTextContent("Score NPS : 40"); // (6 − 2) / 10
+    expect(nps).toHaveTextContent("10 réponses : 6 promoteurs (9-10), 2 passifs (7-8), 2 détracteurs (0-6).");
+    expect(within(nps).getByText("9/10 : Les titres sont excellents")).toBeInTheDocument();
   });
 });

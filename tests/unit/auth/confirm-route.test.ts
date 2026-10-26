@@ -15,6 +15,9 @@ vi.mock("@/lib/analytics/posthog", async (original) => ({
   ...(await original<typeof import("@/lib/analytics/posthog")>()),
   track: (...args: unknown[]) => track(...args),
 }));
+let inviteOnlyMode = false;
+vi.mock("@/lib/beta", () => ({ inviteOnly: async () => inviteOnlyMode }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({}) }));
 const justNow = () => new Date(Date.now() - 60_000).toISOString();
 const longAgo = "2026-01-01T00:00:00.000Z";
 
@@ -25,6 +28,7 @@ const get = (path: string) => new NextRequest(new URL(path, "http://localhost:30
 beforeEach(() => {
   vi.clearAllMocks();
   nextCookie = "/pipelines/new";
+  inviteOnlyMode = false;
 });
 
 describe("/auth/confirm", () => {
@@ -70,5 +74,11 @@ describe("/auth/callback", () => {
     exchangeCodeForSession.mockResolvedValue({ error: { message: "bad code" } });
     expect((await callback(get("/auth/callback?code=xyz"))).headers.get("location")).toBe("http://localhost:3000/login?error=google");
     expect((await callback(get("/auth/callback?error=access_denied"))).headers.get("location")).toBe("http://localhost:3000/login?error=google");
+  });
+
+  it("en bêta fermée, explique qu'il faut une invitation quand Google revient en erreur", async () => {
+    inviteOnlyMode = true;
+    const response = await callback(get("/auth/callback?error=server_error&error_description=Database+error+saving+new+user"));
+    expect(response.headers.get("location")).toBe("http://localhost:3000/login?error=invite");
   });
 });

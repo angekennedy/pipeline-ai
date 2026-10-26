@@ -5,10 +5,15 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { COST, PERCENT, SHORT_DATE_TIME } from "@/i18n/format";
 import { checkAlerts, loadEconomics, totals, type Alert } from "@/lib/admin/economics";
 import { isPlatformAdmin } from "@/lib/auth/admin";
+import { betaSettings, npsSummary, recentNpsComments } from "@/lib/beta";
 import { requireUser } from "@/lib/auth/session";
 import { PLANS, PLAN_KEYS, type PlanKey } from "@/lib/billing/plans";
 import { serverEnv } from "@/lib/env/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { addBetaInvite, removeBetaInvite, toggleInviteOnly } from "./actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("Meta"))("admin"), robots: { index: false, follow: false } };
@@ -25,14 +30,18 @@ const COLUMNS = ["date", "pipeline", "plan", "tier", "minutes", "status", "credi
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const user = await requireUser("/admin");
   if (!isPlatformAdmin(user.email)) notFound();
-  const requested = Number((await searchParams).days);
+  const query = await searchParams;
+  const requested = Number(query.days);
   const days = PERIODS.find((period) => period === requested) ?? 30;
 
   const db = createAdminClient();
   const now = new Date();
-  const [rows, alerts, t, labels, format] = await Promise.all([
+  const [rows, alerts, beta, nps, comments, t, labels, format] = await Promise.all([
     loadEconomics(db, new Date(now.getTime() - days * DAY), LIMIT),
     checkAlerts(db, now),
+    betaSettings(db),
+    npsSummary(db),
+    recentNpsComments(db),
     getTranslations("Admin"),
     getTranslations("Labels"),
     getFormatter(),
@@ -106,6 +115,85 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
               </li>
             ))}
           </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="beta" className="grid gap-3">
+        <h2 id="beta" className="text-lg font-semibold">
+          {t("beta.title")}
+        </h2>
+        <p className="text-sm">{t(beta.inviteOnly ? "beta.on" : "beta.off")}</p>
+        <form action={toggleInviteOnly}>
+          <input type="hidden" name="enabled" value={String(!beta.inviteOnly)} />
+          <Button type="submit" variant="outline" size="sm">
+            {t(beta.inviteOnly ? "beta.disable" : "beta.enable")}
+          </Button>
+        </form>
+        {query.invite === "added" && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {t("beta.added")}
+          </p>
+        )}
+        {query.invite === "invalid" && (
+          <p role="alert" className="text-sm text-destructive">
+            {t("beta.invalid")}
+          </p>
+        )}
+        <form action={addBetaInvite} className="flex flex-wrap items-end gap-2">
+          <div className="grid gap-1">
+            <Label htmlFor="invite-email">{t("beta.email")}</Label>
+            <Input id="invite-email" name="email" type="email" required className="w-64" />
+          </div>
+          <div className="grid gap-1">
+            <Label htmlFor="invite-note">{t("beta.note")}</Label>
+            <Input id="invite-note" name="note" maxLength={200} className="w-64" />
+          </div>
+          <Button type="submit" size="sm">
+            {t("beta.add")}
+          </Button>
+        </form>
+        <p className="text-sm text-muted-foreground">{t("beta.invites", { count: beta.invites.length })}</p>
+        {beta.invites.length > 0 && (
+          <ul className="grid gap-1 text-sm">
+            {beta.invites.map((invite) => (
+              <li key={invite.email} className="flex flex-wrap items-center gap-3">
+                <span className="font-mono">{invite.email}</span>
+                {invite.note && <span className="text-muted-foreground">{invite.note}</span>}
+                <form action={removeBetaInvite}>
+                  <input type="hidden" name="email" value={invite.email} />
+                  <Button type="submit" variant="ghost" size="sm" aria-label={t("beta.removeLabel", { email: invite.email })}>
+                    {t("beta.remove")}
+                  </Button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="nps" className="grid gap-2">
+        <h2 id="nps" className="text-lg font-semibold">
+          {t("nps.title")}
+        </h2>
+        {nps.score === null ? (
+          <p className="text-sm text-muted-foreground">{t("nps.none")}</p>
+        ) : (
+          <>
+            <p className="text-2xl font-semibold tabular-nums">{t("nps.score", { score: nps.score })}</p>
+            <p className="text-sm text-muted-foreground">{t("nps.counts", { responses: nps.responses, promoters: nps.promoters, passives: nps.passives, detractors: nps.detractors })}</p>
+          </>
+        )}
+        {comments.length > 0 && (
+          <>
+            <h3 className="mt-2 text-sm font-medium">{t("nps.comments")}</h3>
+            <ul className="grid gap-2 text-sm">
+              {comments.map((entry) => (
+                <li key={entry.updatedAt + entry.comment} className="rounded-lg border p-3">
+                  {t("nps.comment", { score: entry.score, comment: entry.comment })}
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
 

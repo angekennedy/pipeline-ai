@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 // Erreurs passées dans l'URL par /auth/confirm et la connexion Google (Login.errors).
-const URL_ERRORS = { lien: "expiredLink", google: "google" } as const;
+const URL_ERRORS = { lien: "expiredLink", google: "google", invite: "inviteOnly" } as const;
 
 const initialState: MagicLinkState = { status: "idle", email: "" };
 
@@ -18,7 +18,7 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
   const urlError = searchParams.get("error");
-  const linkError = urlError && urlError in URL_ERRORS ? URL_ERRORS[urlError as keyof typeof URL_ERRORS] : undefined;
+  const linkError = urlError && Object.hasOwn(URL_ERRORS, urlError) ? URL_ERRORS[urlError as keyof typeof URL_ERRORS] : undefined;
   const [state, formAction, pending] = useActionState(sendMagicLink, initialState);
 
   if (state.status === "sent") {
