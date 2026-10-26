@@ -268,6 +268,12 @@ pipeline-ai/
 > - **Deux entrées** : sur un formulaire vierge, des boutons qui remplissent le brief (`BriefForm`, `showSamples`, même remplissage que les presets, formule remise en Standard, champs facultatifs vidés) ; depuis l'état vide du tableau de bord, « Essayer avec un brief d'exemple » ouvre le formulaire déjà rempli (`?example=<clé>`). Il reste à lancer : la réservation, les limites et la modération sont celles d'un brief ordinaire.
 > - **Mesure** : l'e2e `tests/e2e/onboarding.spec.ts` va du tableau de bord vide à la page du pipeline sans saisie ; avec la génération mesurée à l'évaluation, le premier pipeline arrive en moins de 2 min après l'inscription. Le funnel PostHog (tâche 5.3) donne la mesure réelle.
 
+> **Révision (octobre 2026, tâche 5.5).** Mise en production : [runbook.md](runbook.md) (checklist par fournisseur, avec sa vérification, et conduite à tenir par incident).
+> - **Mode Stripe imposé** (`serverEnv`) : sur Vercel, la production exige une clé `sk_live_`, une preview refuse une clé live. Une preview ne peut donc jamais débiter une vraie carte.
+> - **Case à cocher des CGU** : `STRIPE_TERMS_CONSENT=required` ajoute `consent_collection.terms_of_service` à Checkout, une fois l'URL des CGU renseignée dans le Dashboard Stripe.
+> - **`pnpm preflight <fichier d'env>`** (`src/lib/preflight.ts`, `scripts/preflight.mts`) : points bloquants (variables requises, Stripe live, secret du webhook, case CGU, identité de l'éditeur, URL publique en https) et avertissements (admin, Sentry, PostHog, seuils de dépense). N'affiche que des noms, jamais de valeur ; code de sortie 1 tant qu'un point bloquant reste.
+> - **Coupe-circuit** : `SPEND_DAILY_LIMIT_USD=0.01` suspend toute nouvelle génération sans débit (runbook §2.2).
+
 ---
 
 ## 3. Modèle de données

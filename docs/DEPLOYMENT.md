@@ -97,7 +97,7 @@ Les réglages de confidentialité :
 
 ## 4 bis. Stripe : paiements (tâches 3.3 et 3.4)
 
-Tout se fait d'abord en **mode test** (bascule « Mode test » en haut du tableau de bord Stripe). La production en live relève de la tâche 5.5.
+Tout se fait d'abord en **mode test** (bascule « Mode test » en haut du tableau de bord Stripe). La production en live est décrite dans le [runbook](runbook.md) (§1.3).
 
 1. **Clés** (Développeurs → Clés API) : copie la clé secrète `sk_test_…` dans `.env.local` (`STRIPE_SECRET_KEY`) et dans Vercel (Preview). Ne la colle jamais ailleurs.
 2. **Catalogue** : `pnpm stripe:seed`. Le script crée un produit par plan payant et par pack, et un prix en euros qui porte la clé de recherche de l'offre (`plan_creator_monthly`, `pack_200`…). Il est sans effet s'il est relancé ; un montant modifié dans `src/lib/billing/plans.ts` crée un nouveau prix et archive l'ancien.
@@ -130,3 +130,5 @@ Tout se fait d'abord en **mode test** (bascule « Mode test » en haut du tablea
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Vercel (build) | Non : pas de source maps sans eux |
 | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_DB_PASSWORD` | GitHub, environnement `staging` (secrets) | Pour `Staging DB` |
 | `SUPABASE_STAGING_PROJECT_REF` | GitHub, variable du dépôt | Active `Staging DB` |
+
+Variables de production et checklist de lancement : [runbook.md](runbook.md).

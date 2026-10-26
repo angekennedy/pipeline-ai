@@ -18,6 +18,9 @@ const ServerEnvSchema = z
     // reste de l'application fonctionne. Clés de test (sk_test_) hors production.
     STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
     STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+    // « required » : case à cocher des CGU dans Stripe Checkout (tâche 5.5). Demande l'URL des CGU
+    // dans le Dashboard Stripe (Paramètres → Public) ; sans elle, Stripe refuse la session.
+    STRIPE_TERMS_CONSENT: z.enum(["required"]).optional(),
     // Disjoncteur de dépense LLM (tâche 4.5), en dollars par jour UTC : au-delà, plus de nouvelle
     // génération (globale, ou du workspace) jusqu'au lendemain. Valeurs par défaut à ajuster en production.
     SPEND_DAILY_LIMIT_USD: z.coerce.number().positive().default(200),
@@ -34,6 +37,15 @@ const ServerEnvSchema = z
     if (env.VERCEL_ENV !== "production" && env.VERCEL_ENV !== "preview") return;
     for (const key of ["INNGEST_SIGNING_KEY", "INNGEST_EVENT_KEY", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] as const) {
       if (!env[key]) ctx.addIssue({ code: "custom", path: [key], message: `Requise sur Vercel (${env.VERCEL_ENV})` });
+    }
+    // Mode Stripe selon l'environnement (tâche 5.5) : jamais de clé live sur une preview, jamais de
+    // clé de test en production.
+    const mode = env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "test";
+    if (env.STRIPE_SECRET_KEY && env.VERCEL_ENV === "production" && mode !== "live") {
+      ctx.addIssue({ code: "custom", path: ["STRIPE_SECRET_KEY"], message: "Clé live (sk_live_) attendue en production" });
+    }
+    if (env.STRIPE_SECRET_KEY && env.VERCEL_ENV === "preview" && mode === "live") {
+      ctx.addIssue({ code: "custom", path: ["STRIPE_SECRET_KEY"], message: "Clé de test (sk_test_) attendue sur une preview" });
     }
   });
 

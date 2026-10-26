@@ -19,7 +19,8 @@
     "test:e2e": "playwright test",
     "evals": "vitest run --config evals/vitest.config.mts",
     "evals:report": "node evals/report-tool/build-report-lite.mjs evals/report",
-    "stripe:seed": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/stripe-seed.mts"
+    "stripe:seed": "node --env-file=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/stripe-seed.mts",
+    "preflight": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/preflight.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.2.0",
