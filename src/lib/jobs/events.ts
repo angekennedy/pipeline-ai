@@ -12,14 +12,18 @@ export const pipelineCanceled = eventType("pipeline/canceled", {
   schema: z.object({ pipelineId: z.uuid() }),
 });
 
-// Envoyé par la Server Action regenerateAsset, après la réservation des crédits avec la même clé.
+const RegenerationKey = z.string().regex(/^regen:[\w-]{8,64}$/); // `regen:<nonce>`, une par asset et par demande
+
+// Envoyé par la Server Action de régénération, après la réservation des crédits de chaque asset avec
+// sa clé. `then` : assets régénérés ensuite, dans l'ordre (dérivés qui dépendent du premier).
 export const assetRegenerateRequested = eventType("asset/regenerate.requested", {
   schema: z.object({
     pipelineId: z.uuid(),
     workspaceId: z.uuid(),
     assetType: z.enum(ASSET_TYPES),
-    regenerationKey: z.string().regex(/^regen:[\w-]{8,64}$/), // `regen:<nonce>`, une par demande
-    feedback: z.string().trim().min(1).max(1000).optional(), // consigne libre, non fiable
+    regenerationKey: RegenerationKey,
+    feedback: z.string().trim().min(1).max(1000).optional(), // consigne libre, non fiable, pour le premier asset
+    then: z.array(z.object({ assetType: z.enum(ASSET_TYPES), regenerationKey: RegenerationKey })).max(4).optional(),
   }),
 });
 

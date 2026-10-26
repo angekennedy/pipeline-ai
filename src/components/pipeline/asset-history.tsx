@@ -1,13 +1,8 @@
 import { History, TriangleAlert } from "lucide-react";
 import type { AssetType } from "@/lib/ai/schemas";
-import { formatCredits } from "@/lib/billing/plans";
 import { VERSION_SOURCE_LABELS } from "@/lib/pipeline/labels";
 import type { VersionSummary } from "@/lib/pipeline/view";
-import { Button } from "@/components/ui/button";
-
-// Actions qui écrivent en base (régénérer, restaurer, régénérer les dérivés) : le domaine est prêt
-// (lib/pipeline/versions.ts, fonction regenerate-asset), les Server Actions arrivent avec la base.
-const PENDING_ACTION = "Disponible quand la base de données sera branchée";
+import { RegenerateButton, RestoreButton } from "./pipeline-actions";
 
 // Fuseau explicite : le rendu serveur et l'hydratation produisent le même texte.
 const dateTime = new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Paris" });
@@ -24,14 +19,12 @@ export function StaleNotice({ type, credits }: { type: AssetType; credits: numbe
         <span className="font-medium">Obsolète :</span> cet asset a été produit à partir d&apos;une version précédente,{" "}
         {STALE_BECAUSE[type] ?? "le script a changé depuis"}.
       </p>
-      <Button type="button" variant="outline" size="sm" disabled title={PENDING_ACTION}>
-        Régénérer ({formatCredits(credits)})
-      </Button>
+      <RegenerateButton types={[type]} credits={credits} />
     </div>
   );
 }
 
-export function VersionHistory({ versions }: { versions: VersionSummary[] }) {
+export function VersionHistory({ type, versions }: { type: AssetType; versions: VersionSummary[] }) {
   if (versions.length < 2) return null; // une seule version : rien à restaurer
   return (
     <details className="mb-4 rounded-xl border p-3 text-sm">
@@ -50,9 +43,7 @@ export function VersionHistory({ versions }: { versions: VersionSummary[] }) {
             {i === 0 ? (
               <span className="text-muted-foreground">(version actuelle)</span>
             ) : (
-              <Button type="button" variant="ghost" size="xs" disabled title={PENDING_ACTION}>
-                Restaurer
-              </Button>
+              <RestoreButton type={type} versionId={version.id} />
             )}
           </li>
         ))}
@@ -61,15 +52,16 @@ export function VersionHistory({ versions }: { versions: VersionSummary[] }) {
   );
 }
 
-export function StaleBanner({ count, credits }: { count: number; credits: number }) {
+// Régénère d'un coup les assets obsolètes, dans l'ordre du DAG : les miniatures partent des titres
+// régénérés.
+export function StaleBanner({ types, credits }: { types: AssetType[]; credits: number }) {
+  const count = types.length;
   return (
     <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
       <p className="flex-1">
         Le script a changé : {count} {count > 1 ? "assets sont obsolètes" : "asset est obsolète"}.
       </p>
-      <Button type="button" size="sm" disabled title={PENDING_ACTION}>
-        Régénérer les dérivés ({formatCredits(credits)})
-      </Button>
+      <RegenerateButton types={types} credits={credits} label="Régénérer les dérivés" variant="default" />
     </div>
   );
 }

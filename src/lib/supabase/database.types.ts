@@ -325,6 +325,12 @@ isOneToOne: false
 "mark_generation_failed":
 { Args: { "p_code": string,"p_cost_usd_micros"?: number,"p_generation": string,"p_message": string }; Returns: undefined
                            },
+"release_regeneration":
+{ Args: { "p_key": string }; Returns: number
+                           },
+"reserve_regeneration":
+{ Args: { "p_credits": number,"p_key": string,"p_pipeline": string,"p_tier": string,"p_user": string,"p_workspace": string }; Returns: boolean
+                           },
 "stripe_apply_subscription":
 { Args: { "p_cancel_at_period_end": boolean,"p_period_end": string,"p_plan": string,"p_price": string,"p_status": string,"p_subscription": string,"p_workspace": string }; Returns: string
                            },
