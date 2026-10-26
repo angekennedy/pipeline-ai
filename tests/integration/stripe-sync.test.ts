@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Brief } from "@/lib/ai/schemas";
 import { getCreditSummary } from "@/lib/billing/balance";
 import { PlanRestrictionError } from "@/lib/billing/entitlements";
@@ -162,6 +162,16 @@ describe("packs de crédits", () => {
     await sync(event);
     expect(await balance()).toBe(230);
     expect(await ledger()).toEqual([{ kind: "purchase", amount: 200, idempotency_key: `stripe:cs:${session.id}`, stripe_ref: session.payment_intent }]);
+  });
+
+  it("compte le paiement dans le funnel une fois encaissé, pour la personne qui l'a lancé", async () => {
+    const track = vi.fn();
+    const session = stripe.put(checkoutSession({ customer, workspaceId: ws, mode: "payment", lookupKey: "pack_200", paymentStatus: "unpaid", userId: "user-9" }));
+    await syncStripeEvent(stripe.emit("checkout.session.completed", session), { stripe, db: admin, track });
+    expect(track).not.toHaveBeenCalled(); // pas encore encaissé
+    stripe.put({ ...session, payment_status: "paid" });
+    await syncStripeEvent(stripe.emit("checkout.session.async_payment_succeeded", session), { stripe, db: admin, track });
+    expect(track).toHaveBeenCalledWith("user-9", { name: "payment_completed", properties: { kind: "pack", offer: "pack_200" } }, session.id);
   });
 
   it("attend l'encaissement d'un paiement différé", async () => {

@@ -81,12 +81,14 @@ export async function createCheckoutSession(
     item,
     origin,
     consentMessage,
-  }: { workspace: BillingWorkspace; email: string | null; item: CatalogItem; origin: string; consentMessage?: string },
+    userId,
+  }: { workspace: BillingWorkspace; email: string | null; item: CatalogItem; origin: string; consentMessage?: string; userId?: string },
 ): Promise<string> {
   if (item.type === "plan" && (await hasAccessSubscription(admin, workspace.id))) throw new AlreadySubscribedError();
 
   const [price, customer] = await Promise.all([priceFor(stripe, item.lookupKey), ensureCustomer(stripe, admin, workspace, email)]);
-  const metadata = { workspace_id: workspace.id, lookup_key: item.lookupKey };
+  // user_id : rattache le paiement au funnel de la personne qui l'a lancé (tâche 5.3).
+  const metadata = { workspace_id: workspace.id, lookup_key: item.lookupKey, ...(userId && { user_id: userId }) };
   const session = await stripe.checkout.sessions.create({
     mode: item.type === "plan" ? "subscription" : "payment",
     customer,

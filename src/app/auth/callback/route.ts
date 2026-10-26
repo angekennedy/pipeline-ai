@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
+import { isNewAccount, track } from "@/lib/analytics/posthog";
 import { takeNext } from "@/lib/auth/next-cookie";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,8 +9,12 @@ export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(await takeNext(), request.url));
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      const user = data.user;
+      if (user && isNewAccount(user.created_at)) after(() => track(user.id, { name: "signed_up", properties: { method: "google" } }, user.id));
+      return NextResponse.redirect(new URL(await takeNext(), request.url));
+    }
   }
   return NextResponse.redirect(new URL("/login?error=google", request.url));
 }

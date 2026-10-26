@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
+import { track } from "@/lib/analytics/posthog";
 import type { Database } from "@/lib/supabase/database.types";
 import { PLANS, isPlanKey, itemForLookupKey, type Plan } from "./plans";
 
@@ -34,7 +35,8 @@ export const stripeReader = (stripe: Stripe): StripeReader => ({
 export type SyncResult = { type: string; action: string; workspaceId?: string };
 
 type Db = SupabaseClient<Database>;
-type Deps = { stripe: StripeReader; db: Db; now?: () => Date };
+// `track` : funnel PostHog (tâche 5.3), remplacé dans les tests.
+type Deps = { stripe: StripeReader; db: Db; now?: () => Date; track?: typeof track };
 
 const idOf = (value: string | { id: string } | null | undefined) => (typeof value === "string" ? value : (value?.id ?? null));
 
@@ -112,12 +114,22 @@ async function syncSubscription({ stripe, db, now = () => new Date() }: Deps, su
   return { result: { type: "subscription", action: "synced", workspaceId }, plan };
 }
 
+// Paiement encaissé : dernière étape du funnel, pour la personne qui a lancé le paiement. Un webhook
+// relivré garde le même identifiant d'événement (session Stripe).
+async function trackPayment(deps: Deps, session: Stripe.Checkout.Session) {
+  const userId = session.metadata?.user_id;
+  if (!userId || session.payment_status !== "paid") return;
+  const kind = session.mode === "subscription" ? "plan" : "pack";
+  await (deps.track ?? track)(userId, { name: "payment_completed", properties: { kind, offer: session.metadata?.lookup_key ?? "unknown" } }, session.id);
+}
+
 async function syncCheckout(deps: Deps, sessionId: string): Promise<SyncResult> {
   const session = await deps.stripe.checkoutSession(sessionId);
   const customer = idOf(session.customer);
   const workspaceId = await workspaceFor(deps.db, session.metadata, customer);
   if (!workspaceId) return { type: "checkout", action: "ignored:unknown_workspace" };
   if (customer) await rpc(deps.db.rpc("stripe_link_customer", { p_workspace: workspaceId, p_customer: customer }), `Client ${customer}`);
+  await trackPayment(deps, session);
 
   if (session.mode === "subscription") {
     const subscription = idOf(session.subscription);

@@ -1,6 +1,8 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { after } from "next/server";
+import { track } from "@/lib/analytics/posthog";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
@@ -72,8 +74,9 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   }
 
   let pipelineId: string;
+  let created: boolean;
   try {
-    ({ pipelineId } = await createPipelineWithReservation(admin, {
+    ({ pipelineId, created } = await createPipelineWithReservation(admin, {
       workspaceId: membership.workspace.id,
       userId: user.id,
       brief: result.brief,
@@ -94,6 +97,11 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
     // Sans exécution, la réservation resterait bloquée jusqu'au balayage : on la libère tout de suite.
     await admin.rpc("finalize_pipeline", { p_pipeline: pipelineId, p_status: "failed" });
     return refused({ launchError: true });
+  }
+  // Funnel (tâche 5.3) : une soumission rejouée ne compte pas un second pipeline.
+  if (created) {
+    const properties = { tier: result.tier, minutes: result.brief.durationMinutes };
+    after(() => track(user.id, { name: "pipeline_created", properties }, pipelineId));
   }
   refresh(); // le solde de l'en-tête (layout racine, conservé par le routeur) suit la réservation
   redirect(`/w/${slug}/pipelines/${pipelineId}`);

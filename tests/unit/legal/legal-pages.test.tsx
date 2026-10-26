@@ -47,7 +47,7 @@ describe("documents légaux", () => {
     expect(links[0]).toHaveTextContent("Responsable du traitement");
     expect(links[0]).toHaveAttribute("href", "#controller");
     const processors = screen.getByRole("region", { name: "Sous-traitants" });
-    expect(within(processors).getAllByRole("listitem").map((item) => item.textContent?.split(" :")[0])).toEqual(["Supabase", "Anthropic", "Stripe", "Vercel", "Inngest", "Sentry"]);
+    expect(within(processors).getAllByRole("listitem").map((item) => item.textContent?.split(" :")[0])).toEqual(["Supabase", "Anthropic", "Stripe", "Vercel", "Inngest", "Sentry", "PostHog"]);
   });
 
   it("présente les sujets refusés de la charte, alignés sur la modération", async () => {

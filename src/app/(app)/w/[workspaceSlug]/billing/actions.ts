@@ -38,7 +38,7 @@ export async function startCheckout(_previous: BillingState, formData: FormData)
   let url: string;
   try {
     const consentMessage = (await getTranslations("Billing"))("stripeConsent", { url: `${origin}${LEGAL_PATHS.terms}` });
-    url = await createCheckoutSession(getStripe(), createAdminClient(), { workspace, email: user.email, item, origin, consentMessage });
+    url = await createCheckoutSession(getStripe(), createAdminClient(), { workspace, email: user.email, item, origin, consentMessage, userId: user.id });
   } catch (error) {
     return failure(error);
   }

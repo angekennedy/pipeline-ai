@@ -79,6 +79,7 @@ export function checkoutSession({
   lookupKey,
   paymentStatus = "paid",
   paymentIntent = mode === "payment" ? stripeId("pi") : null,
+  userId,
 }: {
   id?: string;
   customer: string;
@@ -88,6 +89,7 @@ export function checkoutSession({
   lookupKey: string;
   paymentStatus?: Stripe.Checkout.Session.PaymentStatus;
   paymentIntent?: string | null;
+  userId?: string; // personne qui a lancé le paiement (funnel, tâche 5.3)
 }): Stripe.Checkout.Session {
   return {
     id,
@@ -97,7 +99,7 @@ export function checkoutSession({
     subscription: sub,
     payment_status: paymentStatus,
     payment_intent: paymentIntent,
-    metadata: { workspace_id: workspaceId, lookup_key: lookupKey },
+    metadata: { workspace_id: workspaceId, lookup_key: lookupKey, ...(userId && { user_id: userId }) },
     line_items: { object: "list", data: [{ price: { id: `price_${lookupKey}`, lookup_key: lookupKey } }] },
   } as unknown as Stripe.Checkout.Session;
 }

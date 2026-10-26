@@ -257,6 +257,12 @@ pipeline-ai/
 > - **Contenu aligné sur le code** : crédits réservés puis débités par livrable réussi, report plafonné à une allocation mensuelle, catégories refusées de la modération (4.5), empreintes de sécurité effacées sous 24 h, cookies strictement nécessaires (session Supabase, langue, destination de connexion), sous-traitants réellement utilisés (Supabase, Anthropic, Stripe, Vercel, Inngest, Sentry). Les textes restent à faire relire par un juriste.
 > - **Au paiement** : rappel des CGU et de la confidentialité, avec liens, sous les offres de la page Facturation ; message `custom_text.submit` sous le bouton de Stripe Checkout, avec l'URL des CGU. La case à cocher de Stripe (`consent_collection.terms_of_service`) exige l'URL des CGU dans le Dashboard : à activer à la mise en production (tâche 5.5).
 
+> **Révision (octobre 2026, tâche 5.3).** Funnel PostHog, sans données personnelles.
+> - **Envoi côté serveur** (`src/lib/analytics/posthog.ts`, `track`) par l'API de capture (`POST /i/v0/e/`), sans SDK ni script dans le navigateur, donc sans cookie. Identifiant : empreinte SHA-256 de l'id utilisateur (`analyticsId`), `$process_person_profile: false`, `$geoip_disable: true` ; ni e-mail, ni IP, ni contenu. UUID d'événement dérivé du fait (`eventUuid`) : un rejeu est dédoublonné. Sans `POSTHOG_KEY`, rien ne part ; une erreur ou un délai de plus de 2 s est journalisé sans interrompre le parcours. Région UE par défaut (`POSTHOG_HOST`).
+> - **Événements** : `signed_up` (`method` : email ou google), au retour du lien magique ou de Google quand le compte a moins de 15 min (`isNewAccount`) ; `pipeline_created` (`tier`, `minutes`), seulement quand la réservation crée le pipeline (pas pour une soumission rejouée) ; `payment_completed` (`kind` : plan ou pack, `offer`), quand Stripe confirme le paiement (`payment_status = paid`), rattaché à la personne qui l'a lancé par `user_id` dans les métadonnées du Checkout. Les deux premiers partent après la réponse (`after()`).
+> - **Funnel dans PostHog** : un projet en région UE, `POSTHOG_KEY` sur Vercel, puis un insight Funnel `signed_up` → `pipeline_created` → `payment_completed`, agrégé par identifiant, sur une fenêtre de conversion de 30 jours.
+> - **Politique de confidentialité** : mesure d'audience (données, finalité, intérêt légitime, conservation) et PostHog ajouté aux sous-traitants.
+
 ---
 
 ## 3. Modèle de données
