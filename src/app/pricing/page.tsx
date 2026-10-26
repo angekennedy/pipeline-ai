@@ -75,7 +75,8 @@ export default async function PricingPage() {
           );
         })}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">{t("carryOver")}</p>
+      <p className="mt-3 text-xs text-muted-foreground">{t("taxes")}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t("carryOver")}</p>
 
       <section aria-labelledby="packs" className="mt-12">
         <h2 id="packs" className="text-lg font-semibold">

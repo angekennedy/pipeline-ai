@@ -543,7 +543,8 @@
       "unavailable": "Le paiement en ligne n'est pas disponible pour le moment."
     },
     "consent": "En passant au paiement, vous acceptez les <terms>conditions générales d'utilisation et de vente</terms> et la <privacy>politique de confidentialité</privacy>.",
-    "stripeConsent": "En payant, vous acceptez les conditions générales de Pipeline AI : {url}"
+    "stripeConsent": "En payant, vous acceptez les conditions générales de Pipeline AI : {url}",
+    "taxes": "Prix en euros, toutes taxes comprises (TTC)."
   },
   "Plans": {
     "pitch": {
@@ -593,7 +594,8 @@
       "thirtyStandard": "Vidéo de 30 min, Standard"
     },
     "example": "{label} : <credits></credits>",
-    "regeneration": "Régénérer un asset coûte le même prix que le générer. Une édition manuelle ou une restauration est gratuite."
+    "regeneration": "Régénérer un asset coûte le même prix que le générer. Une édition manuelle ou une restauration est gratuite.",
+    "taxes": "Prix en euros, toutes taxes comprises (TTC)."
   },
   "CreditBadge": {
     "label": "{credits} disponibles, plan {plan}. Facturation et crédits",
@@ -868,7 +870,7 @@
         },
         "credits": {
           "title": "Crédits, plans et paiement",
-          "body": "Chaque livrable coûte un nombre de crédits qui dépend de la durée de la vidéo et de la formule, affiché avant chaque lancement. Les crédits sont réservés au lancement ; seuls les livrables générés avec succès sont débités, les autres sont rendus automatiquement.\n\n- Le plan Free offre des crédits une seule fois, à l'inscription.\n- Les plans payants sont des abonnements mensuels, renouvelés automatiquement jusqu'à leur résiliation, possible à tout moment depuis la page Facturation. La résiliation prend effet à la fin de la période payée.\n- Les packs de crédits sont des achats ponctuels.\n- Prix et contenu des plans : page Tarifs. Le paiement est traité par Stripe.\n\nLes crédits ne sont ni remboursables en argent ni cessibles. Les crédits non utilisés sont reportés au mois suivant, dans la limite d'une allocation mensuelle ; l'excédent expire au renouvellement."
+          "body": "Chaque livrable coûte un nombre de crédits qui dépend de la durée de la vidéo et de la formule, affiché avant chaque lancement. Les crédits sont réservés au lancement ; seuls les livrables générés avec succès sont débités, les autres sont rendus automatiquement.\n\n- Le plan Free offre des crédits une seule fois, à l'inscription.\n- Les plans payants sont des abonnements mensuels, renouvelés automatiquement jusqu'à leur résiliation, possible à tout moment depuis la page Facturation. La résiliation prend effet à la fin de la période payée.\n- Les packs de crédits sont des achats ponctuels.\n- Les prix sont indiqués en euros, toutes taxes comprises (TTC) ; prix et contenu des plans : page Tarifs. Le paiement est traité par Stripe.\n\nLes crédits ne sont ni remboursables en argent ni cessibles. Les crédits non utilisés sont reportés au mois suivant, dans la limite d'une allocation mensuelle ; l'excédent expire au renouvellement."
         },
         "withdrawal": {
           "title": "Droit de rétractation",
