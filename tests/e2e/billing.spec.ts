@@ -25,7 +25,8 @@ test("le coût s'affiche avant le lancement, et un pipeline trop cher ouvre le m
   await page.getByLabel("Durée cible (minutes)").fill("8");
   await expect(estimate).toContainText("Coût : 18 crédits");
   await page.getByRole("button", { name: "Générer le pipeline" }).click();
-  await expect(page).toHaveURL(/\/pipelines\/demo-running$/);
+  await expect(page).toHaveURL(/\/pipelines\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("link", { name: /2 crédits disponibles/ })).toBeVisible(); // 18 de plus réservés
 });
 
 test("le plan Free refuse une vidéo de plus de 10 min avec un message explicite", async ({ page }) => {

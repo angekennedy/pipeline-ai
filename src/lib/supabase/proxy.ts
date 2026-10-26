@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
-import { LOGIN_PATH, isAppRoute, safeNext } from "@/lib/auth/routes";
+import { LOGIN_PATH, isAppRoute, safeNext, workspaceTarget } from "@/lib/auth/routes";
 import { publicEnv } from "@/lib/env/public";
 import type { Database } from "./database.types";
 
@@ -44,7 +45,27 @@ export async function updateSession(request: NextRequest) {
   if (signedIn && pathname === LOGIN_PATH) {
     return redirectWithCookies(new URL(safeNext(request.nextUrl.searchParams.get("next")), request.url), response);
   }
+
+  // Workspace ou pipeline hors de portée : un vrai 404, décidé avant le rendu. Dans la page, le
+  // streaming (en-tête sous <Suspense>) commence avant la vérification et figerait un statut 200.
+  // Lecture sous RLS, une ou deux requêtes par clé primaire ou index unique. Le layout et la page
+  // revérifient de leur côté.
+  const target = signedIn ? workspaceTarget(pathname) : null;
+  if (target && !(await canReach(supabase, target))) {
+    const notFound = NextResponse.rewrite(new URL("/introuvable", request.url));
+    response.cookies.getAll().forEach((cookie) => notFound.cookies.set(cookie));
+    return notFound;
+  }
   return response;
+}
+
+async function canReach(supabase: SupabaseClient<Database>, { slug, pipelineId, invalid }: NonNullable<ReturnType<typeof workspaceTarget>>) {
+  if (invalid) return false;
+  const { data: workspace } = await supabase.from("workspaces").select("id").eq("slug", slug).maybeSingle();
+  if (!workspace) return false;
+  if (!pipelineId) return true;
+  const { data: pipeline } = await supabase.from("pipelines").select("id").eq("id", pipelineId).eq("workspace_id", workspace.id).maybeSingle();
+  return Boolean(pipeline);
 }
 
 // Une redirection garde les cookies de session que le rafraîchissement vient de poser, et l'en-tête

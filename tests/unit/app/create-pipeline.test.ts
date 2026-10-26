@@ -1,68 +1,114 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPipeline } from "@/app/(app)/pipelines/new/actions";
+import { creditSummary } from "@/lib/billing/balance";
+import { PlanRestrictionError } from "@/lib/billing/entitlements";
+import { InsufficientCreditsError } from "@/lib/billing/reservation";
+
+// La réservation, les droits et le plan sont testés en base (tests/integration) ; ici, l'enchaînement
+// de la Server Action et la traduction de ses issues pour le formulaire.
 
 const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT ${url}`);
 });
 vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }));
+const refresh = vi.fn();
+vi.mock("next/cache", () => ({ refresh: () => refresh() }));
 
-// Session simulée : sans utilisateur, requireUser renvoie vers la connexion comme le vrai.
-let user: { id: string; email: string } | null = { id: "user-1", email: "a@test.local" };
-// Workspace simulé : plan Free, 20 crédits disponibles.
-vi.mock("@/lib/workspaces/current", async () => {
-  const { creditSummary } = await import("@/lib/billing/balance");
-  return { requireWorkspace: async () => ({ id: "ws-1", slug: "a-1", name: "Espace de a", role: "owner", credits: creditSummary("free", 30, 10) }) };
-});
+let user: { id: string; email: string } | null;
 vi.mock("@/lib/auth/session", () => ({
   requireUser: async (next: string) => user ?? redirect(`/login?next=${encodeURIComponent(next)}`),
 }));
+let membership: { workspace: { id: string; slug: string; name: string }; role: string; credits: unknown } | null;
+vi.mock("@/lib/workspaces/access", () => ({
+  findMembership: async () => membership,
+  hasRole: (role: string, min: string) => ["viewer", "editor", "admin", "owner"].indexOf(role) >= ["viewer", "editor", "admin", "owner"].indexOf(min),
+}));
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({}) }));
+const rpc = vi.fn();
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc }) }));
 
-const brief = { niche: "Histoire", topic: "Les pyramides de Gizeh", language: "fr", tone: "educational", style: "documentary" };
-const form = (fields: Record<string, string>) => {
+const reserve = vi.fn();
+vi.mock("@/lib/billing/reservation", async (original) => ({
+  ...(await original<typeof import("@/lib/billing/reservation")>()),
+  createPipelineWithReservation: (...args: unknown[]) => reserve(...args),
+}));
+const send = vi.fn();
+vi.mock("@/lib/jobs/client", () => ({ inngest: { send: (...args: unknown[]) => send(...args) } }));
+
+const { createPipeline } = await import("@/app/(app)/w/[workspaceSlug]/pipelines/new/actions");
+
+const KEY = "8b0b2e2a-6f3e-4e0e-9a51-2a8f4c1d9e70";
+const PIPELINE = "4d1f7c3e-2b6a-4f8e-9c0d-1a2b3c4d5e6f";
+const WS = "9e8d7c6b-5a49-4382-9170-6f5e4d3c2b1a";
+const brief = { niche: "Histoire", topic: "Les pyramides de Gizeh", language: "fr", tone: "educational", style: "documentary", durationMinutes: "8", tier: "standard" };
+const form = (fields: Record<string, string> = {}) => {
   const data = new FormData();
-  for (const [key, value] of Object.entries({ ...brief, ...fields })) data.set(key, value);
+  for (const [key, value] of Object.entries({ workspaceSlug: "mon-espace", idempotencyKey: KEY, ...brief, ...fields })) data.set(key, value);
   return data;
 };
 const initial = { fieldErrors: {}, values: {} };
 
 beforeEach(() => {
-  redirect.mockClear();
+  vi.clearAllMocks();
   user = { id: "user-1", email: "a@test.local" };
+  membership = { workspace: { id: WS, slug: "mon-espace", name: "Mon espace" }, role: "owner", credits: creditSummary("free", 30) };
+  reserve.mockResolvedValue({ pipelineId: PIPELINE, created: true, credits: 18 });
+  send.mockResolvedValue({ ids: ["evt"] });
 });
 
-// Workspace Free : 30 crédits dont 10 réservés par un pipeline en cours, soit 20 disponibles.
 describe("Server Action createPipeline", () => {
-  it("renvoie vers la connexion sans session, avant de lire le brief", async () => {
+  it("réserve, lance la génération une seule fois par pipeline, puis ouvre la page du pipeline", async () => {
+    await expect(createPipeline(initial, form())).rejects.toThrow(`NEXT_REDIRECT /w/mon-espace/pipelines/${PIPELINE}`);
+    expect(reserve).toHaveBeenCalledWith(expect.anything(), {
+      workspaceId: WS,
+      userId: "user-1",
+      brief: { niche: "Histoire", topic: "Les pyramides de Gizeh", language: "fr", tone: "educational", style: "documentary", durationMinutes: 8 },
+      tier: "standard",
+      idempotencyKey: KEY,
+    });
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "pipeline/requested", data: { pipelineId: PIPELINE, workspaceId: WS }, id: `pipeline-requested:${PIPELINE}` }),
+    );
+    expect(refresh).toHaveBeenCalledOnce(); // solde de l'en-tête relu
+  });
+
+  it("renvoie vers la connexion sans session", async () => {
     user = null;
-    await expect(createPipeline(initial, form({ durationMinutes: "8" }))).rejects.toThrow("NEXT_REDIRECT /login?next=%2Fpipelines%2Fnew");
+    await expect(createPipeline(initial, form())).rejects.toThrow("NEXT_REDIRECT /login?next=%2Fw%2Fmon-espace%2Fpipelines%2Fnew");
+    expect(reserve).not.toHaveBeenCalled();
   });
 
-  it("lance le pipeline quand le plan l'autorise et que le solde couvre son coût", async () => {
-    await expect(createPipeline(initial, form({ durationMinutes: "8", tier: "standard" }))).rejects.toThrow("NEXT_REDIRECT /pipelines/demo-running");
+  it("refuse un non-membre et un lecteur, sans rien réserver", async () => {
+    membership = null;
+    await expect(createPipeline(initial, form())).rejects.toThrow(/rôle insuffisant/);
+    membership = { workspace: { id: WS, slug: "mon-espace", name: "Mon espace" }, role: "viewer", credits: creditSummary("free", 30) };
+    await expect(createPipeline(initial, form())).rejects.toThrow(/rôle insuffisant/);
+    expect(reserve).not.toHaveBeenCalled();
   });
 
-  it("refuse sans rien lancer quand le coût dépasse le solde, et renvoie les montants du modal", async () => {
-    const values = { ...brief, durationMinutes: "10", tier: "standard" };
-    expect(await createPipeline(initial, form(values))).toEqual({ fieldErrors: {}, values, insufficient: { required: 21, available: 20 } });
-    expect(redirect).not.toHaveBeenCalled();
-  });
-
-  it("refuse une durée au-delà de la limite du plan, avant de regarder le solde", async () => {
-    const state = await createPipeline(initial, form({ durationMinutes: "15", tier: "standard" }));
-    expect(state.restriction).toEqual({ reason: "duration", plan: "free", limit: 10 });
-    expect(state.insufficient).toBeUndefined();
-    expect(redirect).not.toHaveBeenCalled();
-  });
-
-  it("refuse le script Premium à un plan qui ne l'inclut pas", async () => {
-    const state = await createPipeline(initial, form({ durationMinutes: "8", tier: "premium" }));
-    expect(state.restriction).toEqual({ reason: "premium", plan: "free" });
-  });
-
-  it("valide le brief avant le plan et le coût", async () => {
+  it("renvoie les erreurs du brief sans réserver", async () => {
     const state = await createPipeline(initial, form({ durationMinutes: "90" }));
     expect(state.fieldErrors).toHaveProperty("durationMinutes");
-    expect(state.restriction).toBeUndefined();
-    expect(state.insufficient).toBeUndefined();
+    expect(reserve).not.toHaveBeenCalled();
+  });
+
+  it("traduit un refus du plan et un solde insuffisant pour le formulaire", async () => {
+    reserve.mockRejectedValueOnce(new PlanRestrictionError({ reason: "duration", plan: "free", limit: 10 }));
+    expect((await createPipeline(initial, form())).restriction).toEqual({ reason: "duration", plan: "free", limit: 10 });
+
+    reserve.mockRejectedValueOnce(new InsufficientCreditsError(21, 20));
+    expect((await createPipeline(initial, form())).insufficient).toEqual({ required: 21, available: 20 });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("libère la réservation si l'événement ne part pas", async () => {
+    send.mockRejectedValueOnce(new Error("Inngest injoignable"));
+    const state = await createPipeline(initial, form());
+    expect(state.launchError).toMatch(/aucun crédit n'a été débité/);
+    expect(rpc).toHaveBeenCalledWith("finalize_pipeline", { p_pipeline: PIPELINE, p_status: "failed" });
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("refuse une clé de soumission qui n'est pas un UUID", async () => {
+    await expect(createPipeline(initial, form({ idempotencyKey: "x" }))).rejects.toThrow(/Clé de soumission/);
   });
 });

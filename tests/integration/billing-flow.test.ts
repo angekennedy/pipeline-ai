@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { AssetType, Brief } from "@/lib/ai/schemas";
@@ -7,8 +6,8 @@ import { createPipelineWithReservation, sweepStaleReservations } from "@/lib/bil
 import { generateAsset } from "@/lib/pipeline/generate-asset";
 import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
-import { jsonReplyStream, refusalStream } from "../mocks/anthropic";
-import { validBrief, validScript, validSeo, validThumbnails, validTitles, validVoiceover } from "../fixtures/assets";
+import { validBrief } from "../fixtures/assets";
+import { fakeAnthropic } from "./fake-anthropic";
 import { admin, cleanup, createUser, createWorkspace, unwrap, withPg, type TestUser } from "./helpers";
 
 // Cycle des crédits d'un pipeline (migration 0007, ARCHITECTURE §5.2), de bout en bout : vraie
@@ -20,28 +19,6 @@ const costs = assetCredits(brief, "standard");
 const total = pipelineCredits(brief, "standard");
 const store = new SupabasePipelineStore(admin);
 const step: StepRunner = { run: (_id, fn) => fn() };
-
-const voiceover = { ...validVoiceover, segments: [1, 2, 3, 4].map((sceneIndex) => ({ ...validVoiceover.segments[0]!, sceneIndex })) };
-const ROLES: Array<[string, AssetType, unknown]> = [
-  ["scriptwriter", "script", validScript],
-  ["packaging strategist", "titles", validTitles],
-  ["SEO specialist", "seo", validSeo],
-  ["voice director", "voiceover", voiceover],
-  ["thumbnail art director", "thumbnails", validThumbnails],
-];
-
-// Client Anthropic hors réseau : l'asset est reconnu au rôle annoncé dans le prompt système.
-function fakeAnthropic(refused: AssetType[] = []) {
-  return new Anthropic({
-    apiKey: "test-key",
-    maxRetries: 0,
-    fetch: async (_url, init) => {
-      const body = JSON.parse(String(init?.body)) as { system: Array<{ text: string }> };
-      const [, type, output] = ROLES.find(([role]) => body.system[0]!.text.includes(role))!;
-      return refused.includes(type) ? refusalStream() : jsonReplyStream(output);
-    },
-  });
-}
 
 let owner: TestUser;
 

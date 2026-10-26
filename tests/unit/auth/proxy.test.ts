@@ -3,8 +3,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Session simulée : getClaims renvoie un utilisateur ou rien, et pose un cookie rafraîchi.
 let claims: { sub: string } | null = null;
+// Lignes visibles sous RLS par l'utilisateur simulé : workspaces par slug, pipelines par id.
+let visible: { workspaces: Record<string, string>; pipelines: Record<string, string> } = { workspaces: {}, pipelines: {} };
+const query = (table: "workspaces" | "pipelines") => {
+  const filters: Record<string, string> = {};
+  const builder = {
+    select: () => builder,
+    eq: (column: string, value: string) => ((filters[column] = value), builder),
+    maybeSingle: async () => {
+      if (table === "workspaces") {
+        const id = visible.workspaces[filters.slug!];
+        return { data: id ? { id } : null, error: null };
+      }
+      const ws = visible.pipelines[filters.id!];
+      return { data: ws && ws === filters.workspace_id ? { id: filters.id } : null, error: null };
+    },
+  };
+  return builder;
+};
 vi.mock("@supabase/ssr", () => ({
   createServerClient: (_url: string, _key: string, { cookies }: { cookies: { setAll: (c: unknown[], h: Record<string, string>) => void } }) => ({
+    from: query,
     auth: {
       getClaims: async () => {
         cookies.setAll([{ name: "sb-token", value: "rafraichi", options: { path: "/" } }], { "cache-control": "private, no-store" });
@@ -19,6 +38,7 @@ const request = (path: string) => new NextRequest(new URL(path, "http://localhos
 
 beforeEach(() => {
   claims = null;
+  visible = { workspaces: {}, pipelines: {} };
 });
 
 describe("proxy : filtre de session", () => {
@@ -41,5 +61,27 @@ describe("proxy : filtre de session", () => {
     expect((await updateSession(request("/pipelines/new"))).headers.get("location")).toBeNull();
     expect((await updateSession(request("/login?next=/w/demo"))).headers.get("location")).toBe("http://localhost:3000/w/demo");
     expect((await updateSession(request("/login?next=https://evil.test"))).headers.get("location")).toBe("http://localhost:3000/");
+  });
+});
+
+describe("proxy : portée des workspaces", () => {
+  const PIPELINE = "4d1f7c3e-2b6a-4f8e-9c0d-1a2b3c4d5e6f";
+  beforeEach(() => {
+    claims = { sub: "user-1" };
+    visible = { workspaces: { "mon-espace": "ws-1" }, pipelines: { [PIPELINE]: "ws-1" } };
+  });
+  const rewrittenTo = (response: Response) => response.headers.get("x-middleware-rewrite");
+
+  it("laisse passer un workspace et un pipeline de l'utilisateur", async () => {
+    for (const path of ["/w/mon-espace", "/w/mon-espace/pipelines/new", `/w/mon-espace/pipelines/${PIPELINE}`]) {
+      expect(rewrittenTo(await updateSession(request(path))), path).toBeNull();
+    }
+  });
+
+  it("répond 404 pour un workspace hors de portée, un pipeline d'un autre workspace ou un id invalide", async () => {
+    visible.workspaces["autre"] = "ws-2";
+    for (const path of ["/w/inconnu", "/w/inconnu/pipelines/new", `/w/autre/pipelines/${PIPELINE}`, "/w/mon-espace/pipelines/pas-un-uuid"]) {
+      expect(rewrittenTo(await updateSession(request(path))), path).toBe("http://localhost:3000/introuvable");
+    }
   });
 });

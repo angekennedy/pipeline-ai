@@ -155,6 +155,27 @@ pipeline-ai/
 >
 > **Abus.** Les 30 crédits offerts par inscription incitent à multiplier les comptes. La parade (rate limit à l'inscription, détection des adresses jetables) relève de la tâche 4.5.
 
+> **Révision (octobre 2026, tâche 2.3).** Routes `/w/[workspaceSlug]/…`, vérifiées à trois niveaux.
+> 1. **Proxy.** Pour `/w/<slug>` et `/w/<slug>/pipelines/<id>`, une ou deux requêtes sous RLS (`workspaces` par slug, `pipelines` par id et workspace). Un workspace ou un pipeline hors de portée est réécrit vers une route inexistante : un vrai 404. C'est indispensable, car le `<Suspense>` de l'en-tête lance le streaming avant le rendu du layout. Un `notFound()` levé ensuite gardait le statut 200.
+> 2. **Layout et pages** (`requireMembership`, `src/lib/workspaces/access.ts`). Ils revérifient l'appartenance et le rôle, puis rendent `not-found.tsx`. Ils sont exportés avec `instant = false` (segment bloquant).
+> 3. **Server Action `createPipeline`.** Elle revérifie l'appartenance et le rôle `editor` par `findMembership`, puis enchaîne :
+>    - la réservation (`createPipelineWithReservation`) ;
+>    - l'envoi de `pipeline/requested`, avec un id d'événement `pipeline-requested:<id>` qui dédoublonne les rejeux ;
+>    - `refresh()` pour le solde de l'en-tête, puis la redirection vers le pipeline.
+>
+>    Si l'envoi échoue, la réservation est libérée tout de suite (`finalize_pipeline … failed`). La clé d'idempotence est générée par la page, une par affichage du formulaire.
+>
+> **Vue d'un pipeline.** `loadPipelineView` (`src/lib/pipeline/load-view.ts`) relit avec le client de l'utilisateur le pipeline, ses assets, ses versions et ses échecs.
+> - Un asset encore en attente dans un pipeline terminé est « sauté ».
+> - Un échec s'affiche par un message prévu pour son code. Le message technique reste dans `generations` et dans Sentry.
+> - L'obsolescence est calculée par `staleAssets`.
+>
+> La page affiche `LivePipeline` (Realtime) tant que le pipeline n'est pas terminé, puis `StaticPipeline`.
+>
+> **Raccourci.** `/pipelines/new` redirige vers le workspace personnel. Les pipelines de démonstration restent sous `/pipelines/demo-*`.
+>
+> **E2E.** Un bouchon de l'API d'événements Inngest (`tests/e2e/inngest-stub.mjs`, démarré par Playwright) reçoit les événements sans exécuter de fonction, donc sans appel au modèle. Les tests vérifient l'événement envoyé et le 404 réel pour un autre utilisateur.
+
 ---
 
 ## 3. Modèle de données

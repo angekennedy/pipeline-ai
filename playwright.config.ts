@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { defineConfig, devices } from "@playwright/test";
+import { INNGEST_STUB } from "./tests/e2e/inngest";
 
 // Parcours connectés : le build et les tests visent le Supabase local, dont les clés (publiques, celles
 // de la pile de développement) sont lues dans `supabase status`. Le build doit avoir été fait avec ces
@@ -27,10 +28,15 @@ export default defineConfig({
   // Sans PLAYWRIGHT_BASE_URL (preview Vercel), on teste le build de production local.
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
-    : {
-        command: `pnpm start --port ${PORT}`,
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-      },
+    : [
+        {
+          command: `pnpm start --port ${PORT}`,
+          url: baseURL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+          // Les événements Inngest partent vers le bouchon : aucune fonction ne s'exécute.
+          env: { ...process.env, INNGEST_DEV: "1", INNGEST_EVENT_API_BASE_URL: `${INNGEST_STUB}/` } as Record<string, string>,
+        },
+        { command: "node tests/e2e/inngest-stub.mjs", url: `${INNGEST_STUB}/health`, reuseExistingServer: !process.env.CI },
+      ],
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAppRoute, safeNext } from "@/lib/auth/routes";
+import { isAppRoute, safeNext, workspaceTarget } from "@/lib/auth/routes";
 
 describe("isAppRoute", () => {
   it("protège les routes de l'application et leurs sous-chemins", () => {
@@ -24,5 +24,19 @@ describe("safeNext", () => {
     for (const value of ["https://evil.test", "//evil.test", "/\\evil.test", "javascript:alert(1)", "", null, undefined]) {
       expect(safeNext(value), String(value)).toBe("/");
     }
+  });
+});
+
+describe("workspaceTarget", () => {
+  const id = "4d1f7c3e-2b6a-4f8e-9c0d-1a2b3c4d5e6f";
+  it("repère le workspace et le pipeline visés par l'URL", () => {
+    expect(workspaceTarget("/w/mon-espace")).toEqual({ slug: "mon-espace", pipelineId: null, invalid: false });
+    expect(workspaceTarget("/w/mon-espace/pipelines/new")).toEqual({ slug: "mon-espace", pipelineId: null, invalid: false });
+    expect(workspaceTarget(`/w/mon-espace/pipelines/${id}`)).toEqual({ slug: "mon-espace", pipelineId: id, invalid: false });
+    expect(workspaceTarget("/w/mon-espace/pipelines/pas-un-uuid")).toMatchObject({ invalid: true });
+  });
+
+  it("ignore les autres routes", () => {
+    for (const path of ["/", "/pipelines/new", "/pipelines/demo-running", "/workshop"]) expect(workspaceTarget(path), path).toBeNull();
   });
 });

@@ -1,23 +1,58 @@
 import { expect, test } from "@playwright/test";
 import { signIn } from "./auth";
+import { sentEvents } from "./inngest";
 
-// Parcours en mode démo (pas encore de base) : les composants, la Server Action et la
-// validation sont ceux de la production, seule la génération est rejouée.
+// Création réelle (réservation en base, événement envoyé au bouchon Inngest) ; la génération en direct
+// est montrée par le pipeline de démonstration, rejoué dans le navigateur.
 
-test("brief → génération en direct : première scène en moins de 10 s, puis pipeline terminé", async ({ page }) => {
+test("brief → pipeline créé dans le workspace, en file d'attente, et sa génération lancée", async ({ page }) => {
   await signIn(page);
   await page.goto("/");
   await page.getByRole("link", { name: "Créer un pipeline" }).click();
+  await expect(page).toHaveURL(/\/w\/[a-z0-9-]+\/pipelines\/new$/);
   await expect(page.getByRole("heading", { level: 1, name: "Nouveau pipeline" })).toBeVisible();
 
   await page.getByLabel("Niche").fill("Histoire");
   await page.getByLabel("Sujet de la vidéo").fill("Comment les pyramides de Gizeh ont-elles été construites ?");
-  const submittedAt = Date.now();
   await page.getByRole("button", { name: "Générer le pipeline" }).click();
 
-  await expect(page).toHaveURL(/\/pipelines\/demo-running$/);
+  await expect(page).toHaveURL(/\/w\/[a-z0-9-]+\/pipelines\/[0-9a-f-]{36}$/);
+  const pipelineId = page.url().split("/").at(-1)!;
+  await expect(page.getByRole("heading", { level: 1, name: "Comment les pyramides de Gizeh ont-elles été construites ?" })).toBeVisible();
+  await expect(page.getByText("En file d'attente", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /12 crédits disponibles/ })).toBeVisible(); // 18 réservés sur 30
+
+  const events = await sentEvents();
+  expect(events.filter((e) => e.data.pipelineId === pipelineId)).toEqual([
+    expect.objectContaining({ name: "pipeline/requested", id: `pipeline-requested:${pipelineId}` }),
+  ]);
+});
+
+test("un autre utilisateur reçoit un 404 sur ce pipeline et sur ce workspace", async ({ page, browser }) => {
+  await signIn(page);
+  await page.goto("/pipelines/new");
+  await page.getByLabel("Niche").fill("Histoire");
+  await page.getByLabel("Sujet de la vidéo").fill("Comment les pyramides de Gizeh ont-elles été construites ?");
+  await page.getByRole("button", { name: "Générer le pipeline" }).click();
+  await expect(page).toHaveURL(/\/pipelines\/[0-9a-f-]{36}$/);
+  const pipelineUrl = new URL(page.url()).pathname;
+  const workspaceUrl = pipelineUrl.split("/pipelines/")[0]!;
+
+  const other = await browser.newPage();
+  await signIn(other);
+  for (const path of [pipelineUrl, `${workspaceUrl}/pipelines/new`]) {
+    const response = await other.goto(path);
+    expect(response?.status(), path).toBe(404);
+    await expect(other.getByRole("heading", { name: "Page introuvable" })).toBeVisible();
+  }
+  await other.close();
+});
+
+test("démonstration : première scène en moins de 10 s, puis pipeline terminé", async ({ page }) => {
+  const openedAt = Date.now();
+  await page.goto("/pipelines/demo-running");
   await expect(page.getByText("1. Le bloc impossible")).toBeVisible({ timeout: 10_000 });
-  expect(Date.now() - submittedAt).toBeLessThan(10_000);
+  expect(Date.now() - openedAt).toBeLessThan(10_000);
 
   await expect(page.getByText("Terminé", { exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("tab", { name: /Titres/ }).click();

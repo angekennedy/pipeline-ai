@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { createPipeline, type CreatePipelineState } from "@/app/(app)/pipelines/new/actions";
+import { createPipeline, type CreatePipelineState } from "@/app/(app)/w/[workspaceSlug]/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
 import type { CreditSummary } from "@/lib/billing/balance";
 import { restrictionMessage } from "@/lib/billing/entitlements";
@@ -83,7 +83,7 @@ function Field({
   );
 }
 
-export function BriefForm({ credits }: { credits: CreditSummary }) {
+export function BriefForm({ workspaceSlug, credits, idempotencyKey }: { workspaceSlug: string; credits: CreditSummary; idempotencyKey: string }) {
   const [state, formAction, pending] = useActionState(createPipeline, initialState);
   const { fieldErrors: errors, values } = state;
   const plan = PLANS[credits.planKey];
@@ -104,6 +104,8 @@ export function BriefForm({ credits }: { credits: CreditSummary }) {
 
   return (
     <form action={formAction} className="grid gap-5" noValidate>
+      <input type="hidden" name="workspaceSlug" value={workspaceSlug} />
+      <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       <div className="grid gap-5 md:grid-cols-2">
         <Field name="niche" label="Niche" hint="Le thème de la chaîne, par exemple Histoire ou Finances personnelles." error={errors.niche}>
           {(props) => <Input {...props} defaultValue={values.niche} required maxLength={80} />}
@@ -203,6 +205,12 @@ export function BriefForm({ credits }: { credits: CreditSummary }) {
         </label>
         {errors.tier && <p className="text-sm text-destructive">{errors.tier}</p>}
       </fieldset>
+
+      {state.launchError && (
+        <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
+          {state.launchError}
+        </p>
+      )}
 
       {state.restriction && (
         <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">

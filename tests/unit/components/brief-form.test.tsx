@@ -8,9 +8,10 @@ import { BRIEF_FIELD_MESSAGES } from "@/lib/pipeline/brief-form";
 
 const credits = creditSummary("free", 30);
 const studio = creditSummary("studio", 5000);
+const KEY = "8b0b2e2a-6f3e-4e0e-9a51-2a8f4c1d9e70";
 
 const createPipeline = vi.fn();
-vi.mock("@/app/(app)/pipelines/new/actions", () => ({ createPipeline: (...args: unknown[]) => createPipeline(...args) }));
+vi.mock("@/app/(app)/w/[workspaceSlug]/pipelines/new/actions", () => ({ createPipeline: (...args: unknown[]) => createPipeline(...args) }));
 
 beforeEach(() => {
   createPipeline.mockReset();
@@ -18,7 +19,7 @@ beforeEach(() => {
 
 describe("BriefForm", () => {
   it("propose tous les champs du brief avec des valeurs par défaut", () => {
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
     expect(screen.getByLabelText("Niche")).toBeRequired();
     expect(screen.getByLabelText("Sujet de la vidéo")).toBeRequired();
     expect(screen.getByLabelText("Durée cible (minutes)")).toHaveValue(8);
@@ -31,7 +32,7 @@ describe("BriefForm", () => {
   it("envoie la saisie à la Server Action", async () => {
     const user = userEvent.setup();
     createPipeline.mockResolvedValue({ fieldErrors: {}, values: {} });
-    render(<BriefForm credits={studio} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={studio} />);
 
     await user.type(screen.getByLabelText("Niche"), "Histoire");
     await user.type(screen.getByLabelText("Sujet de la vidéo"), "Les pyramides");
@@ -40,7 +41,7 @@ describe("BriefForm", () => {
 
     expect(createPipeline).toHaveBeenCalledTimes(1);
     const data = createPipeline.mock.calls[0]![1] as FormData;
-    expect(Object.fromEntries(data)).toMatchObject({ niche: "Histoire", topic: "Les pyramides", durationMinutes: "8", tier: "premium" });
+    expect(Object.fromEntries(data)).toMatchObject({ niche: "Histoire", topic: "Les pyramides", durationMinutes: "8", tier: "premium", workspaceSlug: "mon-espace", idempotencyKey: KEY });
   });
 
   it("affiche les erreurs par champ et garde la saisie", async () => {
@@ -49,7 +50,7 @@ describe("BriefForm", () => {
       fieldErrors: { niche: BRIEF_FIELD_MESSAGES.niche },
       values: { niche: "H", topic: "Les pyramides de Gizeh" },
     });
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
     await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
 
     const niche = await screen.findByLabelText("Niche");
@@ -61,7 +62,7 @@ describe("BriefForm", () => {
 
   it("affiche le coût avant le lancement et le recalcule selon la durée et la formule", async () => {
     const user = userEvent.setup();
-    render(<BriefForm credits={creditSummary("studio", 30)} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={creditSummary("studio", 30)} />);
     const estimate = screen.getByRole("region", { name: /Coût/ });
     expect(estimate).toHaveTextContent("Coût : 18 crédits"); // 8 min en Standard
     expect(estimate).toHaveTextContent("Solde après le lancement : 12 crédits.");
@@ -77,7 +78,7 @@ describe("BriefForm", () => {
 
   it("masque le coût tant que la durée est invalide", async () => {
     const user = userEvent.setup();
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
     await user.clear(screen.getByLabelText("Durée cible (minutes)"));
     expect(screen.queryByRole("region", { name: /Coût/ })).not.toBeInTheDocument();
   });
@@ -89,7 +90,7 @@ describe("BriefForm", () => {
       values: { niche: "Histoire", topic: "Les pyramides", durationMinutes: "10", tier: "premium" },
       insufficient: { required: 35, available: 30 },
     });
-    render(<BriefForm credits={creditSummary("studio", 30)} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={creditSummary("studio", 30)} />);
     await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
 
     const dialog = await screen.findByRole("dialog", { name: "Crédits insuffisants" });
@@ -104,7 +105,7 @@ describe("BriefForm", () => {
   });
 
   it("annonce les limites du plan : durée maximale, Premium grisé hors Studio", () => {
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
     const duration = screen.getByLabelText("Durée cible (minutes)");
     expect(duration).toHaveAttribute("max", "10");
     expect(duration).toHaveAccessibleDescription("Jusqu'à 10 min avec le plan Free.");
@@ -119,7 +120,7 @@ describe("BriefForm", () => {
       values: { niche: "Histoire", topic: "Les pyramides", durationMinutes: "15" },
       restriction: { reason: "duration", plan: "free", limit: 10 },
     });
-    render(<BriefForm credits={credits} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
     await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
 
     const alert = await screen.findByRole("alert");
