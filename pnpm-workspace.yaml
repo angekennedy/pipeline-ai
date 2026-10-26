@@ -1,4 +1,6 @@
 allowBuilds:
+  "@parcel/watcher": false # next-intl (extraction des messages, inutilisée) : binaire précompilé fourni
+  "@swc/core": false # idem : binaire précompilé par plateforme (@swc/core-<os>-<arch>)
   protobufjs: false # dépendance d'Inngest via OpenTelemetry : le postinstall ne fait qu'afficher un avertissement
   sharp: false
   unrs-resolver: false
