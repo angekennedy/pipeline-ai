@@ -543,7 +543,8 @@
       "unavailable": "Online payment is not available right now."
     },
     "consent": "By proceeding to payment, you accept the <terms>terms of use and sale</terms> and the <privacy>privacy policy</privacy>.",
-    "stripeConsent": "By paying, you accept Pipeline AI's terms: {url}"
+    "stripeConsent": "By paying, you accept Pipeline AI's terms: {url}",
+    "taxes": "Prices in euros, including VAT."
   },
   "Plans": {
     "pitch": {
@@ -593,7 +594,8 @@
       "thirtyStandard": "30-minute video, Standard"
     },
     "example": "{label}: <credits></credits>",
-    "regeneration": "Regenerating an asset costs the same as generating it. A manual edit or a restore is free."
+    "regeneration": "Regenerating an asset costs the same as generating it. A manual edit or a restore is free.",
+    "taxes": "Prices in euros, including VAT."
   },
   "CreditBadge": {
     "label": "{credits} available, {plan} plan. Billing and credits",
@@ -868,7 +870,7 @@
         },
         "credits": {
           "title": "Credits, plans and payment",
-          "body": "Each deliverable costs a number of credits that depends on the video's length and tier, shown before every run. Credits are reserved at launch; only successfully generated deliverables are charged, the others are released automatically.\n\n- The Free plan grants credits once, at sign-up.\n- Paid plans are monthly subscriptions, renewed automatically until cancelled, which you can do at any time from the Billing page. Cancellation takes effect at the end of the paid period.\n- Credit packs are one-off purchases.\n- Prices and plan contents: Pricing page. Payment is processed by Stripe.\n\nCredits cannot be refunded in cash or transferred. Unused credits carry over to the next month, up to one monthly allocation; any excess expires at renewal."
+          "body": "Each deliverable costs a number of credits that depends on the video's length and tier, shown before every run. Credits are reserved at launch; only successfully generated deliverables are charged, the others are released automatically.\n\n- The Free plan grants credits once, at sign-up.\n- Paid plans are monthly subscriptions, renewed automatically until cancelled, which you can do at any time from the Billing page. Cancellation takes effect at the end of the paid period.\n- Credit packs are one-off purchases.\n- Prices are shown in euros, including VAT; prices and plan contents: Pricing page. Payment is processed by Stripe.\n\nCredits cannot be refunded in cash or transferred. Unused credits carry over to the next month, up to one monthly allocation; any excess expires at renewal."
         },
         "withdrawal": {
           "title": "Right of withdrawal",

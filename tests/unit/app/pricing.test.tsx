@@ -12,6 +12,7 @@ describe("page des tarifs", () => {
     expect(screen.getByText(/^1.500 crédits par mois$/)).toBeInTheDocument(); // séparateur de milliers : espace fine insécable
     expect(screen.getByText("Environ 71 vidéos de 10 min")).toBeInTheDocument(); // Pro : 1 500 / 21
     expect(screen.getByRole("link", { name: "Commencer" })).toHaveAttribute("href", "/pipelines/new");
+    expect(screen.getByText("Prix en euros, toutes taxes comprises (TTC).")).toBeInTheDocument();
   });
 
   it("explique le coût de chaque asset, avec des exemples tirés de la grille", async () => {

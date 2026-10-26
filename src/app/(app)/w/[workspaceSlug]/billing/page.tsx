@@ -151,6 +151,7 @@ export default async function BillingPage({ params, searchParams }: PageProps<"/
                 );
               })}
             </ul>
+            <p className="text-xs text-muted-foreground">{t("taxes")}</p>
             <p className="text-xs text-muted-foreground">{t("carryOver")}</p>
           </section>
 
