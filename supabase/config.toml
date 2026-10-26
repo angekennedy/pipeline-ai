@@ -249,11 +249,11 @@ otp_expiry = 3600
 # serveur. Un nouvel inscrit reçoit le gabarit « confirmation », un compte existant « magic_link » :
 # le même contenu pour les deux.
 [auth.email.template.magic_link]
-subject = "Votre lien de connexion à Pipeline AI"
+subject = "Votre lien de connexion · Your sign-in link (Pipeline AI)"
 content_path = "./supabase/templates/magic-link.html"
 
 [auth.email.template.confirmation]
-subject = "Votre lien de connexion à Pipeline AI"
+subject = "Votre lien de connexion · Your sign-in link (Pipeline AI)"
 content_path = "./supabase/templates/magic-link.html"
 
 # [auth.email.template.invite]
