@@ -1,0 +1,775 @@
+{
+ "source": "evals/report/v3 (tâche 1.11) : sortie brute des modèles, prompts script@2, titles@3, seo@1, voiceover@1, thumbnails@3",
+ "case": "fr-histoire-rome",
+ "brief": {
+  "niche": "Histoire",
+  "topic": "Pourquoi l'Empire romain d'Occident s'est-il effondré en 476 ?",
+  "language": "fr",
+  "tone": "mysterious",
+  "durationMinutes": 8,
+  "style": "documentary"
+ },
+ "tier": "standard",
+ "judge": 4.86,
+ "costUsd": 0.2231,
+ "generationSeconds": 168,
+ "models": {
+  "script": "claude-sonnet-5-5",
+  "titles": "claude-haiku-5-5",
+  "seo": "claude-haiku-5-5",
+  "voiceover": "claude-haiku-5-5",
+  "thumbnails": "claude-haiku-5-5"
+ },
+ "assets": {
+  "script": {
+   "workingTitle": "476 : la chute silencieuse de Rome",
+   "hookSummary": "Un adolescent déposé sans effusion de sang, une pension et une villa : la fin étrange de l'Empire romain d'Occident, dont les causes se cachent bien avant 476.",
+   "scenes": [
+    {
+     "index": 1,
+     "purpose": "hook",
+     "title": "Le dernier empereur",
+     "narration": "Un adolescent est assis sur le trône d'un empire vieux de cinq siècles. Personne ne le tue. On l'envoie simplement vivre dans une villa, avec une pension. Ainsi s'achève Rome, en silence.",
+     "visualDirection": "Plan lent sur un trône vide dans une salle antique en pénombre, puis gros plan sur une couronne de lauriers en bronze. Fondu vers une carte de l'Empire.",
+     "bRollKeywords": [
+      "roman throne",
+      "ancient palace",
+      "laurel crown",
+      "dark corridor",
+      "roman ruins"
+     ],
+     "onScreenText": "476",
+     "estimatedSeconds": 13
+    },
+    {
+     "index": 2,
+     "purpose": "context",
+     "title": "Ravenne, 476",
+     "narration": "Nous sommes en 476. Depuis longtemps, Rome n'est plus la capitale de l'Occident. L'empereur vit à Ravenne, une ville entourée de marais, plus facile à défendre. Il s'appelle Romulus, surnommé Augustule, le petit Auguste. Il est sans doute âgé d'une quinzaine d'années. Ce n'est pas lui qui gouverne. Son père, Oreste, un officier de haut rang, l'a placé sur le trône un an plus tôt. Mais Oreste dépend d'une armée composée en grande partie de soldats d'origine barbare, que l'on appelle les fédérés. Ces hommes réclament une récompense : un tiers des terres d'Italie. Oreste refuse. Cette décision va tout précipiter. Pour comprendre pourquoi un simple refus a pu faire tomber un empire, il faut remonter bien plus loin. Car la chute de Rome n'a pas eu une cause. Elle en a eu des dizaines, accumulées pendant des générations.",
+     "visualDirection": "Carte animée de l'Italie avec Ravenne et ses marais mise en évidence, puis vues de mosaïques byzantines de Ravenne et de soldats en armure tardive.",
+     "bRollKeywords": [
+      "ravenna mosaic",
+      "italy map animation",
+      "roman soldiers",
+      "marshland",
+      "late roman armor"
+     ],
+     "onScreenText": "Ravenne, 476",
+     "estimatedSeconds": 55
+    },
+    {
+     "index": 3,
+     "purpose": "development",
+     "title": "Odoacre prend le pouvoir",
+     "narration": "Le chef de ces soldats se nomme Odoacre. Face au refus d'Oreste, ses hommes le proclament roi. Dans les semaines qui suivent, les troupes d'Oreste sont battues, et lui-même est capturé puis exécuté. Ravenne tombe. Reste un garçon sans armée, sans alliés, sans importance. Odoacre pourrait le tuer. Il ne le fait pas. Il l'exile en Campanie, avec de quoi vivre confortablement. Puis il commet un geste étonnant. Il n'installe aucun nouvel empereur. Il envoie les insignes impériaux à Constantinople, à l'empereur d'Orient, Zénon, en lui expliquant qu'un seul souverain suffit pour le monde romain. Ce n'est pas la déclaration d'un conquérant triomphant. C'est presque celle d'un administrateur qui range un dossier encombrant. Et c'est précisément ce qui rend cette date si troublante.",
+     "visualDirection": "Animation de carte avec flèches de mouvements de troupes, puis plan sur des insignes impériaux, un manteau pourpre et un sceptre, posés sur un coussin. Plan d'un messager à cheval.",
+     "bRollKeywords": [
+      "medieval army",
+      "purple cloak",
+      "sceptre",
+      "horseback messenger",
+      "parchment scroll",
+      "sword"
+     ],
+     "onScreenText": "Un seul empereur suffit",
+     "estimatedSeconds": 49
+    },
+    {
+     "index": 4,
+     "purpose": "development",
+     "title": "Une chute que personne n'a vue",
+     "narration": "Voici la première surprise. Les contemporains n'ont pas vécu 476 comme la fin d'un monde. Les lois continuent d'être appliquées. Le Sénat de Rome siège toujours. Les fonctionnaires collectent les impôts, les propriétaires cultivent leurs domaines, les évêques écrivent leurs lettres. Odoacre lui-même se présente comme un serviteur de l'Empire et garde les titres et les usages romains. Pour beaucoup d'habitants, il y a simplement un nouveau maître à Ravenne. C'est bien plus tard que les historiens ont fait de cette année une frontière nette. Le mot chute est donc un peu trompeur. Il évoque un effondrement brutal, alors que l'Occident s'est plutôt vidé de sa substance, lentement, comme un bâtiment dont on retire une à une les poutres, jusqu'au jour où le toit s'affaisse.",
+     "visualDirection": "Scènes de vie quotidienne romaine tardive reconstituées en motion graphics : marché, scribes, sénat. Une frise chronologique s'étire puis la date 476 clignote doucement.",
+     "bRollKeywords": [
+      "roman senate",
+      "scribe writing",
+      "ancient market",
+      "timeline animation",
+      "old manuscript",
+      "roman villa"
+     ],
+     "onScreenText": "Une fin sans bruit",
+     "estimatedSeconds": 50
+    },
+    {
+     "index": 5,
+     "purpose": "development",
+     "title": "Les Goths et le Rhin gelé",
+     "narration": "Les premières fissures apparaissent bien avant. En 378, à Andrinople, une armée romaine est écrasée par des Goths que Rome avait accueillis, puis maltraités. L'empereur d'Orient Valens y trouve la mort. Pour la première fois, des barbares battent l'armée romaine sur son propre sol et s'y installent. Peu après, la poussée des Huns, venus des steppes, pousse d'autres peuples vers les frontières. Fin 406, selon la tradition, des Vandales, des Alains et des Suèves franchissent le Rhin, peut-être gelé. Ils traversent la Gaule et atteignent l'Espagne. Rome n'a plus les moyens de les chasser. Elle négocie, elle paie, elle signe des traités. Chaque accord installe un peu plus de puissances étrangères à l'intérieur de ses frontières.",
+     "visualDirection": "Carte animée avec flèches de migrations vers l'ouest, puis plans d'un fleuve gelé au crépuscule et de cavaliers des steppes en silhouette.",
+     "bRollKeywords": [
+      "frozen river",
+      "migration map",
+      "steppe horsemen",
+      "battle reenactment",
+      "dark forest",
+      "barbarian warriors"
+     ],
+     "onScreenText": "378 : Andrinople",
+     "estimatedSeconds": 46
+    },
+    {
+     "index": 6,
+     "purpose": "development",
+     "title": "Sacs de Rome et ressources perdues",
+     "narration": "En 410, le Goth Alaric s'empare de Rome et la pille pendant trois jours. L'Empire survit, mais le choc est immense : la Ville éternelle a été violée. En 455, ce sont les Vandales qui la mettent à sac. Entre-temps, ils ont pris le plus important : l'Afrique du Nord. En 439, Genséric s'empare de Carthage. Or cette région fournissait une grande part du blé et des revenus fiscaux de l'Occident. Sans elle, l'État s'appauvrit, ne peut plus payer ses soldats, et doit se reposer davantage sur des alliés qu'il contrôle mal. Voilà le cercle vicieux. Moins d'argent signifie moins de troupes. Moins de troupes signifie moins de territoire. Et moins de territoire signifie encore moins d'argent.",
+     "visualDirection": "Images de flammes sur des bâtiments antiques en motion graphics, puis carte de l'Afrique du Nord avec Carthage qui s'éteint. Graphique d'un cercle vicieux animé : argent, armée, territoire.",
+     "bRollKeywords": [
+      "burning city",
+      "carthage ruins",
+      "wheat field",
+      "gold coins",
+      "circular diagram",
+      "ancient port"
+     ],
+     "onScreenText": "Moins d'argent, moins d'armée",
+     "estimatedSeconds": 46
+    },
+    {
+     "index": 7,
+     "purpose": "twist",
+     "title": "Un pouvoir qui se dévore lui-même",
+     "narration": "Mais les ennemis extérieurs ne suffisent pas à tout expliquer. À l'intérieur, le pouvoir se déchire. Au cinquième siècle, les usurpateurs se succèdent, les généraux s'affrontent, et les empereurs sont souvent des figures faibles, dominées par leurs chefs militaires. Stilicon, puis Aetius, tiennent l'Occident à bout de bras. Aetius est celui qui affronte Attila en 451. Pourtant, en 454, l'empereur Valentinien III l'assassine de sa propre main, selon les récits antiques. Un an plus tard, Valentinien est tué à son tour par des partisans du général disparu. Rome élimine ses derniers défenseurs compétents. Entre 455 et 476, l'Occident connaît environ neuf empereurs, souvent manipulés. Le véritable pouvoir est ailleurs, chez les chefs d'armée.",
+     "visualDirection": "Galerie de bustes d'empereurs qui se fissurent un par un, puis silhouettes de conspirateurs dans un couloir de palais éclairé à la torche.",
+     "bRollKeywords": [
+      "roman busts",
+      "conspiracy shadows",
+      "torch corridor",
+      "dagger",
+      "marble statue cracking",
+      "palace intrigue"
+     ],
+     "onScreenText": "Neuf empereurs en vingt ans",
+     "estimatedSeconds": 45
+    },
+    {
+     "index": 8,
+     "purpose": "development",
+     "title": "Les autres suspects",
+     "narration": "Les historiens débattent encore d'autres explications. Certains évoquent le climat, avec des périodes de refroidissement et de sécheresse qui auraient fragilisé les récoltes. D'autres citent les épidémies, qui ont pu réduire la population et les recettes de l'État. Au dix-huitième siècle, l'Anglais Edward Gibbon accusait le christianisme d'avoir affaibli l'esprit civique des Romains, une thèse aujourd'hui très contestée. On a aussi parlé d'un empoisonnement au plomb, une idée largement abandonnée. Aucune de ces hypothèses ne fait consensus. La plupart des spécialistes préfèrent parler d'une combinaison de facteurs : pressions militaires, crise financière, instabilité politique, et une armée dont la loyauté allait à ses chefs plutôt qu'à l'État. Le mystère n'est pas l'absence de causes. C'est leur nombre.",
+     "visualDirection": "Succession de cartes et d'icônes animées pour chaque hypothèse : climat, peste, religion, plomb, avec un tampon rouge Débattu sur certaines. Gravure de Gibbon en fondu.",
+     "bRollKeywords": [
+      "drought landscape",
+      "plague illustration",
+      "old book library",
+      "lead pipes",
+      "scholar writing",
+      "stormy sky"
+     ],
+     "onScreenText": "Pas une cause, mais des dizaines",
+     "estimatedSeconds": 46
+    },
+    {
+     "index": 9,
+     "purpose": "twist",
+     "title": "L'Orient a survécu",
+     "narration": "Voici le détail qui change tout. Pendant que l'Occident s'effondrait, l'Empire d'Orient, autour de Constantinople, tenait bon. Il subissait lui aussi des invasions, mais il était plus riche, plus urbanisé, et protégé par des murailles et par le Bosphore. Il disposait de revenus solides et pouvait acheter la paix, ou détourner les envahisseurs vers l'ouest. Il allait durer près de mille ans de plus, jusqu'en 1453. Cela prouve que les barbares n'étaient pas une force invincible. Rome n'était pas condamnée par une fatalité. Elle est tombée à l'ouest parce que ses fondations y étaient plus fragiles. Là où l'État gardait de l'argent, de l'administration et une armée loyale, l'Empire a continué à vivre.",
+     "visualDirection": "Plan aérien sur les murailles de Théodose à Constantinople, puis carte qui sépare l'Empire en deux avec l'Orient qui reste coloré et l'Occident qui se grise.",
+     "bRollKeywords": [
+      "constantinople walls",
+      "bosphorus",
+      "byzantine map",
+      "hagia sophia",
+      "aerial istanbul",
+      "medieval fortress"
+     ],
+     "onScreenText": "L'Orient tient jusqu'en 1453",
+     "estimatedSeconds": 45
+    },
+    {
+     "index": 10,
+     "purpose": "payoff",
+     "title": "Ce qu'est devenu Romulus",
+     "narration": "Et Romulus Augustule ? On perd rapidement sa trace. Selon la tradition, il aurait vécu en Campanie, dans une villa, grâce à la pension d'Odoacre. Les sources sont rares et incertaines. Ce garçon qui porte le nom du fondateur légendaire de Rome et celui de son premier empereur, disparaît dans l'oubli. Voilà le dernier paradoxe. L'Empire romain d'Occident n'est pas mort dans un incendie spectaculaire ni dans une bataille finale. Il s'est éteint par épuisement, par paperasse, par un acte administratif. Sa chute n'a pas été un événement, mais un processus, et 476 n'en est que la dernière page. Ce qui s'est effondré ce jour-là n'était déjà plus qu'une coquille. Rome avait cessé d'être un empire bien avant que le dernier empereur ne cesse de l'être.",
+     "visualDirection": "Plan lent d'une villa en ruines au bord de la mer en Campanie, au crépuscule, puis une pièce de monnaie romaine qui tourne et se fige. Fondu au noir.",
+     "bRollKeywords": [
+      "roman villa ruins",
+      "campania coast",
+      "sunset sea",
+      "roman coin",
+      "empty throne",
+      "fading light"
+     ],
+     "onScreenText": "Un empire s'éteint, il ne s'écroule pas",
+     "estimatedSeconds": 50
+    },
+    {
+     "index": 11,
+     "purpose": "cta",
+     "title": "À vous de juger",
+     "narration": "Alors, selon vous, quelle cause a pesé le plus lourd dans la chute de Rome ? Dites-le en commentaire. Et si vous aimez ces énigmes de l'histoire, abonnez-vous pour découvrir la prochaine.",
+     "visualDirection": "Retour sur la carte de l'Empire qui se fige, puis écran de fin avec trois pistes en icônes : armée, argent, politique, et un bouton d'abonnement animé.",
+     "bRollKeywords": [
+      "subscribe button",
+      "roman map",
+      "ancient icons",
+      "end screen",
+      "old parchment"
+     ],
+     "onScreenText": "Votre avis en commentaire",
+     "estimatedSeconds": 12
+    }
+   ],
+   "callToAction": "Dites en commentaire quelle cause vous semble la plus déterminante et abonnez-vous pour la prochaine énigme de l'histoire.",
+   "factCheckFlags": [
+    {
+     "sceneIndex": 1,
+     "claim": "L'Empire romain est présenté comme vieux d'environ cinq siècles à la date de 476 (selon que l'on compte depuis Auguste, 27 av. J.-C.)."
+    },
+    {
+     "sceneIndex": 2,
+     "claim": "Romulus Augustule avait environ quinze ans en 476 (âge incertain)."
+    },
+    {
+     "sceneIndex": 2,
+     "claim": "Oreste a placé son fils sur le trône en 475 et a refusé aux fédérés le tiers des terres d'Italie."
+    },
+    {
+     "sceneIndex": 3,
+     "claim": "Odoacre est proclamé roi par ses troupes, Oreste est capturé et exécuté, Romulus est exilé en Campanie avec une pension."
+    },
+    {
+     "sceneIndex": 3,
+     "claim": "Odoacre envoie les insignes impériaux à l'empereur d'Orient Zénon."
+    },
+    {
+     "sceneIndex": 4,
+     "claim": "Le Sénat de Rome continue de siéger après 476 et Odoacre conserve des titres et usages romains."
+    },
+    {
+     "sceneIndex": 5,
+     "claim": "Bataille d'Andrinople en 378, mort de l'empereur Valens face aux Goths."
+    },
+    {
+     "sceneIndex": 5,
+     "claim": "Traversée du Rhin par Vandales, Alains et Suèves fin 406, peut-être sur un fleuve gelé (tradition discutée)."
+    },
+    {
+     "sceneIndex": 6,
+     "claim": "Sac de Rome par Alaric en 410, durant trois jours."
+    },
+    {
+     "sceneIndex": 6,
+     "claim": "Sac de Rome par les Vandales en 455."
+    },
+    {
+     "sceneIndex": 6,
+     "claim": "Prise de Carthage par Genséric en 439 et importance de l'Afrique du Nord pour le blé et les revenus fiscaux."
+    },
+    {
+     "sceneIndex": 7,
+     "claim": "Aetius affronte Attila en 451 puis est assassiné par Valentinien III en 454, qui est tué un an plus tard."
+    },
+    {
+     "sceneIndex": 7,
+     "claim": "Environ neuf empereurs d'Occident entre 455 et 476 (le décompte varie selon les historiens)."
+    },
+    {
+     "sceneIndex": 8,
+     "claim": "Edward Gibbon, au XVIIIe siècle, attribue en partie la chute au christianisme (thèse contestée)."
+    },
+    {
+     "sceneIndex": 8,
+     "claim": "Hypothèses du climat, des épidémies et de l'empoisonnement au plomb, présentées comme débattues ou abandonnées."
+    },
+    {
+     "sceneIndex": 9,
+     "claim": "L'Empire d'Orient dure jusqu'en 1453, soit près de mille ans après 476."
+    },
+    {
+     "sceneIndex": 10,
+     "claim": "Romulus Augustule aurait vécu en Campanie, dans une villa (sources rares et incertaines)."
+    }
+   ]
+  },
+  "titles": {
+   "variants": [
+    {
+     "title": "476 : pourquoi Rome n'a pas été détruite par un seul coup",
+     "angle": "curiosity_gap",
+     "rationale": "Scène 8 révèle que les historiens retiennent une combinaison de facteurs, pas une cause unique. Le titre promet cette réponse et intrigue un public curieux des énigmes historiques.",
+     "heuristicScore": 9,
+     "charCount": 57
+    },
+    {
+     "title": "Rome est tombée en 476 : la fin sans bruit d'un empire",
+     "angle": "story",
+     "rationale": "Scènes 1 et 4 montrent un empire qui s'éteint sans bataille finale, avec un Sénat et des lois encore en place. Le contraste attire les lecteurs qui aiment les récits surprenants.",
+     "heuristicScore": 7,
+     "charCount": 54
+    },
+    {
+     "title": "Pourquoi l'Empire romain d'Occident s'est-il effondré en 476 ?",
+     "angle": "question",
+     "rationale": "Scènes 2 à 10 développent les causes et la date. La question directe correspond à la recherche la plus courante sur ce sujet et promet une réponse complète.",
+     "heuristicScore": 7,
+     "charCount": 62
+    },
+    {
+     "title": "Neuf empereurs en vingt ans : le pouvoir qui s'est dévoré",
+     "angle": "number",
+     "rationale": "Scène 7 énumère environ neuf empereurs entre 455 et 476 et explique la manipulation par les chefs militaires. Le chiffre concret accroche et la promesse est tenue.",
+     "heuristicScore": 8,
+     "charCount": 57
+    },
+    {
+     "title": "Un adolescent sur le trône, une pension et une villa : la fin de Rome",
+     "angle": "story",
+     "rationale": "Scènes 1 et 3 racontent le sort de Romulus Augustule : exil en Campanie avec une pension. L'image d'un adolescent épargné intrigue et ancre le sujet dans une histoire humaine.",
+     "heuristicScore": 8,
+     "charCount": 69
+    },
+    {
+     "title": "La chute de Rome n'a pas eu une cause, mais des dizaines",
+     "angle": "negative",
+     "rationale": "Scène 8 soutient cette idée en passant en revue climat, épidémies, religion et plomb. Le démenti d'une explication simple bouscule les idées reçues du public.",
+     "heuristicScore": 7,
+     "charCount": 56
+    },
+    {
+     "title": "Pourquoi l'Orient a survécu près de mille ans de plus",
+     "angle": "curiosity_gap",
+     "rationale": "Scène 9 explique la survie de Constantinople jusqu'en 1453, avec ses murailles, ses revenus et son administration. La question sur le contraste avec l'Occident donne envie de voir la réponse.",
+     "heuristicScore": 6,
+     "charCount": 53
+    },
+    {
+     "title": "Comment un cercle vicieux d'argent a affaibli Rome, de Carthage à 476",
+     "angle": "how_to",
+     "rationale": "Scène 6 détaille la perte de l'Afrique du Nord, puis la spirale argent, armée, territoire. Le titre met en avant une mécanique concrète et précise, utile à un public qui apprend.",
+     "heuristicScore": 6,
+     "charCount": 69
+    }
+   ],
+   "recommendedIndex": 0
+  },
+  "seo": {
+   "description": "Comment l'Empire romain d'Occident s'est-il effondré en 476 ? Un adolescent sur le trône, une pension et aucune bataille finale : une énigme de l'histoire aux causes bien plus anciennes.\n\nDans cette vidéo, nous revenons sur Ravenne en 476, sur la révolte des fédérés et sur la prise de pouvoir d'Odoacre. Nous voyons comment les contemporains ont vécu cette date, sans y voir la fin d'un monde, et pourquoi le mot chute est trompeur.\n\nNous examinons ensuite les fractures accumulées pendant des générations : invasions, sacs de Rome, perte de l'Afrique, luttes de pouvoir et hypothèses débattues. Dites-nous en commentaire quelle cause vous semble la plus déterminante, et abonnez-vous pour la prochaine énigme.",
+   "tags": [
+    "empire romain d'occident 476",
+    "romulus augustule",
+    "odoacre roi d'italie",
+    "fin de l'empire romain",
+    "chute de rome explication",
+    "ravenne 476",
+    "fédérés oreste odoacre",
+    "empire romain d'orient byzance",
+    "genséric carthage 439",
+    "sac de rome 410 alaric",
+    "andrinople 378 goths",
+    "aetius attila 451",
+    "histoire de rome documentaire",
+    "antiquité tardive",
+    "empereurs romains tardifs",
+    "causes de la chute de rome",
+    "histoire romaine mystère",
+    "rome antique documentaire",
+    "valentinien iii assassinat"
+   ],
+   "hashtags": [
+    "#Histoire",
+    "#RomeAntique",
+    "#Empire_romain"
+   ],
+   "chapterTitles": [
+    {
+     "startsAtSceneIndex": 1,
+     "title": "Le dernier empereur"
+    },
+    {
+     "startsAtSceneIndex": 2,
+     "title": "Ravenne en 476 et la révolte des fédérés"
+    },
+    {
+     "startsAtSceneIndex": 5,
+     "title": "Migrations, Andrinople et le Rhin gelé"
+    },
+    {
+     "startsAtSceneIndex": 7,
+     "title": "Un pouvoir qui se dévore lui-même"
+    },
+    {
+     "startsAtSceneIndex": 10,
+     "title": "Romulus et la fin sans bataille"
+    }
+   ],
+   "chapters": [
+    {
+     "timestamp": "00:00",
+     "title": "Le dernier empereur"
+    },
+    {
+     "timestamp": "00:13",
+     "title": "Ravenne en 476 et la révolte des fédérés"
+    },
+    {
+     "timestamp": "02:47",
+     "title": "Migrations, Andrinople et le Rhin gelé"
+    },
+    {
+     "timestamp": "04:19",
+     "title": "Un pouvoir qui se dévore lui-même"
+    },
+    {
+     "timestamp": "06:35",
+     "title": "Romulus et la fin sans bataille"
+    }
+   ]
+  },
+  "voiceover": {
+   "globalVoice": {
+    "gender": "male",
+    "age": "40-50",
+    "accent": "français standard (France)",
+    "baseStyle": "Voix grave et posée de documentaire historique, ton mystérieux et retenu, diction claire, rythme maîtrisé, légère gravité sans théâtralité."
+   },
+   "segments": [
+    {
+     "sceneIndex": 1,
+     "text": "Un adolescent est assis sur le trône d'un empire vieux de cinq siècles. [pause:600ms] Personne ne le tue. On l'envoie simplement vivre dans une villa, avec une pension. [pause:500ms] Ainsi s'achève Rome, en silence.",
+     "pace": "slow",
+     "emotion": "mystérieux, feutré",
+     "emphasisWords": [
+      "adolescent",
+      "silence",
+      "Rome"
+     ],
+     "pauseAfterMs": 800,
+     "pronunciationHints": [
+      {
+       "word": "Augustule",
+       "phonetic": "o-gus-tule"
+      },
+      {
+       "word": "Romulus",
+       "phonetic": "ro-mu-luss"
+      }
+     ],
+     "providerPrompt": "Parler bas, presque en confidence, comme si l'on racontait un secret. Respirer doucement avant la phrase finale, laisser le mot silence résonner. Intensité basse, aucune montée dramatique."
+    },
+    {
+     "sceneIndex": 2,
+     "text": "Nous sommes en 476. Depuis longtemps, Rome n'est plus la capitale de l'Occident. L'empereur vit à Ravenne, une ville entourée de marais, plus facile à défendre. Il s'appelle Romulus, surnommé Augustule, le petit Auguste. Il est sans doute âgé d'une quinzaine d'années. [pause:400ms] Ce n'est pas lui qui gouverne. Son père, Oreste, un officier de haut rang, l'a placé sur le trône un an plus tôt. Mais Oreste dépend d'une armée composée en grande partie de soldats d'origine barbare, que l'on appelle les fédérés. Ces hommes réclament une récompense : un tiers des terres d'Italie. Oreste refuse. [pause:700ms] Cette décision va tout précipiter. Pour comprendre pourquoi un simple refus a pu faire tomber un empire, il faut remonter bien plus loin. Car la chute de Rome n'a pas eu une cause. Elle en a eu des dizaines, accumulées pendant des générations.",
+     "pace": "medium",
+     "emotion": "posé, expliquant",
+     "emphasisWords": [
+      "Oreste refuse",
+      "dizaines",
+      "générations"
+     ],
+     "pauseAfterMs": 500,
+     "pronunciationHints": [
+      {
+       "word": "Ravenne",
+       "phonetic": "ra-venn"
+      },
+      {
+       "word": "Oreste",
+       "phonetic": "o-rest"
+      },
+      {
+       "word": "fédérés",
+       "phonetic": "fé-dé-ré"
+      },
+      {
+       "word": "Augustule",
+       "phonetic": "o-gus-tule"
+      }
+     ],
+     "providerPrompt": "Ton de narrateur qui installe le décor, rythme régulier. Marquer une légère tension sur le refus d'Oreste, puis ralentir pour la phrase sur les générations. Respiration calme entre les phrases."
+    },
+    {
+     "sceneIndex": 3,
+     "text": "Le chef de ces soldats se nomme Odoacre. Face au refus d'Oreste, ses hommes le proclament roi. Dans les semaines qui suivent, les troupes d'Oreste sont battues, et lui-même est capturé puis exécuté. Ravenne tombe. [pause:500ms] Reste un garçon sans armée, sans alliés, sans importance. Odoacre pourrait le tuer. [pause:600ms] Il ne le fait pas. Il l'exile en Campanie, avec de quoi vivre confortablement. Puis il commet un geste étonnant. Il n'installe aucun nouvel empereur. Il envoie les insignes impériaux à Constantinople, à l'empereur d'Orient, Zénon, en lui expliquant qu'un seul souverain suffit pour le monde romain. [pause:500ms] Ce n'est pas la déclaration d'un conquérant triomphant. C'est presque celle d'un administrateur qui range un dossier encombrant. Et c'est précisément ce qui rend cette date si troublante.",
+     "pace": "medium",
+     "emotion": "tendu, intrigué",
+     "emphasisWords": [
+      "Il ne le fait pas",
+      "étonnant",
+      "troublante"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [
+      {
+       "word": "Odoacre",
+       "phonetic": "o-do-a-kr"
+      },
+      {
+       "word": "Campanie",
+       "phonetic": "kam-pa-nie"
+      },
+      {
+       "word": "Zénon",
+       "phonetic": "zé-non"
+      },
+      {
+       "word": "Constantinople",
+       "phonetic": "kon-stan-ti-nopl"
+      }
+     ],
+     "providerPrompt": "Monter en tension sur le chef de ces soldats, puis faire une pause marquée avant Il ne le fait pas. Ton sec et précis pour la description d'Odoacre en administrateur. Finir sur un ton pensif et troublé."
+    },
+    {
+     "sceneIndex": 4,
+     "text": "Voici la première surprise. Les contemporains n'ont pas vécu 476 comme la fin d'un monde. Les lois continuent d'être appliquées. Le Sénat de Rome siège toujours. Les fonctionnaires collectent les impôts, les propriétaires cultivent leurs domaines, les évêques écrivent leurs lettres. Odoacre lui-même se présente comme un serviteur de l'Empire et garde les titres et les usages romains. [pause:400ms] Pour beaucoup d'habitants, il y a simplement un nouveau maître à Ravenne. C'est bien plus tard que les historiens ont fait de cette année une frontière nette. Le mot chute est donc un peu trompeur. Il évoque un effondrement brutal, alors que l'Occident s'est plutôt vidé de sa substance, lentement, comme un bâtiment dont on retire une à une les poutres, jusqu'au jour où le toit s'affaisse.",
+     "pace": "medium",
+     "emotion": "révélateur, nuancé",
+     "emphasisWords": [
+      "surprise",
+      "sans bruit",
+      "lentement"
+     ],
+     "pauseAfterMs": 500,
+     "pronunciationHints": [
+      {
+       "word": "Odoacre",
+       "phonetic": "o-do-a-kr"
+      },
+      {
+       "word": "Ravenne",
+       "phonetic": "ra-venn"
+      }
+     ],
+     "providerPrompt": "Ton de révélation, presque complice avec l'auditeur. Énumérer les institutions d'un rythme égal, puis ralentir sur la métaphore du bâtiment et des poutres. Baisser la voix sur la dernière phrase."
+    },
+    {
+     "sceneIndex": 5,
+     "text": "Les premières fissures apparaissent bien avant. En 378, à Andrinople, une armée romaine est écrasée par des Goths que Rome avait accueillis, puis maltraités. L'empereur d'Orient Valens y trouve la mort. [pause:400ms] Pour la première fois, des barbares battent l'armée romaine sur son propre sol et s'y installent. Peu après, la poussée des Huns, venus des steppes, pousse d'autres peuples vers les frontières. Fin 406, selon la tradition, des Vandales, des Alains et des Suèves franchissent le Rhin, peut-être gelé. Ils traversent la Gaule et atteignent l'Espagne. Rome n'a plus les moyens de les chasser. Elle négocie, elle paie, elle signe des traités. Chaque accord installe un peu plus de puissances étrangères à l'intérieur de ses frontières.",
+     "pace": "medium",
+     "emotion": "sombre, accumulatif",
+     "emphasisWords": [
+      "Andrinople",
+      "Rhin",
+      "fissures"
+     ],
+     "pauseAfterMs": 500,
+     "pronunciationHints": [
+      {
+       "word": "Andrinople",
+       "phonetic": "an-dri-nopl"
+      },
+      {
+       "word": "Goths",
+       "phonetic": "go"
+      },
+      {
+       "word": "Vandales",
+       "phonetic": "van-dal"
+      },
+      {
+       "word": "Suèves",
+       "phonetic": "sue-ev"
+      },
+      {
+       "word": "Alains",
+       "phonetic": "a-lin"
+      },
+      {
+       "word": "Valens",
+       "phonetic": "va-lenss"
+      }
+     ],
+     "providerPrompt": "Ton grave et progressif, la tension monte à chaque date. Donner du poids à Andrinople et au Rhin. Phrases courtes et fermes vers la fin, rythme qui s'accélère légèrement sur elle se négocie, elle paie."
+    },
+    {
+     "sceneIndex": 6,
+     "text": "En 410, le Goth Alaric s'empare de Rome et la pille pendant trois jours. L'Empire survit, mais le choc est immense : la Ville éternelle a été violée. [pause:400ms] En 455, ce sont les Vandales qui la mettent à sac. Entre-temps, ils ont pris le plus important : l'Afrique du Nord. En 439, Genséric s'empare de Carthage. Or cette région fournissait une grande part du blé et des revenus fiscaux de l'Occident. Sans elle, l'État s'appauvrit, ne peut plus payer ses soldats, et doit se reposer davantage sur des alliés qu'il contrôle mal. [pause:500ms] Voilà le cercle vicieux. Moins d'argent signifie moins de troupes. Moins de troupes signifie moins de territoire. Et moins de territoire signifie encore moins d'argent.",
+     "pace": "medium",
+     "emotion": "grave, méthodique",
+     "emphasisWords": [
+      "trois jours",
+      "Carthage",
+      "cercle vicieux"
+     ],
+     "pauseAfterMs": 500,
+     "pronunciationHints": [
+      {
+       "word": "Alaric",
+       "phonetic": "a-la-rik"
+      },
+      {
+       "word": "Genséric",
+       "phonetic": "jen-sé-rik"
+      },
+      {
+       "word": "Carthage",
+       "phonetic": "kar-tazh"
+      },
+      {
+       "word": "Vandales",
+       "phonetic": "van-dal"
+      }
+     ],
+     "providerPrompt": "Ton de choc sur le sac de Rome, puis rythme plus analytique. Scander les trois phrases du cercle vicieux avec une légère montée à chaque répétition, en finissant plus bas."
+    },
+    {
+     "sceneIndex": 7,
+     "text": "Mais les ennemis extérieurs ne suffisent pas à tout expliquer. À l'intérieur, le pouvoir se déchire. Au cinquième siècle, les usurpateurs se succèdent, les généraux s'affrontent, et les empereurs sont souvent des figures faibles, dominées par leurs chefs militaires. Stilicon, puis Aetius, tiennent l'Occident à bout de bras. Aetius est celui qui affronte Attila en 451. [pause:500ms] Pourtant, en 454, l'empereur Valentinien III l'assassine de sa propre main, selon les récits antiques. Un an plus tard, Valentinien est tué à son tour par des partisans du général disparu. Rome élimine ses derniers défenseurs compétents. [pause:500ms] Entre 455 et 476, l'Occident connaît environ neuf empereurs, souvent manipulés. Le véritable pouvoir est ailleurs, chez les chefs d'armée.",
+     "pace": "slow",
+     "emotion": "sombre, conspirateur",
+     "emphasisWords": [
+      "se déchire",
+      "de sa propre main",
+      "neuf empereurs"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [
+      {
+       "word": "Stilicon",
+       "phonetic": "sti-li-kon"
+      },
+      {
+       "word": "Aetius",
+       "phonetic": "a-é-tiouss"
+      },
+      {
+       "word": "Attila",
+       "phonetic": "a-ti-la"
+      },
+      {
+       "word": "Valentinien",
+       "phonetic": "va-lan-ti-nien"
+      }
+     ],
+     "providerPrompt": "Voix basse et intrigante, comme une enquête qui dévoile des intrigues de palais. Accentuer de sa propre main en détachant chaque mot. Laisser les silences porter le mystère."
+    },
+    {
+     "sceneIndex": 8,
+     "text": "Les historiens débattent encore d'autres explications. Certains évoquent le climat, avec des périodes de refroidissement et de sécheresse qui auraient fragilisé les récoltes. D'autres citent les épidémies, qui ont pu réduire la population et les recettes de l'État. Au dix-huitième siècle, l'Anglais Edward Gibbon accusait le christianisme d'avoir affaibli l'esprit civique des Romains, une thèse aujourd'hui très contestée. [pause:400ms] On a aussi parlé d'un empoisonnement au plomb, une idée largement abandonnée. Aucune de ces hypothèses ne fait consensus. La plupart des spécialistes préfèrent parler d'une combinaison de facteurs : pressions militaires, crise financière, instabilité politique, et une armée dont la loyauté allait à ses chefs plutôt qu'à l'État. [pause:600ms] Le mystère n'est pas l'absence de causes. C'est leur nombre.",
+     "pace": "medium",
+     "emotion": "énigmatique, analytique",
+     "emphasisWords": [
+      "ne fait consensus",
+      "combinaison",
+      "leur nombre"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [
+      {
+       "word": "Edward Gibbon",
+       "phonetic": "èd-ouard gib-bonn"
+      },
+      {
+       "word": "plomb",
+       "phonetic": "plon"
+      }
+     ],
+     "providerPrompt": "Ton de débat d'historiens, neutre et ouvert. Énumérer les hypothèses avec une cadence régulière, puis faire une longue pause avant la chute finale : C'est leur nombre, dite lentement et à voix basse."
+    },
+    {
+     "sceneIndex": 9,
+     "text": "Voici le détail qui change tout. Pendant que l'Occident s'effondrait, l'Empire d'Orient, autour de Constantinople, tenait bon. Il subissait lui aussi des invasions, mais il était plus riche, plus urbanisé, et protégé par des murailles et par le Bosphore. Il disposait de revenus solides et pouvait acheter la paix, ou détourner les envahisseurs vers l'ouest. [pause:500ms] Il allait durer près de mille ans de plus, jusqu'en 1453. Cela prouve que les barbares n'étaient pas une force invincible. Rome n'était pas condamnée par une fatalité. Elle est tombée à l'ouest parce que ses fondations y étaient plus fragiles. Là où l'État gardait de l'argent, de l'administration et une armée loyale, l'Empire a continué à vivre.",
+     "pace": "medium",
+     "emotion": "révélateur, contrasté",
+     "emphasisWords": [
+      "tenait bon",
+      "1453",
+      "fragiles"
+     ],
+     "pauseAfterMs": 500,
+     "pronunciationHints": [
+      {
+       "word": "Bosphore",
+       "phonetic": "bos-for"
+      },
+      {
+       "word": "Constantinople",
+       "phonetic": "kon-stan-ti-nopl"
+      }
+     ],
+     "providerPrompt": "Ton de révélation, avec une énergie plus ferme que sur les scènes sombres. Insister sur tenait bon et 1453, puis conclure sur un ton posé et assuré."
+    },
+    {
+     "sceneIndex": 10,
+     "text": "Et Romulus Augustule ? On perd rapidement sa trace. Selon la tradition, il aurait vécu en Campanie, dans une villa, grâce à la pension d'Odoacre. Les sources sont rares et incertaines. [pause:500ms] Ce garçon qui porte le nom du fondateur légendaire de Rome et celui de son premier empereur, disparaît dans l'oubli. Voilà le dernier paradoxe. L'Empire romain d'Occident n'est pas mort dans un incendie spectaculaire ni dans une bataille finale. Il s'est éteint par épuisement, par paperasse, par un acte administratif. [pause:600ms] Sa chute n'a pas été un événement, mais un processus, et 476 n'en est que la dernière page. Ce qui s'est effondré ce jour-là n'était déjà plus qu'une coquille. Rome avait cessé d'être un empire bien avant que le dernier empereur ne cesse de l'être.",
+     "pace": "slow",
+     "emotion": "mélancolique, apaisé",
+     "emphasisWords": [
+      "épuisement",
+      "paperasse",
+      "coquille"
+     ],
+     "pauseAfterMs": 800,
+     "pronunciationHints": [
+      {
+       "word": "Augustule",
+       "phonetic": "o-gus-tule"
+      },
+      {
+       "word": "Campanie",
+       "phonetic": "kam-pa-nie"
+      },
+      {
+       "word": "Odoacre",
+       "phonetic": "o-do-a-kr"
+      }
+     ],
+     "providerPrompt": "Voix douce et mélancolique, presque murmurée sur la villa et la trace perdue. Ralentir sur la conclusion, marquer les mots épuisement et paperasse avec ironie légère. Finir dans un souffle, sans emphase."
+    },
+    {
+     "sceneIndex": 11,
+     "text": "Alors, selon vous, quelle cause a pesé le plus lourd dans la chute de Rome ? [pause:400ms] Dites-le en commentaire. Et si vous aimez ces énigmes de l'histoire, abonnez-vous pour découvrir la prochaine.",
+     "pace": "medium",
+     "emotion": "engageant, complice",
+     "emphasisWords": [
+      "selon vous",
+      "commentaire",
+      "abonnez-vous"
+     ],
+     "pauseAfterMs": 0,
+     "pronunciationHints": [],
+     "providerPrompt": "Ton direct et chaleureux, qui s'adresse à l'auditeur. Poser la question avec curiosité, faire une courte pause, puis inviter à commenter et à s'abonner d'un ton encourageant mais sobre."
+    }
+   ]
+  },
+  "thumbnails": {
+   "concepts": [
+    {
+     "pairedTitleIndex": 0,
+     "imagePrompt": "Cinematic dark historical scene of a vast ancient Roman hall at dusk, a single shaft of pale light falling on a cracked marble column, dust in the air, distant silhouette of a crumbling aqueduct, moody blue and amber grading, low camera angle with a 35mm lens, documentary style, shallow depth of field, large empty dark area on the left third for text, subject small and readable at thumbnail size",
+     "negativePrompt": "text, letters, watermark, logo, blur, extra fingers, distorted architecture, modern objects, cartoon, low contrast, cluttered composition",
+     "composition": "Single column of light on the right third as focal point; large dark negative space on the left for the overlay",
+     "focalEmotion": "Intrigue silencieuse",
+     "textOverlay": {
+      "text": "UNE SEULE CAUSE ?",
+      "placement": "top-left",
+      "colorHex": "#FFD23F",
+      "strokeHex": "#000000",
+      "fontStyle": "bold-sans"
+     },
+     "aspectRatio": "16:9"
+    },
+    {
+     "pairedTitleIndex": 3,
+     "imagePrompt": "Cinematic dark scene of a row of ancient Roman marble emperor busts in a torch-lit palace gallery, several busts cracked and one toppled, fractures glowing faintly, smoky air, dramatic side lighting, low angle with a 24mm lens, documentary thriller style, strong contrast, open dark space at the top for text, clear central subject readable at small size",
+     "negativePrompt": "text, letters, numbers, watermark, logo, blur, extra fingers, real person likeness, modern objects, cartoon, flat lighting, clutter",
+     "composition": "Toppled bust in the foreground center as focal point; dark smoky space above for the overlay",
+     "focalEmotion": "Chaos menaçant",
+     "textOverlay": {
+      "text": "NEUF EMPEREURS",
+      "placement": "top-left",
+      "colorHex": "#FFFFFF",
+      "strokeHex": "#B00020",
+      "fontStyle": "condensed"
+     },
+     "aspectRatio": "16:9"
+    },
+    {
+     "pairedTitleIndex": 6,
+     "imagePrompt": "Cinematic dramatic aerial view at dusk of massive ancient city walls and towers beside a dark strait of water, golden light on the walls while the far western horizon fades to cold grey, documentary style, 24mm wide lens, high vantage point, strong contrast between warm east and grey west, large empty sky area on the upper side for text, clear architectural silhouette readable at small size",
+     "negativePrompt": "text, letters, watermark, logo, blur, extra fingers, modern buildings, cars, people faces, cartoon, low contrast, clutter",
+     "composition": "Walls and strait in the lower two-thirds as focal point; open sky at the top for the overlay",
+     "focalEmotion": "Résistance fière",
+     "textOverlay": {
+      "text": "L'ORIENT TIENT",
+      "placement": "top-right",
+      "colorHex": "#FFD23F",
+      "strokeHex": "#0B1F3A",
+      "fontStyle": "bold-sans"
+     },
+     "aspectRatio": "16:9"
+    }
+   ]
+  }
+ }
+}

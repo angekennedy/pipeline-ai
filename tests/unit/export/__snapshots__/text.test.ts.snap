@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`export texte > script : scènes horodatées avec narration, visuel, texte à l'écran et points à vérifier 1`] = `
+"Comment les pyramides ont vraiment été construites
+Une rampe cachée change tout ce que l'on croyait savoir.
+
+[00:00 · Accroche] 1. Le bloc impossible
+Narration : Scène 1 : il y a plus de quatre mille ans, des milliers d'ouvriers ont déplacé des blocs de plusieurs tonnes.
+Visuel : Plan drone au lever du soleil
+Texte à l'écran : 2,5 tonnes
+B-roll : pyramide, désert
+
+[00:12 · Contexte] 2. Gizeh, 2560 av. J.-C.
+Narration : Scène 2 : il y a plus de quatre mille ans, des milliers d'ouvriers ont déplacé des blocs de plusieurs tonnes.
+Visuel : Carte animée du Nil
+B-roll : Nil, carte
+
+[00:52 · Développement] 3. La rampe intérieure
+Narration : Scène 3 : il y a plus de quatre mille ans, des milliers d'ouvriers ont déplacé des blocs de plusieurs tonnes.
+Visuel : Modélisation 3D en coupe
+B-roll : rampe, 3D
+
+[01:52 · Appel à l'action] 4. À vous de juger
+Narration : Scène 4 : il y a plus de quatre mille ans, des milliers d'ouvriers ont déplacé des blocs de plusieurs tonnes.
+Visuel : Retour au plan d'ouverture
+Texte à l'écran : Abonnez-vous
+
+Appel à l'action : Abonnez-vous pour le prochain mystère de l'Égypte ancienne.
+
+Points à vérifier :
+- Scène 2 : Construction vers 2560 av. J.-C."
+`;

@@ -1,0 +1,1017 @@
+{
+  "Header": {
+    "pricing": "Pricing",
+    "dashboard": "My pipelines",
+    "newPipeline": "New pipeline",
+    "nav": "Main navigation",
+    "language": "Interface language",
+    "languageName": {
+      "fr": "Français",
+      "en": "English"
+    }
+  },
+  "Labels": {
+    "assets": {
+      "script": "Script",
+      "titles": "Titles",
+      "seo": "SEO",
+      "voiceover": "Voiceover",
+      "thumbnails": "Thumbnails"
+    },
+    "scenePurpose": {
+      "hook": "Hook",
+      "context": "Context",
+      "development": "Development",
+      "twist": "Twist",
+      "payoff": "Payoff",
+      "cta": "Call to action"
+    },
+    "pace": {
+      "slow": "slow",
+      "medium": "medium",
+      "fast": "fast"
+    },
+    "pipelineStatus": {
+      "queued": "Queued",
+      "running": "Running",
+      "completed": "Completed",
+      "partial": "Partial",
+      "failed": "Failed",
+      "canceled": "Canceled"
+    },
+    "versionSource": {
+      "ai": "Generation",
+      "ai_regen": "Regeneration",
+      "user_edit": "Manual edit",
+      "restore": "Restore"
+    },
+    "language": {
+      "fr": "French",
+      "en": "English",
+      "es": "Spanish",
+      "pt": "Portuguese",
+      "de": "German",
+      "it": "Italian"
+    },
+    "tone": {
+      "educational": "Educational",
+      "dramatic": "Dramatic",
+      "humorous": "Humorous",
+      "mysterious": "Mysterious",
+      "inspirational": "Inspirational",
+      "neutral": "Neutral"
+    },
+    "style": {
+      "listicle": "Listicle",
+      "storytelling": "Storytelling",
+      "documentary": "Documentary",
+      "explainer": "Explainer",
+      "top-n": "Top N",
+      "true-crime": "True crime"
+    },
+    "assetStatus": {
+      "pending": "pending",
+      "running": "in progress",
+      "ready": "ready",
+      "failed": "failed",
+      "skipped": "not generated"
+    },
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "editor": "Editor",
+      "viewer": "Viewer"
+    }
+  },
+  "Failures": {
+    "CONTENT_REFUSED": "The model refused to generate this asset. Rephrase the brief, then regenerate it.",
+    "SCHEMA_INVALID": "The model's answer was incomplete, even after repair. Regenerate this asset.",
+    "MAX_TOKENS": "The answer exceeded the maximum length. Shorten the duration or regenerate this asset.",
+    "PROVIDER_ERROR": "The generation service is unavailable or overloaded. Try again in a few minutes.",
+    "DEPENDENCY_MISSING": "An asset this one depends on did not complete.",
+    "generic": "An unexpected error occurred. Regenerate this asset."
+  },
+  "SceneStream": {
+    "visual": "Visual: ",
+    "onScreen": "On-screen text: ",
+    "bRoll": "B-roll: ",
+    "list": "Script scenes",
+    "writing": "Writing scene {index}…"
+  },
+  "Pipeline": {
+    "hint": {
+      "partial": "Some assets could not be generated. The others are ready, and the credits of the failed assets are refunded.",
+      "failed": "The script could not be generated, so the other assets were not started. The credits were refunded."
+    }
+  },
+  "AssetTabs": {
+    "waiting": {
+      "script": "The script starts as soon as the pipeline is picked up.",
+      "titles": "Titles start as soon as the script is ready.",
+      "seo": "SEO starts as soon as the script is ready.",
+      "voiceover": "The voiceover starts as soon as the script is ready.",
+      "thumbnails": "Thumbnails start as soon as the titles are ready."
+    },
+    "skipped": {
+      "script": "The script was not generated.",
+      "titles": "Not generated: the script did not complete.",
+      "seo": "Not generated: the script did not complete.",
+      "voiceover": "Not generated: the script did not complete.",
+      "thumbnails": "Not generated: the script or the titles did not complete."
+    },
+    "generating": "Generating: {asset}…",
+    "failedTitle": "Generation failed",
+    "editScript": "Edit script",
+    "stale": "outdated"
+  },
+  "Common": {
+    "credits": "{count, plural, one {# credit} other {# credits}}"
+  },
+  "AssetHistory": {
+    "staleLabel": "Outdated:",
+    "staleScript": "this asset was produced from an earlier version; the script has changed since.",
+    "staleThumbnails": "this asset was produced from an earlier version; the script or the titles have changed since.",
+    "history": "History · {count} versions",
+    "current": "(current version)",
+    "banner": "The script has changed: {count, plural, one {# asset is outdated} other {# assets are outdated}}.",
+    "regenerateDerived": "Regenerate derived assets"
+  },
+  "PipelineActions": {
+    "unavailable": "Editors only, on a finished pipeline",
+    "regenerate": "Regenerate",
+    "launching": "Starting…",
+    "withCost": "{label} ({credits})",
+    "launched": "Regeneration started: the page is updating.",
+    "restore": "Restore",
+    "busy": "The pipeline is still running: wait for generation to finish."
+  },
+  "CopyButton": {
+    "copied": "Copied to clipboard",
+    "failed": "Copy failed"
+  },
+  "ScriptEditor": {
+    "form": "Edit the script",
+    "workingTitle": "Working title",
+    "hookSummary": "Hook summary",
+    "scene": "Scene {index} · {purpose}",
+    "title": "Title",
+    "narration": "Narration",
+    "visualDirection": "Visual direction",
+    "onScreenText": "On-screen text (optional)",
+    "callToAction": "Call to action",
+    "saving": "Saving…",
+    "save": "Save a new version",
+    "cancel": "Cancel",
+    "note": "Free. The titles, SEO, voiceover and thumbnails will become outdated.",
+    "errors": {
+      "workingTitle": "The working title is at most 100 characters.",
+      "hookSummary": "The hook summary is at most 300 characters.",
+      "callToAction": "The call to action is at most 300 characters.",
+      "title": "The scene title is at most 80 characters.",
+      "narration": "The narration is at least 20 characters.",
+      "visualDirection": "The visual direction is at most 400 characters.",
+      "onScreenText": "The on-screen text is at most 60 characters.",
+      "fix": "Fix the highlighted fields.",
+      "busy": "The pipeline is still running: wait for generation to finish.",
+      "noScript": "This pipeline has no script to edit yet."
+    }
+  },
+  "Shortcuts": {
+    "button": "Shortcuts",
+    "title": "Keyboard shortcuts",
+    "description": "A single key, outside input fields.",
+    "toggle": "Enable single-key shortcuts",
+    "keys": {
+      "tabs": "1 to 5",
+      "copy": "c",
+      "edit": "e",
+      "help": "?"
+    },
+    "label": {
+      "tabs": "Open the Script, Titles, SEO, Voiceover or Thumbnails tab",
+      "copy": "Copy the tab's main content",
+      "edit": "Edit the script",
+      "help": "Show shortcuts"
+    }
+  },
+  "ExportMenu": {
+    "title": "Export",
+    "zip": {
+      "label": "Everything (ZIP)",
+      "hint": "All the files below"
+    },
+    "txt": {
+      "label": "Voiceover (TXT)",
+      "hint": "Paste as is into ElevenLabs"
+    },
+    "srt": {
+      "label": "Subtitles (SRT)",
+      "hint": "Estimated timing, to align with the audio"
+    },
+    "md": {
+      "label": "Document (Markdown)",
+      "hint": "Script, titles, SEO, voiceover, thumbnails"
+    },
+    "json": {
+      "label": "Data (JSON)",
+      "hint": "For a tool or an automation"
+    },
+    "disclosure": "Before publishing, check the flagged facts. Realistic AI-generated content (a voice or images that could pass for real) must be disclosed in YouTube Studio: “Altered or synthetic content”."
+  },
+  "Preview": {
+    "counter": "{label}: {count, number} of {max, number} characters",
+    "warn": " (truncated on display)",
+    "over": " (over the YouTube limit)",
+    "channel": "Your channel · preview"
+  },
+  "Export": {
+    "narration": "Narration: {text}",
+    "visual": "Visual: {text}",
+    "onScreen": "On-screen text: {text}",
+    "bRoll": "B-roll: {text}",
+    "factChecks": "Facts to check:",
+    "factCheck": "- Scene {scene}: {claim}",
+    "callToAction": "Call to action: {text}",
+    "recommended": "(recommended)",
+    "segment": "Scene {scene} · {pace} pace · {emotion}",
+    "emphasis": "Emphasized words: {text}",
+    "pronunciation": "Pronunciation: {text}",
+    "pauseAfter": "Pause after: {ms} ms",
+    "directions": "Directions: {text}",
+    "voice": "Voice: {gender}, {age}, {accent}. {style}",
+    "concept": "Concept {index}",
+    "conceptFor": "Concept {index} · for “{title}”",
+    "prompt": "Prompt: {text}",
+    "negativePrompt": "Negative prompt: {text}",
+    "composition": "Composition: {text}",
+    "emotion": "Emotion: {text}",
+    "overlay": "Text: {text} ({placement}, {color} with {stroke} outline, {font})",
+    "format": "Format: {text}",
+    "disclosure": {
+      "title": "Content generated with the help of AI (Pipeline AI).",
+      "facts": "- Before publishing, check the facts flagged in the script.",
+      "synthetic": "- If the video shows or plays realistic content that could pass for real (a synthetic voice imitating a person, generated images of real places or events), disclose it in YouTube Studio: Details, “Altered or synthetic content”.",
+      "originality": "- Bring your own value (angle, editing, commentary): YouTube does not monetize repetitive or mass-produced content."
+    },
+    "meta": {
+      "niche": "- Niche: {value}",
+      "duration": "- Target length: {minutes} min",
+      "language": "- Language: {value}",
+      "preset": "- Preset: {value}"
+    },
+    "section": {
+      "titles": "Titles",
+      "script": "Script",
+      "description": "YouTube description",
+      "tags": "Tags",
+      "voiceover": "Voiceover",
+      "thumbnails": "Thumbnails"
+    },
+    "files": "Files:",
+    "notReady": "The script is not ready yet",
+    "unknownFormat": "Unknown format: {formats}",
+    "notFound": "Pipeline not found",
+    "signIn": "Sign-in required",
+    "rateLimited": "Too many exports: try again in a few minutes."
+  },
+  "Panels": {
+    "copyScript": "Copy the script",
+    "copyNarration": "Copy the narration",
+    "callToAction": "Call to action",
+    "factChecks": "Facts to check before publishing",
+    "factCheck": "Scene {scene}: {claim}",
+    "copyTitles": "Copy the titles",
+    "recommended": "Recommended",
+    "titleCounter": "Title",
+    "titleMeta": "· heuristic score {score}/10 · {rationale}",
+    "copyDescription": "Copy the description",
+    "copyTags": "Copy the tags",
+    "description": "Description",
+    "preview": "Visible in search results (first {count} characters)",
+    "chapters": "Chapters",
+    "noChapters": "No chapters: YouTube requires at least 3, each 10 seconds or longer.",
+    "tags": "Tags",
+    "hashtags": "Hashtags",
+    "hashtagsShown": "{count} of {max} shown above the title",
+    "copyDirections": "Copy the directions",
+    "voice": "Voice:",
+    "segment": "Scene {scene} · {pace} pace · {emotion} · {ms} ms pause",
+    "pronunciation": "Pronunciation: {text}",
+    "copyConcepts": "Copy the concepts",
+    "concept": "Concept {index}",
+    "conceptFor": "For “{title}”",
+    "conceptPreview": "Mobile preview of concept {index}",
+    "badgeOverlap": "YouTube's duration badge covers this corner: place the text elsewhere.",
+    "overlay": "Text “{text}” · {placement} · {font} · {emotion}",
+    "negative": "Negative: {text}"
+  },
+  "Restriction": {
+    "subscription_past_due": "The last payment for your subscription failed: creating pipelines is suspended. Your pipelines remain viewable. Update your payment method to restore it.",
+    "duration": "The {plan} plan limits videos to {limit} min. Shorten the duration, or upgrade to the {upgrade} plan to go up to 60 min.",
+    "premium": "The Premium script is not included in the {plan} plan. Choose Standard, or upgrade to the {upgrade} plan.",
+    "channel_presets": "The {plan} plan is limited to {limit, plural, one {# channel preset} other {# channel presets}}. Delete one, or upgrade to a higher plan.",
+    "seePricing": "See pricing"
+  },
+  "CostEstimate": {
+    "cost": "Cost: <total></total>",
+    "missing": "You are short {missing} ({available} available).",
+    "after": "Balance after launch: {remaining}.",
+    "note": "Credits are reserved at launch and only successful assets are charged: the rest is returned."
+  },
+  "InsufficientCredits": {
+    "title": "Not enough credits",
+    "description": "This pipeline costs {required} and you have {available} available: {missing} short. Nothing was started or charged.",
+    "hint": "Shorten the duration or switch to Standard, or top up your account: a {credits} pack costs {price}, with no expiry.",
+    "edit": "Edit the brief",
+    "buy": "Buy credits"
+  },
+  "BriefForm": {
+    "channel": "Channel preset",
+    "channelHint": "Prefills the niche, language, tone, style and audience. The preset's voice and brand rules guide the generation.",
+    "noChannel": "No preset",
+    "createChannel": "<link>Create a channel preset</link> to prefill your briefs and keep the same tone from one video to the next.",
+    "niche": "Niche",
+    "nicheHint": "The channel's theme, for example History or Personal finance.",
+    "duration": "Target length (minutes)",
+    "durationHint": "Up to {max} min with the {plan} plan.",
+    "topic": "Video topic",
+    "topicHint": "A specific question or angle makes a better script.",
+    "language": "Language",
+    "tone": "Tone",
+    "style": "Style",
+    "audience": "Target audience (optional)",
+    "notes": "Additional instructions (optional)",
+    "notesHint": "Points to cover or avoid, preferred sources.",
+    "tier": "Tier",
+    "standard": "Standard: script written by Claude Sonnet",
+    "premium": "Premium: script written by Claude Opus, more credits",
+    "premiumPlan": "(included in the {plan} plan)",
+    "launching": "Starting…",
+    "submit": "Generate the pipeline",
+    "fix": "Fix the highlighted fields.",
+    "launchError": "The launch failed: no credits were charged. Try again in a moment.",
+    "errors": {
+      "niche": "Enter the channel's niche, in 2 to 80 characters.",
+      "topic": "Describe the video topic, in 5 to 300 characters.",
+      "language": "Choose a language from the list.",
+      "tone": "Choose a tone from the list.",
+      "style": "Choose a style from the list.",
+      "durationMinutes": "The length is a whole number of minutes, from 1 to 60.",
+      "targetAudience": "Describe the audience in at most 200 characters.",
+      "extraNotes": "Instructions are at most 2,000 characters.",
+      "tier": "Choose the Standard or Premium tier.",
+      "channelId": "This preset no longer exists. Choose another one, or none."
+    }
+  },
+  "ChannelForm": {
+    "identity": "Channel identity",
+    "name": "Preset name",
+    "niche": "Niche",
+    "nicheHint": "Used in every brief created with this preset.",
+    "language": "Language",
+    "tone": "Tone",
+    "style": "Style",
+    "briefChoice": "Chosen in the brief",
+    "audience": "Target audience (optional)",
+    "voiceSection": "Voiceover",
+    "voice": "Voice",
+    "free": "Any",
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "neutral": "Neutral"
+    },
+    "age": "Age",
+    "accent": "Accent",
+    "pace": "Pace",
+    "brand": "Brand rules",
+    "bannedWords": "Banned words",
+    "bannedWordsHint": "Comma-separated. Never used in the script, titles or SEO.",
+    "cta": "Call to action",
+    "ctaHint": "Adapted at the end of every script.",
+    "palette": "Thumbnail palette",
+    "paletteHint": "Up to 6 #RRGGBB colors, comma-separated.",
+    "saving": "Saving…",
+    "save": "Save the preset",
+    "create": "Create the preset",
+    "fix": "Fix the highlighted fields.",
+    "errors": {
+      "name": "Give the preset a name, at most 80 characters.",
+      "niche": "Enter the channel's niche, in 2 to 80 characters.",
+      "defaultLanguage": "Choose a language from the list.",
+      "tone": "Choose a tone from the list.",
+      "style": "Choose a style from the list.",
+      "audience": "Describe the audience in at most 200 characters.",
+      "voiceGender": "Choose a voice from the list.",
+      "voiceAge": "The voice age is at most 20 characters, for example 35-45.",
+      "voiceAccent": "The accent is at most 60 characters.",
+      "voicePace": "Choose a pace from the list.",
+      "bannedWords": "At most 50 banned words, each at most 40 characters, comma-separated.",
+      "ctaTemplate": "The call to action is at most 300 characters.",
+      "thumbnailPalette": "At most 6 colors, in #RRGGBB format, comma-separated."
+    }
+  },
+  "Meta": {
+    "channels": "Channel presets · Pipeline AI",
+    "newChannel": "New preset · Pipeline AI",
+    "channel": "Channel preset · Pipeline AI",
+    "dashboard": "Dashboard · Pipeline AI",
+    "newPipeline": "New pipeline · Pipeline AI",
+    "pipeline": "Pipeline · Pipeline AI",
+    "billing": "Billing · Pipeline AI",
+    "pricing": "Pricing · Pipeline AI",
+    "accountDeleted": "Account deleted · Pipeline AI",
+    "pipelineNotFound": "Pipeline not found · Pipeline AI",
+    "demo": "{topic} · Pipeline AI",
+    "demoDescription": "Pipeline AI demo: script, titles, SEO, voice-over and thumbnails for “{topic}”.",
+    "settings": "Settings · Pipeline AI",
+    "login": "Sign in · Pipeline AI",
+    "admin": "Administration · Pipeline AI",
+    "home": "Pipeline AI: scripts, titles, SEO and voiceover for faceless YouTube channels"
+  },
+  "Channels": {
+    "allPipelines": "← All pipelines",
+    "back": "← Channel presets",
+    "title": "Channel presets",
+    "intro": "{count} of {max} on the {plan} plan. A preset prefills the brief and guides the tone, voice and brand rules of every asset.",
+    "new": "New preset",
+    "full": "The {plan} plan is limited to {max, plural, one {# preset} other {# presets}}. Delete one, or <link>upgrade to a higher plan</link>.",
+    "emptyTitle": "No presets yet",
+    "emptyText": "Save your channel's niche, tone, voice and brand rules once: every brief reuses them.",
+    "emptyCta": "Create my first preset",
+    "newTitle": "New preset",
+    "newIntro": "Only the name, niche and language are required.",
+    "editIntro": "Pipelines already created keep the preset version used at their launch.",
+    "deleteTitle": "Delete this preset",
+    "deleteText": "Pipelines created with it remain intact, with their copy of the preset.",
+    "delete": "Delete the preset"
+  },
+  "Dashboard": {
+    "duplicate": "Duplicate",
+    "duplicateLabel": "Duplicate the brief “{title}”",
+    "title": "Pipelines",
+    "channels": "Channel presets",
+    "new": "New pipeline",
+    "emptyTitle": "No pipelines yet",
+    "emptyText": "A brief is all it takes: the script, titles, SEO, voiceover and thumbnails are generated from it.",
+    "emptyCta": "Create my first pipeline",
+    "emptyViewer": "Pipelines created by this workspace's editors will appear here.",
+    "searchLabel": "Search pipelines by topic",
+    "searchPlaceholder": "Search by topic",
+    "search": "Search",
+    "count": "{count, plural, one {# pipeline} other {# pipelines}}",
+    "countFor": "{count, plural, one {# pipeline} other {# pipelines}} for “{q}”",
+    "noMatch": "No pipeline matches this search.",
+    "clear": "Clear the search",
+    "pagination": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {count}",
+    "emptySample": "Try an example brief"
+  },
+  "NewPipeline": {
+    "title": "New pipeline",
+    "intro": "Describe the video: the script, titles, SEO, voiceover and thumbnails are generated from this brief.",
+    "copied": "Brief copied from “{title}”. Edit it before launching: a new pipeline will be created.",
+    "viewer": "Your role in {workspace} lets you view pipelines, not create them. Ask an administrator to make you an editor."
+  },
+  "PipelinePage": {
+    "allPipelines": "← All pipelines",
+    "duplicate": "Duplicate the brief",
+    "preset": "Preset {name}",
+    "demoNotice": "Demo: sample content, no real generation is started.",
+    "exampleNotice": "Real example, unedited: script written by {script}, derived assets by {derived}. Measured generation cost: {cost}, in {seconds} s."
+  },
+  "Billing": {
+    "ledger": {
+      "grant": "Plan credits",
+      "purchase": "Pack purchase",
+      "refund": "Refund",
+      "reserve": "Pipeline reservation",
+      "capture": "Asset generated",
+      "release": "Reservation released",
+      "adjust": "Adjustment",
+      "expire": "Carry-over capped"
+    },
+    "status": {
+      "active": "active",
+      "trialing": "on trial",
+      "past_due": "payment overdue",
+      "unpaid": "unpaid",
+      "canceled": "canceled",
+      "incomplete": "payment pending",
+      "incomplete_expired": "expired",
+      "paused": "paused"
+    },
+    "allPipelines": "← All pipelines",
+    "title": "Billing",
+    "success": "Payment received, thank you. The credits reach your balance within seconds: reload the page if they do not appear.",
+    "canceled": "Payment canceled: nothing was charged.",
+    "disabled": "Online payment is not configured on this environment.",
+    "plan": "{plan} plan",
+    "available": "{credits} available",
+    "reserved": "({credits} reserved by running pipelines)",
+    "subscription": "Subscription {status}",
+    "renews": "renews on {date}",
+    "ends": "ends on {date}",
+    "pastDue": "The last payment failed: creating pipelines is suspended. Update your payment method.",
+    "portal": "Manage subscription and invoices",
+    "adminOnly": "Only workspace administrators manage billing.",
+    "changePlan": "Change plan",
+    "upgrade": "Upgrade to a paid plan",
+    "changeViaPortal": "Plan changes happen in the portal: the difference is prorated.",
+    "perMonth": " / month",
+    "monthlyCredits": "{credits} per month",
+    "yourPlan": "Your plan",
+    "choose": "Choose",
+    "choosePlan": "Choose the {plan} plan",
+    "carryOver": "Unused credits roll over, up to one month's allowance.",
+    "packs": "Credit packs",
+    "buy": "Buy",
+    "buyPack": "Buy {credits}",
+    "history": "Credit history",
+    "col": {
+      "date": "Date",
+      "movement": "Movement",
+      "credits": "Credits",
+      "balance": "Balance"
+    },
+    "noMovement": "No movements yet.",
+    "redirecting": "Redirecting…",
+    "errors": {
+      "alreadySubscribed": "This workspace already has a subscription: change plans from the billing portal.",
+      "unavailable": "Online payment is not available right now."
+    },
+    "consent": "By proceeding to payment, you accept the <terms>terms of use and sale</terms> and the <privacy>privacy policy</privacy>.",
+    "stripeConsent": "By paying, you accept Pipeline AI's terms: {url}"
+  },
+  "Plans": {
+    "pitch": {
+      "free": "To try it on a first video.",
+      "creator": "To publish every week on one or two channels.",
+      "pro": "To run several channels with a consistent style.",
+      "studio": "For agencies: several seats and the Premium script."
+    }
+  },
+  "Pricing": {
+    "title": "Pricing",
+    "intro": "Each asset costs credits depending on the video length. The cost is shown before every launch, and only successful assets are charged.",
+    "plans": "Plans",
+    "perMonth": " / month",
+    "monthly": "{credits} per month",
+    "once": "{credits} included",
+    "feature": {
+      "videos": "About {count} 10-minute videos",
+      "duration": "Videos up to {max} min",
+      "premium": "Premium script (Claude Opus)",
+      "standard": "Standard script (Claude Sonnet)",
+      "presets": "{count, plural, one {# channel preset} other {# channel presets}}",
+      "seats": "{count, plural, one {# seat} other {# seats}}"
+    },
+    "start": "Get started",
+    "choose": "Choose",
+    "choosePlan": "Choose the {plan} plan",
+    "carryOver": "Unused subscription credits roll over, up to one month's allowance.",
+    "packs": "Credit packs",
+    "packsIntro": "One-off purchase, no expiry, on top of any plan.",
+    "grid": "Cost of each asset",
+    "col": {
+      "asset": "Asset",
+      "credits": "Credits",
+      "tenMinutes": "For 10 min"
+    },
+    "rule": {
+      "script": "4 + 1 per minute (Premium: 8 + 2 per minute)",
+      "titles": "1",
+      "seo": "2",
+      "voiceover": "2 + 1 per 10 min",
+      "thumbnails": "1"
+    },
+    "examples": {
+      "tenStandard": "10-minute video, Standard",
+      "tenPremium": "10-minute video, Premium",
+      "thirtyStandard": "30-minute video, Standard"
+    },
+    "example": "{label}: <credits></credits>",
+    "regeneration": "Regenerating an asset costs the same as generating it. A manual edit or a restore is free."
+  },
+  "CreditBadge": {
+    "label": "{credits} available, {plan} plan. Billing and credits",
+    "reserved": "{credits} reserved by running pipelines"
+  },
+  "Account": {
+    "signIn": "Sign in",
+    "account": "Account",
+    "signOut": "Sign out"
+  },
+  "Home": {
+    "tagline": "From brief to a production-ready faceless video: script, titles, SEO, voice-over and thumbnails.",
+    "create": "Create a pipeline",
+    "demosTitle": "More demos",
+    "demos": {
+      "running": {
+        "label": "Live generation",
+        "description": "The script's scenes appear as they are written."
+      },
+      "completed": {
+        "label": "Completed pipeline",
+        "description": "All five assets, ready to copy."
+      },
+      "partial": {
+        "label": "Partial pipeline",
+        "description": "SEO failed, the other assets are ready."
+      },
+      "failed": {
+        "label": "Failed pipeline",
+        "description": "The script failed: nothing else is started."
+      },
+      "stale": {
+        "label": "Edited script",
+        "description": "The script was edited: the other assets are out of date."
+      }
+    },
+    "heroTitle": "Everything a faceless YouTube video needs, in minutes",
+    "seeExample": "See a real example",
+    "freeCredits": "{credits} free credits when you sign up, no card required.",
+    "assetsTitle": "Five deliverables per video",
+    "assets": {
+      "script": "Timed scenes with narration, visuals and B-roll, a hook of 15 s at most, and the claims to check flagged.",
+      "titles": "5 to 10 variants from different angles, with their length and a recommendation.",
+      "seo": "Description, tags, hashtags and timestamped chapters, within YouTube's limits.",
+      "voiceover": "Text ready for ElevenLabs, with the pace, pauses and emphasis of each segment.",
+      "thumbnails": "Concepts with an image prompt and overlay text, checked in a mobile preview."
+    },
+    "exampleTitle": "A real example, unedited",
+    "exampleText": "Pipeline AI generated this pipeline from this brief. Nothing was rewritten.",
+    "exampleBrief": "Brief: “{topic}”, {minutes} min, {niche} niche.",
+    "exampleRecommended": "Recommended title",
+    "exampleHook": "Hook",
+    "exampleStats": "{scenes} scenes, {titles} titles, {chapters} chapters. Generated in {seconds} s, for {cost} of compute.",
+    "exampleOpen": "Open the full pipeline",
+    "stepsTitle": "How it works",
+    "steps": {
+      "brief": {
+        "title": "Describe the video",
+        "text": "Niche, topic, length, tone: a channel preset can fill it all in."
+      },
+      "live": {
+        "title": "Watch it generate",
+        "text": "The script appears scene by scene as it is written, then the four other deliverables follow."
+      },
+      "export": {
+        "title": "Edit and export",
+        "text": "Edit the script, regenerate a deliverable, export to Markdown, JSON, SRT or ZIP."
+      }
+    },
+    "pricingTitle": "Credits, priced per deliverable",
+    "pricingText": "The cost depends on length and tier: {credits} credits for a 10-minute video in Standard. The total is shown before every run.",
+    "pricingLink": "See pricing",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "faceless": {
+        "q": "What is a faceless channel?",
+        "a": "A channel whose videos are narrated over footage, with no presenter on screen. Pipeline AI prepares everything you need to produce one."
+      },
+      "video": {
+        "q": "Does Pipeline AI make the video itself?",
+        "a": "No. It delivers the script, titles, SEO, voiceover text and thumbnail concepts. You record or synthesize the voice, for example with ElevenLabs, then edit the footage."
+      },
+      "models": {
+        "q": "Which models write the content?",
+        "a": "Claude Sonnet writes the script in Standard, Claude Opus in Premium (Studio plan). Claude Haiku produces the four other deliverables."
+      },
+      "failures": {
+        "q": "What happens if a generation fails?",
+        "a": "Credits are reserved at launch and only successful deliverables are charged: a failed deliverable is refunded automatically."
+      },
+      "accuracy": {
+        "q": "Can I publish the content as is?",
+        "a": "Review it first: the script flags the claims to check. On YouTube, disclose realistic synthetic content, such as a voice imitating a real person."
+      },
+      "languages": {
+        "q": "In which languages?",
+        "a": "The interface is in French and English. Content can be generated in French, English, Spanish, Portuguese, German and Italian."
+      }
+    }
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "text": "This page doesn't exist, or you don't have access to it.",
+    "home": "Back to home",
+    "pipelineTitle": "Pipeline not found",
+    "pipelineText": "This pipeline doesn't exist, or you don't have access to it.",
+    "createPipeline": "Create a pipeline"
+  },
+  "PipelineError": {
+    "title": "Unable to display this pipeline",
+    "text": "An error occurred while loading. Your assets are not lost.",
+    "retry": "Try again",
+    "loading": "Loading pipeline…"
+  },
+  "AccountDeleted": {
+    "title": "Account deleted",
+    "text": "Your account, your workspaces and their content have been erased. You can create a new account at any time.",
+    "home": "Back to home"
+  },
+  "Settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "email": "Email address: {email}",
+    "workspaces": "Workspaces",
+    "displayName": "Display name",
+    "save": "Save",
+    "profileSaved": "Profile saved.",
+    "workspaceName": "Workspace name",
+    "rename": "Rename",
+    "workspaceRenamed": "Workspace renamed.",
+    "deleteTitle": "Delete my account",
+    "deleteIntro": "Deletion is permanent and immediate. It erases:",
+    "deleteProfile": "your profile and your sign-in;",
+    "deleteWorkspace": "the “{name}” workspace and all its content: pipelines, scripts, versions, channel presets and credits;",
+    "deleteSubscription": "your subscription, if any: it is cancelled immediately.",
+    "deleteCopyFirst": "Copy the assets you want to keep first.",
+    "confirm": "To confirm, enter your email address: {email}",
+    "deleting": "Deleting…",
+    "deleteAccount": "Permanently delete my account",
+    "errors": {
+      "displayName": "The display name must be 1 to 80 characters.",
+      "workspaceName": "The workspace name must be 1 to 80 characters.",
+      "confirmation": "Enter your exact email address to confirm.",
+      "workspaceShared": "You are the only owner of {workspaces}, which has other members. Transfer ownership or remove its members before deleting your account.",
+      "subscription": "Your subscription could not be cancelled: nothing was deleted. Try again in a moment, or contact support."
+    }
+  },
+  "Login": {
+    "title": "Sign in",
+    "intro": "Get a sign-in link by email: no password to remember.",
+    "sentTitle": "Check your inbox",
+    "sentText": "A sign-in link was sent to {email}. It is valid for one hour and works only once.",
+    "email": "Email address",
+    "sending": "Sending…",
+    "submit": "Get a sign-in link",
+    "google": "Continue with Google",
+    "errors": {
+      "invalidEmail": "Enter a valid email address.",
+      "rateLimited": "Too many link requests. Wait a few minutes before trying again.",
+      "sendFailed": "Sending the link failed. Try again in a moment.",
+      "expiredLink": "This sign-in link has expired or was already used. Request a new one.",
+      "google": "Signing in with Google failed. Try again, or get a link by email.",
+      "disposableEmail": "Disposable email addresses are not accepted. Use an address you keep.",
+      "inviteOnly": "Pipeline AI is in closed beta: sign-up is by invitation only. Use the address you were invited with."
+    }
+  },
+  "Limits": {
+    "rateLimited": "Too many requests: try again in {minutes, plural, one {# minute} other {# minutes}}. No credits were charged.",
+    "spendPaused": "Generation is temporarily paused. No credits were charged: please try again later.",
+    "moderated": "This topic falls in a category Pipeline AI does not accept: {category}. No credits were charged.",
+    "moderationUnavailable": "The brief could not be checked. No credits were charged: try again in a moment.",
+    "category": {
+      "medical_misinformation": "medical misinformation",
+      "sexual": "sexual content",
+      "extremism": "extremism"
+    }
+  },
+  "Admin": {
+    "title": "Pipeline cost and margin",
+    "period": "Last {days} days, {count, plural, one {# pipeline} other {# pipelines}} (at most {limit}).",
+    "periods": "Period",
+    "days": "{days} d",
+    "estimate": "Revenue estimated at the credit price of the workspace's current plan (subscription ÷ credits); Free counts as 0. Costs converted at {rate} € per .",
+    "totals": {
+      "cost": "LLM cost",
+      "revenue": "Revenue",
+      "margin": "Gross margin",
+      "credits": "Credits charged"
+    },
+    "alerts": "Alerts (last 15 minutes)",
+    "noAlerts": "No alerts.",
+    "alert": {
+      "costOutlier": "Pipeline {pipeline} ({tier}): {cost} per minute, over 3 times the median ({median}).",
+      "failureRate": "Generation failure rate: {rate} ({failed} of {finished}).",
+      "staleReservations": "{count, plural, one {# reservation was not released} other {# reservations were not released}} by the sweep."
+    },
+    "table": "Pipelines",
+    "empty": "No pipelines in this period.",
+    "col": {
+      "date": "Date",
+      "pipeline": "Pipeline",
+      "plan": "Plan",
+      "tier": "Tier",
+      "minutes": "Length",
+      "status": "Status",
+      "credits": "Credits",
+      "cost": "Cost",
+      "revenue": "Revenue",
+      "margin": "Margin",
+      "cache": "Cache",
+      "failures": "Failures"
+    },
+    "minutes": "{minutes} min",
+    "none": "—",
+    "beta": {
+      "title": "Closed beta",
+      "on": "Invitation-only sign-up: on. Only invited addresses can create an account; existing accounts sign in as usual.",
+      "off": "Invitation-only sign-up: off. Anyone can create an account.",
+      "enable": "Turn on invitation-only sign-up",
+      "disable": "Open sign-up to everyone",
+      "email": "Email address",
+      "note": "Note (optional)",
+      "add": "Invite",
+      "added": "Invitation saved. Send the site link to the person: they sign up with this address.",
+      "invalid": "Invalid email address.",
+      "invites": "{count, plural, =0 {No invitations} one {# invitation} other {# invitations}}",
+      "remove": "Remove",
+      "removeLabel": "Remove the invitation for {email}"
+    },
+    "nps": {
+      "title": "NPS",
+      "score": "NPS score: {score}",
+      "none": "No responses yet.",
+      "counts": "{responses, plural, one {# response} other {# responses}}: {promoters} promoters (9-10), {passives} passives (7-8), {detractors} detractors (0-6).",
+      "comments": "Latest comments",
+      "comment": "{score}/10: {comment}"
+    }
+  },
+  "Legal": {
+    "updated": "Last updated: {date}",
+    "draft": "Draft document: some details are still missing, and this text has yet to be reviewed by a lawyer.",
+    "toc": "Contents",
+    "missing": {
+      "publisher": "[to be completed: publisher's legal name]",
+      "legalForm": "[to be completed: legal form and share capital]",
+      "address": "[to be completed: registered address]",
+      "registration": "[to be completed: company and VAT numbers]",
+      "director": "[to be completed: publication director]",
+      "email": "[to be completed: contact email]",
+      "jurisdiction": "[to be completed: governing law and courts]",
+      "mediator": "[to be completed: consumer mediator]",
+      "databaseRegion": "[to be completed: database hosting region]",
+      "errorRetention": "[to be completed: retention period]"
+    },
+    "footer": {
+      "nav": "Legal information",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "usage": "Usage policy",
+      "notice": "Legal notice"
+    },
+    "terms": {
+      "title": "Terms of use and sale",
+      "sections": {
+        "object": {
+          "title": "Purpose",
+          "body": "Pipeline AI is a service published by {publisher}. From a brief, it uses artificial intelligence models to generate the script, titles, SEO elements, voiceover text and thumbnail concepts of a YouTube video.\n\nThese terms apply to any use of the service. By creating an account, you accept them, along with the usage policy and the privacy policy."
+        },
+        "account": {
+          "title": "Account",
+          "body": "You sign in with a link sent to your email address, or with Google. You are responsible for access to your mailbox and for what is done from your account.\n\nA workspace can have several members. Its administrators choose the roles and are responsible for how their members use it."
+        },
+        "credits": {
+          "title": "Credits, plans and payment",
+          "body": "Each deliverable costs a number of credits that depends on the video's length and tier, shown before every run. Credits are reserved at launch; only successfully generated deliverables are charged, the others are released automatically.\n\n- The Free plan grants credits once, at sign-up.\n- Paid plans are monthly subscriptions, renewed automatically until cancelled, which you can do at any time from the Billing page. Cancellation takes effect at the end of the paid period.\n- Credit packs are one-off purchases.\n- Prices and plan contents: Pricing page. Payment is processed by Stripe.\n\nCredits cannot be refunded in cash or transferred. Unused credits carry over to the next month, up to one monthly allocation; any excess expires at renewal."
+        },
+        "withdrawal": {
+          "title": "Right of withdrawal",
+          "body": "If you are a consumer, you have 14 days to withdraw from a purchase. As the service is supplied immediately, starting a generation during this period counts as a request for immediate performance: you lose your right of withdrawal for the credits used."
+        },
+        "content": {
+          "title": "Generated content",
+          "body": "Content is produced by AI models: it may contain errors, inaccuracies or wording close to existing content. You review it before publishing and remain responsible for what you publish, in particular under YouTube's rules and the law.\n\nTo the extent permitted by law, Pipeline AI claims no rights over the content generated for you. Similar content may be generated for other users."
+        },
+        "use": {
+          "title": "Acceptable use",
+          "body": "Use of the service is subject to the usage policy. A brief that falls in a refused category is rejected before any charge. Serious or repeated breaches may lead to suspension or closure of the account."
+        },
+        "liability": {
+          "title": "Availability and liability",
+          "body": "The service is provided as is, on a best-efforts basis. It may be interrupted for maintenance or if a provider fails. Pipeline AI guarantees neither audience, monetization nor compliance of content with any platform rule."
+        },
+        "termination": {
+          "title": "Closing your account",
+          "body": "You can delete your account at any time from the settings. Your subscriptions are then cancelled immediately, and your personal workspaces and their content are deleted."
+        },
+        "changes": {
+          "title": "Changes",
+          "body": "These terms may change. You are notified of any significant change before it takes effect; continuing to use the service counts as acceptance."
+        },
+        "law": {
+          "title": "Governing law and disputes",
+          "body": "Governing law and jurisdiction: {jurisdiction}.\n\nIn case of dispute, first write to {email}. If you are a consumer, you may also refer the matter to the consumer mediator free of charge: {mediator}."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "sections": {
+        "controller": {
+          "title": "Data controller",
+          "body": "The data controller is {publisher}, {address}. For any question about your data: {email}."
+        },
+        "data": {
+          "title": "Data we process",
+          "body": "- Account: email address, display name, interface language.\n- Workspaces: name, members and roles, channel presets.\n- Content: your briefs, regeneration instructions and the generated content, with its version history.\n- Billing: Stripe customer ID and subscriptions, credit movements. Your card details are processed by Stripe and never reach us.\n- Security: non-reversible fingerprints of your email address and IP address, used to limit the number of requests, erased after 24 hours at most.\n- Closed beta: the email address of invited people, with an optional note, until the invitation is removed.\n- Feedback: your 0-to-10 score and optional comment, if you answer the satisfaction question.\n- Technical errors: error reports without IP address, cookies or request content.\n- Usage analytics: three steps (sign-up, pipeline creation, payment), tied to a non-reversible pseudonymous identifier, with the video's tier and length or the offer purchased. No email, IP address, content or cookie."
+        },
+        "purposes": {
+          "title": "Purposes and legal bases",
+          "body": "- Providing the service and billing: performance of the contract.\n- Keeping accounting records: legal obligation.\n- Preventing abuse and securing the service (rate limits, brief moderation, spending alerts): legitimate interest.\n- Measuring use of the service to improve it, without profiling: legitimate interest.\n\nNo data is sold or used for advertising."
+        },
+        "ai": {
+          "title": "AI generation",
+          "body": "To generate your content, your brief, channel preset and instructions are sent to Anthropic's API (Claude models). Under Anthropic's commercial terms, this data is not used to train its models. Do not include sensitive personal data in a brief."
+        },
+        "processors": {
+          "title": "Processors",
+          "body": "- Supabase: database and authentication, hosted in the {databaseRegion} region.\n- Anthropic: content generation (United States).\n- Stripe: payment and billing.\n- Vercel: application hosting.\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking.\n- PostHog: usage analytics (European Union).\n\nTransfers outside the European Union are covered by the European Commission's standard contractual clauses or by the EU–US Data Privacy Framework."
+        },
+        "retention": {
+          "title": "Retention",
+          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 10 years, as required by law.\n- Security fingerprints: 24 hours at most.\n- Satisfaction feedback: until the account is deleted.\n- Usage analytics: according to PostHog's retention period, with no possible link to your identity.\n- Error reports: {errorRetention}."
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": "You can access, correct and erase your data, request its portability, object to processing or ask for it to be restricted. Your display name is changed in the settings, where the account can also be deleted, and every pipeline can be exported to Markdown, JSON or ZIP.\n\nFor any other request: {email}. You may also lodge a complaint with your data protection authority (in France, the CNIL: cnil.fr)."
+        },
+        "cookies": {
+          "title": "Cookies",
+          "body": "Pipeline AI only uses cookies required by the service, without prior consent:\n\n- Supabase session cookies, to keep you signed in;\n- the language cookie, kept for one year;\n- a cookie that remembers the requested page while you sign in, for one hour at most.\n\nNo advertising or audience measurement cookies."
+        },
+        "changes": {
+          "title": "Changes",
+          "body": "This policy may change, in particular when a provider is added. The update date is shown at the top of the page."
+        }
+      }
+    },
+    "usage": {
+      "title": "AI and YouTube usage policy",
+      "sections": {
+        "purpose": {
+          "title": "Why this policy",
+          "body": "Pipeline AI helps produce videos. It must not be used to mislead the public, spread dangerous content or flood YouTube with videos of no value. This policy is part of the terms of use."
+        },
+        "refused": {
+          "title": "Refused topics",
+          "body": "Briefs in these categories are refused, without charging credits:\n\n- medical misinformation: miracle cures, stopping treatment, anti-vaccine claims, denial of a disease;\n- sexual or pornographic content;\n- extremism: promoting, glorifying or recruiting for an extremist ideology, terrorism or hatred of a group.\n\nFactual, historical or critical treatment of these subjects remains possible. Illegal content, harassment and impersonating a real person are also forbidden. An automatic check runs before every generation."
+        },
+        "review": {
+          "title": "Before publishing",
+          "body": "- Check the claims flagged in the script, and any figures.\n- Add your own value: angle, editing, commentary. YouTube does not monetize repetitive or mass-produced content.\n- Disclose realistic altered or synthetic content in YouTube Studio, such as a synthetic voice imitating a person or generated images of real events.\n- Do not use a real person's voice or likeness without their consent.\n- Respect the rights to the footage, music and clips you add."
+        },
+        "transparency": {
+          "title": "What Pipeline AI does not promise",
+          "body": "The suggested titles and scores are decision aids, not predictions. Pipeline AI guarantees neither views, subscribers nor admission to the YouTube Partner Program."
+        },
+        "enforcement": {
+          "title": "Breaches",
+          "body": "A brief that breaches this policy is refused. Serious or repeated abuse may lead to suspension and closure of the account. To report abuse: {email}."
+        }
+      }
+    },
+    "notice": {
+      "title": "Legal notice",
+      "sections": {
+        "publisher": {
+          "title": "Publisher",
+          "body": "{publisher}, {legalForm}.\n\nRegistered office: {address}.\n\nCompany and VAT numbers: {registration}.\n\nPublication director: {director}.\n\nContact: {email}."
+        },
+        "host": {
+          "title": "Host",
+          "body": "{host}."
+        }
+      }
+    }
+  },
+  "Onboarding": {
+    "title": "No idea yet? Start from an example",
+    "hint": "One click fills in the brief: a {minutes}-minute video in Standard, to review then launch.",
+    "filled": "Example brief loaded: launch it as is, or adjust it first.",
+    "samples": {
+      "vikings": {
+        "label": "Vikings in Greenland",
+        "niche": "History",
+        "topic": "Why did the Vikings abandon Greenland?"
+      },
+      "sky": {
+        "label": "The blue sky",
+        "niche": "Science",
+        "topic": "Why is the sky blue and the sunset red?"
+      },
+      "octopus": {
+        "label": "Octopus camouflage",
+        "niche": "Animals",
+        "topic": "How do octopuses change colour in an instant?"
+      }
+    }
+  },
+  "Nps": {
+    "title": "Your feedback",
+    "question": "How likely are you to recommend Pipeline AI to another creator?",
+    "low": "0: not at all likely",
+    "high": "10: extremely likely",
+    "comment": "What would make you give a higher score? (optional)",
+    "send": "Send",
+    "sending": "Sending…",
+    "later": "Later",
+    "thanks": "Thank you: your answer helps improve Pipeline AI.",
+    "scoreError": "Pick a score from 0 to 10."
+  }
+}
