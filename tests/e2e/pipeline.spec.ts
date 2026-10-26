@@ -100,7 +100,7 @@ test("un pipeline inconnu affiche une page introuvable, exclue de l'indexation",
 test.describe("sur mobile", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  for (const path of ["/", "/dashboard", "/pipelines/new", "/pricing", "/pipelines/demo-completed", "/pipelines/demo-partial"]) {
+  for (const path of ["/", "/dashboard", "/settings", "/pipelines/new", "/pricing", "/pipelines/demo-completed", "/pipelines/demo-partial"]) {
     test(`${path} ne déborde pas horizontalement`, async ({ page }) => {
       await signIn(page); // en-tête d'un utilisateur connecté, le plus chargé
       await page.goto(path);

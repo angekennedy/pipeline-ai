@@ -193,14 +193,14 @@ isOneToOne: false
                   ]
                 },"pipelines": {
                   Row: {
-                    "brief": NonNullable<Json>,"channel_id": string | null,"channel_snapshot": Json | null,"completed_at": string | null,"created_at": string,"created_by": string,"credits_reserved": number,"id": string,"idempotency_key": string,"model_tier": string,"status": Database["public"]['Enums']["pipeline_status"],"title": string | null,"workspace_id": string
+                    "brief": NonNullable<Json>,"channel_id": string | null,"channel_snapshot": Json | null,"completed_at": string | null,"created_at": string,"created_by": string | null,"credits_reserved": number,"id": string,"idempotency_key": string,"model_tier": string,"status": Database["public"]['Enums']["pipeline_status"],"title": string | null,"workspace_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "brief": NonNullable<Json>,"channel_id"?: string | null,"channel_snapshot"?: Json | null,"completed_at"?: string | null,"created_at"?: string,"created_by": string,"credits_reserved"?: number,"id"?: string,"idempotency_key": string,"model_tier"?: string,"status"?: Database["public"]['Enums']["pipeline_status"],"title"?: never,"workspace_id": string
+                    "brief": NonNullable<Json>,"channel_id"?: string | null,"channel_snapshot"?: Json | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"credits_reserved"?: number,"id"?: string,"idempotency_key": string,"model_tier"?: string,"status"?: Database["public"]['Enums']["pipeline_status"],"title"?: never,"workspace_id": string
                   }
                   Update: {
-                    "brief"?: NonNullable<Json>,"channel_id"?: string | null,"channel_snapshot"?: Json | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string,"credits_reserved"?: number,"id"?: string,"idempotency_key"?: string,"model_tier"?: string,"status"?: Database["public"]['Enums']["pipeline_status"],"title"?: never,"workspace_id"?: string
+                    "brief"?: NonNullable<Json>,"channel_id"?: string | null,"channel_snapshot"?: Json | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"credits_reserved"?: number,"id"?: string,"idempotency_key"?: string,"model_tier"?: string,"status"?: Database["public"]['Enums']["pipeline_status"],"title"?: never,"workspace_id"?: string
                   }
                   Relationships: [
                     {
@@ -315,6 +315,9 @@ isOneToOne: false
 { Args: { "p_brief": Json,"p_channel"?: string,"p_channel_snapshot"?: Json,"p_credits": number,"p_key": string,"p_tier": string,"p_user": string,"p_workspace": string }; Returns: {
               "created": boolean,"pipeline_id": string
             }[]
+                           },
+"delete_account":
+{ Args: { "p_user": string }; Returns: number
                            },
 "finalize_pipeline":
 { Args: { "p_pipeline": string,"p_status": Database["public"]['Enums']["pipeline_status"] }; Returns: number

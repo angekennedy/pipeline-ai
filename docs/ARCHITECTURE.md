@@ -188,6 +188,15 @@ pipeline-ai/
 > - **Brief** : choisir un preset préremplit niche, langue, ton, style et public (ceux que le preset fixe, la saisie est gardée sinon). `channelId` fait partie du brief.
 > - **Copie figée.** `createPipeline` relit le preset sous RLS dans le workspace et le passe à `create_pipeline_with_reservation` (`channel_snapshot`). Les prompts lisent cette copie : modifier ou supprimer le preset ne change pas un pipeline lancé (`channel_id` passe à null, la copie reste). La page du pipeline affiche le nom du preset figé.
 > - **Évaluation** (`evals/preset-influence.eval.ts`, `EVAL_PRESET=1`) : sur un même script, trois jeux de titres. Le premier, sans preset, désigne les mots que le modèle emploie spontanément ; ils deviennent les mots interdits d'un preset minimal. On compare la part de titres qui les emploient : témoin sans preset contre passage avec preset.
+>
+> **Révision (octobre 2026, tâche 2.6).** Paramètres (`/settings`, lien sur l'adresse e-mail de l'en-tête) : nom affiché (`profiles`, policy own_profile), nom des workspaces dont l'utilisateur est admin, suppression du compte.
+> - **Suppression (RGPD)** : l'utilisateur retape son adresse e-mail ; la Server Action la revérifie, puis appelle `deleteAccount` (`src/lib/account/delete.ts`) en service role.
+>   1. Les abonnements encore actifs des workspaces à supprimer sont annulés par un `SubscriptionCanceler`, puis marqués `canceled` sans attendre le webhook.
+>   2. La RPC `delete_account` (migration 0010, service role uniquement) supprime en une transaction les workspaces dont l'utilisateur est le seul owner (cascade : pipelines, assets, versions, générations, presets, crédits et registre, abonnements), puis la ligne `auth.users` (profil, appartenances, sessions).
+>   3. La session est effacée du navigateur (`signOut({ scope: "local" })`) : le JWT, encore signé, ferait sinon croire à une session ouverte.
+> - **Refus, sans rien supprimer** : seul owner d'un workspace qui a d'autres membres (`WORKSPACE_SHARED`, à transférer d'abord) ; abonnement resté actif (`SUBSCRIPTION_ACTIVE`, vérifié en base même si l'application l'oublie).
+> - **Dans le workspace d'un autre**, les pipelines et versions de l'utilisateur restent, sans auteur (`created_by` passe à null).
+> - **Stripe n'est pas encore branché.** L'annulation par défaut (`stripeNotConfigured`) refuse la suppression s'il existe un abonnement à annuler : le compte resterait facturé. Aucun abonnement ne peut être créé avant la tâche 3.3. **La tâche 3.4 doit fournir l'annulation réelle** (`stripe.subscriptions.cancel`) et la passer à `deleteAccount`.
 
 ---
 

@@ -20,9 +20,10 @@ export async function AccountMenu() {
   return (
     <form action={signOut} className="flex flex-wrap items-center gap-2">
       {workspace && <CreditBadge credits={workspace.credits} />}
-      <span className="hidden max-w-40 truncate text-sm text-muted-foreground sm:inline" title={user.email ?? undefined}>
-        {user.email}
-      </span>
+      <Link href="/settings" className="text-sm text-muted-foreground hover:text-foreground" title={user.email ?? undefined}>
+        <span className="hidden max-w-40 truncate align-bottom sm:inline-block">{user.email}</span>
+        <span className="sm:hidden">Compte</span>
+      </Link>
       <Button type="submit" variant="ghost" size="sm">
         Se déconnecter
       </Button>
