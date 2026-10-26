@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleAlert, CircleCheck, CircleDashed, CircleMinus, LoaderCircle, Pencil } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ASSET_TYPES, type AssetType, type Scene, type Script } from "@/lib/ai/schemas";
 import { assetCredits } from "@/lib/billing/costs";
 import { ASSET_LABELS } from "@/lib/pipeline/labels";
@@ -13,6 +13,11 @@ import { StaleNotice, VersionHistory } from "./asset-history";
 import { ScriptPanel, SeoPanel, ThumbnailsPanel, TitlesPanel, VoiceoverPanel } from "./asset-panels";
 import { RegenerateButton, usePipelineActions } from "./pipeline-actions";
 import { ScriptEditor } from "./script-editor";
+import { ShortcutsHelp, useAssetShortcuts } from "./shortcuts-help";
+import type { ShortcutAction } from "@/lib/pipeline/shortcuts";
+
+// Raccourci « e » : l'onglet Script ouvre son éditeur.
+const EDIT_SCRIPT_EVENT = "pipeline:edit-script";
 import { SceneStream } from "./scene-stream";
 
 export const ASSET_STATUS_LABELS: Record<AssetViewStatus, string> = {
@@ -121,7 +126,7 @@ function ReadyAsset({ view, type }: { view: PipelineView; type: AssetType }) {
     case "voiceover":
       return assets.voiceover.content && <VoiceoverPanel voiceover={assets.voiceover.content} />;
     case "thumbnails":
-      return assets.thumbnails.content && <ThumbnailsPanel thumbnails={assets.thumbnails.content} titles={assets.titles.content} />;
+      return assets.thumbnails.content && <ThumbnailsPanel thumbnails={assets.thumbnails.content} titles={assets.titles.content} durationMinutes={view.brief.durationMinutes} />;
   }
 }
 
@@ -129,6 +134,12 @@ function ReadyAsset({ view, type }: { view: PipelineView; type: AssetType }) {
 function ScriptAsset({ script }: { script: Script }) {
   const actions = usePipelineActions();
   const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    if (!actions) return;
+    const open = () => setEditing(true);
+    window.addEventListener(EDIT_SCRIPT_EVENT, open);
+    return () => window.removeEventListener(EDIT_SCRIPT_EVENT, open);
+  }, [actions]);
   if (actions && editing) return <ScriptEditor script={script} actions={actions} onDone={() => setEditing(false)} />;
   return (
     <>
@@ -144,21 +155,38 @@ function ScriptAsset({ script }: { script: Script }) {
 }
 
 export function AssetTabs({ view, scenes }: { view: PipelineView; scenes: Scene[] }) {
+  const [tab, setTab] = useState<AssetType>("script");
+  const [helpOpen, setHelpOpen] = useState(false);
+  const onShortcut = useCallback((action: ShortcutAction) => {
+    if (action.type === "tab") setTab(action.asset);
+    else if (action.type === "help") setHelpOpen(true);
+    else if (action.type === "copy") {
+      document.querySelector<HTMLButtonElement>('[role="tabpanel"]:not([hidden]) [data-shortcut-copy]')?.click();
+    } else {
+      setTab("script");
+      window.dispatchEvent(new Event(EDIT_SCRIPT_EVENT));
+    }
+  }, []);
+  const shortcuts = useAssetShortcuts(onShortcut);
+
   return (
-    <Tabs defaultValue="script" className="min-w-0">
-      <TabsList className="max-w-full justify-start overflow-x-auto">
-        {ASSET_TYPES.map((type) => (
-          <TabsTrigger key={type} value={type}>
-            <AssetStatusIcon status={view.assets[type].status} />
-            {ASSET_LABELS[type]}
-            {view.assets[type].stale && <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />}
-            <span className="sr-only">
-              ({ASSET_STATUS_LABELS[view.assets[type].status]}
-              {view.assets[type].stale ? ", obsolète" : ""})
-            </span>
-          </TabsTrigger>
-        ))}
-      </TabsList>
+    <Tabs value={tab} onValueChange={(value) => setTab(value as AssetType)} className="min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <TabsList className="max-w-full justify-start overflow-x-auto">
+          {ASSET_TYPES.map((type) => (
+            <TabsTrigger key={type} value={type}>
+              <AssetStatusIcon status={view.assets[type].status} />
+              {ASSET_LABELS[type]}
+              {view.assets[type].stale && <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />}
+              <span className="sr-only">
+                ({ASSET_STATUS_LABELS[view.assets[type].status]}
+                {view.assets[type].stale ? ", obsolète" : ""})
+              </span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <ShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} enabled={shortcuts.enabled} onToggle={shortcuts.toggle} />
+      </div>
       {ASSET_TYPES.map((type) => (
         <TabsContent key={type} value={type} className="pt-4">
           <AssetContent view={view} type={type} scenes={scenes} />

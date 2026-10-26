@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DemoReplayPipeline, StaticPipeline } from "@/components/pipeline/pipeline-screen";
-import { demoPipeline } from "@/lib/demo/pipelines";
+import { DEMO_PIPELINE_IDS, demoPipeline } from "@/lib/demo/pipelines";
+
+// Démonstrations connues au build : pages et métadonnées prérendues, la description dans le <head>
+// (une métadonnée calculée à la requête serait diffusée dans le <body>, hors de portée des outils
+// qui ne lisent que le <head>).
+export const generateStaticParams = () => DEMO_PIPELINE_IDS.map((id) => ({ id }));
 
 export async function generateMetadata({ params }: PageProps<"/pipelines/[id]">): Promise<Metadata> {
   const { id } = await params;
   const demo = demoPipeline(id);
-  return { title: demo ? `${demo.view.brief.topic} · Pipeline AI` : "Pipeline introuvable · Pipeline AI" };
+  if (!demo) return { title: "Pipeline introuvable · Pipeline AI" };
+  return {
+    title: `${demo.view.brief.topic} · Pipeline AI`,
+    description: `Démonstration Pipeline AI : script, titres, SEO, voix off et miniatures pour « ${demo.view.brief.topic} ».`,
+  };
 }
 
 // Mode démo, en attendant la base (tâche 0.4) : seuls les pipelines d'exemple existent.
