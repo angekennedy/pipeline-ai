@@ -46,6 +46,7 @@ Chaque point a sa vérification. Cocher seulement ce qui a été vérifié.
 ### 1.5 Vercel
 
 - [ ] Domaine de production attaché, HTTPS actif, et `NEXT_PUBLIC_SITE_URL=https://<domaine>`.
+- [ ] Fonctions en `pdx1` (Portland), au plus près de la base Supabase en Oregon : fixé par `vercel.json`, qui prime sur le réglage du tableau de bord. *Vérifier* : l'en-tête `x-vercel-id` d'une réponse de `/api/inngest` contient `pdx1`.
 - [ ] Variables de l'environnement *Production* seulement : Supabase, Anthropic, Inngest, Stripe live, `STRIPE_TERMS_CONSENT`, `ADMIN_EMAILS`, `POSTHOG_KEY`, Sentry, seuils de dépense. Les previews gardent les clés de test : le build refuse une clé live sur une preview, et une clé de test en production.
 - [ ] *Vérifier* : `vercel env pull .env.production.local --environment=production`, puis `pnpm preflight .env.production.local` sans `FAIL`. Supprimer le fichier ensuite (il est ignoré par git).
 
