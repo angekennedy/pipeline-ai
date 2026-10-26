@@ -57,6 +57,18 @@ describe("RegenerateButton", () => {
     await user.click(screen.getByRole("button", { name: /Régénérer/ }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Le script Premium n'est pas inclus");
   });
+
+  it("affiche la limite de fréquence avec son délai, puis le disjoncteur de dépense", async () => {
+    const user = userEvent.setup();
+    regenerateAssets.mockResolvedValueOnce({ rateLimited: { minutes: 12 } });
+    render(withActions(<RegenerateButton types={["seo"]} credits={1} />));
+    await user.click(screen.getByRole("button", { name: /Régénérer/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Trop de demandes : réessayez dans 12 minutes. Aucun crédit n'a été débité.");
+
+    regenerateAssets.mockResolvedValueOnce({ spendPaused: true });
+    await user.click(screen.getByRole("button", { name: /Régénérer/ }));
+    expect(await screen.findByText(/La génération est momentanément suspendue/)).toHaveAttribute("role", "alert");
+  });
 });
 
 describe("RestoreButton", () => {

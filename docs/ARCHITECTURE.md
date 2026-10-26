@@ -34,7 +34,7 @@ Vérification produit : la politique de monétisation YouTube sur le contenu "in
  └──────┬───────┘         │         │          └───┬────────┬───┘  │   export              │ │
         │ WS (Broadcast   │         │              │        │      └───┬──────────▲────────┘ │
         │  privé + RLS)   │         │   rate limit │        │ event    │ steps    │          │
-        │                 │         │   (Upstash)  │        ▼          ▼          │          │
+        │                 │         │  (Postgres)  │        ▼          ▼          │          │
         │                 │         │              │   ┌──────────────────────────┴───────┐  │
         │                 │         │              │   │ Fonctions Inngest (lib/jobs)     │  │
         │                 │         │              │   │ run-pipeline / regenerate-asset  │  │
@@ -51,7 +51,7 @@ Vérification produit : la politique de monétisation YouTube sur le contenu "in
                  └────────────────────────────────────────────┘  │ (dérivés)    │ └───────────┘
                                                                  └──────────────┘
            Transverse : Sentry (erreurs), logs pino + pipelineId, table generations (tokens/coûts),
-                        tableau de bord Inngest, Upstash Redis (rate limit + disjoncteur de dépense)
+                        tableau de bord Inngest, Postgres (rate limit + disjoncteur de dépense, tâche 4.5)
 ```
 
 | Composant | Responsabilité | Ne fait pas |
@@ -228,6 +228,14 @@ pipeline-ai/
 > - **Messages** : `messages/fr.json` et `messages/en.json`, typés (`src/i18n/global.d.ts`). Les modules serveur ne renvoient plus de phrases mais des clés : codes d'échec des assets (`Failures`), champs en erreur des formulaires, états des Server Actions (`busy`, `restriction`, `insufficient`…), refus de suppression du compte. Les erreurs levées (`PlanRestrictionError`, `AccountDeletionBlockedError`) gardent un message technique. Les exports (MD, JSON, TXT, ZIP) prennent un traducteur et sortent dans la langue de l'interface. Prix et crédits : `PRICE` (`src/i18n/format.ts`) et le pluriel ICU `Common.credits`.
 > - **« 100 % des chaînes traduites »** (`tests/unit/i18n/coverage.test.ts`) : mêmes clés et mêmes variables ICU dans les deux langues, aucune traduction vide, et aucun texte d'interface en dur, cherché dans l'AST des pages, composants et modules affichés. Exceptions explicites : `global-error.tsx` (hors fournisseur, porte ses deux langues) et les lignes marquées `i18n-ignore` (messages adressés au modèle).
 > - **Tests** : unitaires et composants avec les vrais messages français (`tests/setup.ts`), traducteurs FR/EN pour les modules (`tests/fixtures/i18n.ts`) ; E2E en `fr-FR`, plus `tests/e2e/i18n.spec.ts` (bascule et navigateur anglais). Lighthouse sur les tarifs : accessibilité, bonnes pratiques et SEO à 100.
+
+> **Révision (octobre 2026, tâche 4.5).** Rate limits, disjoncteur de dépense et modération, dans Postgres plutôt qu'Upstash : aucun service de plus, et le même test de concurrence que les réservations.
+> - **Rate limits** (migration `20261025000013_limits.sql`, `src/lib/security/rate-limit.ts`) : `rate_limit_hit(buckets, limits, windows)` tient une fenêtre glissante exacte (un horodatage par demande acceptée). Les compteurs d'une demande sont verrouillés dans l'ordre (`pg_advisory_xact_lock`) et passent ensemble : refusée par l'un, la demande n'est comptée dans aucun. La fonction renvoie 0 ou le délai d'attente. Limites de §6 (`RATE_LIMITS`) : création 10/h par utilisateur et 30/h par workspace, régénération 30/h, lien magique 5/15 min par adresse et par IP, export 60/h. E-mails et IP ne sont stockés que hachés (`fingerprint`). Les Server Actions renvoient `rateLimited: { minutes }` au formulaire ; la route d'export répond 429 avec `Retry-After`. Le cron `sweep-reservations` purge aussi les horodatages de plus d'un jour.
+> - **Adresses jetables** : refusées par `sendMagicLink` (liste des domaines les plus répandus), avant tout comptage et tout envoi.
+> - **Disjoncteur** (`src/lib/security/spend-guard.ts`) : `spend_since` additionne `generations.cost_usd_micros` depuis minuit UTC, échecs compris. Au-delà de `SPEND_DAILY_LIMIT_USD` (200 par défaut) ou de `SPEND_DAILY_WORKSPACE_LIMIT_USD` pour le workspace (25 par défaut), création et régénération sont refusées, sans débit, et une alerte Sentry part (`alert: spend_guard`, une par seuil et par workspace). Les générations en cours se terminent.
+> - **Modération** (`src/lib/security/moderation.ts`) : mots-clés par catégorie refusée (désinformation médicale, contenu sexuel, extrémisme), en français et en anglais, sans accents ni casse. Seul un brief qui en contient un est soumis à Haiku (`light`, sortie structurée, brief encadré par `renderUntrusted`), qui distingue un traitement documentaire d'un contenu refusé. Un refus des classifieurs de l'API compte comme un refus ; un échec de l'appel renvoie `moderationUnavailable` (ni accepté ni refusé). Le coût de cet appel n'est pas dans `generations` : il échappe au disjoncteur, négligeable devant une génération.
+> - **Ordre dans `createPipeline`** : rate limit, disjoncteur, modération, puis réservation. Un refus ne débite rien et garde la saisie ; la modération, seule étape qui peut appeler le modèle, vient après les deux premières.
+> - **Tests** : unitaires (`tests/unit/security/limits.test.ts`, `moderation.test.ts`, actions et composants) ; en base (`tests/integration/limits.test.ts`) : 10 demandes simultanées sur une limite de 3 en acceptent exactement 3, fenêtre glissante, atomicité entre compteurs, purge, dépense globale et par workspace. Retirer le verrou fait échouer le test de concurrence (vérifié par mutation).
 
 ---
 
@@ -995,7 +1003,7 @@ Les changements de plan passent par le Stripe Customer Portal, sans UI de gestio
 
 ## 6. Sécurité
 
-**Rate limiting** (`@upstash/ratelimit`, fenêtre glissante) :
+**Rate limiting** (fenêtre glissante dans Postgres, voir la révision de la tâche 4.5) :
 
 | Cible | Limite |
 |---|---|

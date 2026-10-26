@@ -2,7 +2,6 @@ import "server-only";
 import { z } from "zod";
 
 // Secrets serveur. Ne jamais préfixer ces variables par NEXT_PUBLIC_.
-// Les variables Upstash seront ajoutées avec la tâche 4.5.
 const ServerEnvSchema = z
   .object({
     SUPABASE_SECRET_KEY: z.string().min(1),
@@ -19,6 +18,10 @@ const ServerEnvSchema = z
     // reste de l'application fonctionne. Clés de test (sk_test_) hors production.
     STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
     STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+    // Disjoncteur de dépense LLM (tâche 4.5), en dollars par jour UTC : au-delà, plus de nouvelle
+    // génération (globale, ou du workspace) jusqu'au lendemain. Valeurs par défaut à ajuster en production.
+    SPEND_DAILY_LIMIT_USD: z.coerce.number().positive().default(200),
+    SPEND_DAILY_WORKSPACE_LIMIT_USD: z.coerce.number().positive().default(25),
     VERCEL_ENV: z.enum(["production", "preview", "development"]).optional(), // variable système de Vercel
   })
   // Déployé sur Vercel, sans ces clés, chaque appel d'Inngest ou de Stripe échouerait : on bloque le build.

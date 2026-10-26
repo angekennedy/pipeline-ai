@@ -271,7 +271,8 @@
     "notReady": "Le script n'est pas encore prêt",
     "unknownFormat": "Format inconnu : {formats}",
     "notFound": "Pipeline introuvable",
-    "signIn": "Connexion requise"
+    "signIn": "Connexion requise",
+    "rateLimited": "Trop d'exports : réessayez dans quelques minutes."
   },
   "Panels": {
     "copyScript": "Copier le script",
@@ -685,7 +686,19 @@
       "rateLimited": "Trop de demandes de lien. Patientez quelques minutes avant de réessayer.",
       "sendFailed": "L'envoi du lien a échoué. Réessayez dans un instant.",
       "expiredLink": "Ce lien de connexion a expiré ou a déjà servi. Demandez-en un nouveau.",
-      "google": "La connexion avec Google a échoué. Réessayez, ou recevez un lien par e-mail."
+      "google": "La connexion avec Google a échoué. Réessayez, ou recevez un lien par e-mail.",
+      "disposableEmail": "Les adresses e-mail jetables ne sont pas acceptées. Utilisez une adresse que vous gardez."
+    }
+  },
+  "Limits": {
+    "rateLimited": "Trop de demandes : réessayez dans {minutes, plural, one {# minute} other {# minutes}}. Aucun crédit n'a été débité.",
+    "spendPaused": "La génération est momentanément suspendue. Aucun crédit n'a été débité : réessayez plus tard.",
+    "moderated": "Ce sujet relève d'une catégorie que Pipeline AI refuse : {category}. Aucun crédit n'a été débité.",
+    "moderationUnavailable": "La vérification du brief a échoué. Aucun crédit n'a été débité : réessayez dans un instant.",
+    "category": {
+      "medical_misinformation": "désinformation médicale",
+      "sexual": "contenu sexuel",
+      "extremism": "extrémisme"
     }
   }
 }

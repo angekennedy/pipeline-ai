@@ -75,6 +75,7 @@ export function BriefForm({
   const t = useTranslations("BriefForm");
   const labels = useTranslations("Labels");
   const restriction = useTranslations("Restriction");
+  const limits = useTranslations("Limits");
   const { values } = state;
   const errors = Object.fromEntries(Object.keys(state.fieldErrors).map((field) => [field, t(`errors.${field as keyof typeof state.fieldErrors}`)])) as Partial<
     Record<keyof typeof state.fieldErrors, string>
@@ -245,6 +246,18 @@ export function BriefForm({
       {state.launchError && (
         <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
           {t("launchError")}
+        </p>
+      )}
+
+      {(state.rateLimited || state.spendPaused || state.moderated || state.moderationUnavailable) && (
+        <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
+          {state.rateLimited
+            ? limits("rateLimited", state.rateLimited)
+            : state.spendPaused
+              ? limits("spendPaused")
+              : state.moderated
+                ? limits("moderated", { category: limits(`category.${state.moderated}`) })
+                : limits("moderationUnavailable")}
         </p>
       )}
 

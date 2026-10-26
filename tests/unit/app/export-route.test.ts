@@ -21,6 +21,10 @@ vi.mock("@/lib/supabase/server", () => ({
     },
   }),
 }));
+// Rate limit (tâche 4.5) : secondes à attendre renvoyées par la RPC, 0 si la demande passe.
+let retryAfter = 0;
+const rpc = vi.fn(async () => ({ data: retryAfter, error: null }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc }) }));
 const loadPipelineView = vi.fn(async () => view);
 vi.mock("@/lib/pipeline/load-view", () => ({ loadPipelineView: (...args: unknown[]) => loadPipelineView(...(args as [])) }));
 
@@ -39,6 +43,7 @@ beforeEach(() => {
   user = { id: "user-1" };
   visible = { workspace_id: "ws-1" };
   view = readyView();
+  retryAfter = 0;
 });
 
 describe("GET /api/pipelines/[id]/export", () => {
@@ -84,5 +89,15 @@ describe("GET /api/pipelines/[id]/export", () => {
     expect((await get("txt")).status).toBe(409);
     expect((await get("srt")).status).toBe(409);
     expect((await get("md")).status).toBe(200);
+  });
+
+  it("répond 429 avec Retry-After au-delà de 60 exports par heure, sans lire le pipeline", async () => {
+    retryAfter = 840;
+    const response = await get("md");
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("840");
+    expect(await response.text()).toBe("Trop d'exports : réessayez dans quelques minutes.");
+    expect(rpc).toHaveBeenCalledWith("rate_limit_hit", { p_buckets: ["exportUser:user-1"], p_limits: [60], p_windows: [3600] });
+    expect(loadPipelineView).not.toHaveBeenCalled();
   });
 });

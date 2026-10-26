@@ -271,7 +271,8 @@
     "notReady": "The script is not ready yet",
     "unknownFormat": "Unknown format: {formats}",
     "notFound": "Pipeline not found",
-    "signIn": "Sign-in required"
+    "signIn": "Sign-in required",
+    "rateLimited": "Too many exports: try again in a few minutes."
   },
   "Panels": {
     "copyScript": "Copy the script",
@@ -685,7 +686,19 @@
       "rateLimited": "Too many link requests. Wait a few minutes before trying again.",
       "sendFailed": "Sending the link failed. Try again in a moment.",
       "expiredLink": "This sign-in link has expired or was already used. Request a new one.",
-      "google": "Signing in with Google failed. Try again, or get a link by email."
+      "google": "Signing in with Google failed. Try again, or get a link by email.",
+      "disposableEmail": "Disposable email addresses are not accepted. Use an address you keep."
+    }
+  },
+  "Limits": {
+    "rateLimited": "Too many requests: try again in {minutes, plural, one {# minute} other {# minutes}}. No credits were charged.",
+    "spendPaused": "Generation is temporarily paused. No credits were charged: please try again later.",
+    "moderated": "This topic falls in a category Pipeline AI does not accept: {category}. No credits were charged.",
+    "moderationUnavailable": "The brief could not be checked. No credits were charged: try again in a moment.",
+    "category": {
+      "medical_misinformation": "medical misinformation",
+      "sexual": "sexual content",
+      "extremism": "extremism"
     }
   }
 }

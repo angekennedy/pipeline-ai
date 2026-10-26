@@ -9,6 +9,8 @@ import { InsufficientCreditsError } from "@/lib/billing/reservation";
 import { PipelineBusyError, requestRegeneration } from "@/lib/jobs/request-regeneration";
 import { applyScriptForm, scriptFieldErrors, type ScriptErrorField } from "@/lib/pipeline/script-form";
 import { AssetValidationError, editAsset, restoreVersion } from "@/lib/pipeline/versions";
+import { enforceRateLimit, RateLimitedError, retryMinutes } from "@/lib/security/rate-limit";
+import { enforceSpendGuard, SpendPausedError } from "@/lib/security/spend-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { createClient } from "@/lib/supabase/server";
@@ -70,11 +72,13 @@ export async function restoreAssetVersion(formData: FormData): Promise<void> {
   refresh();
 }
 
-// Refus traduits par le bouton : restriction du plan, pipeline encore en cours.
+// Refus traduits par le bouton : restriction du plan, pipeline encore en cours, limites (tâche 4.5).
 export type RegenerateState = {
   restriction?: PlanRestriction;
   busy?: true;
   insufficient?: { required: number; available: number };
+  rateLimited?: { minutes: number };
+  spendPaused?: true;
   requested?: boolean;
 };
 
@@ -85,11 +89,15 @@ export async function regenerateAssets(_previous: RegenerateState, formData: For
   const nonce = z.uuid().parse(formData.get("nonce"));
   const feedback = String(formData.get("feedback") ?? "").trim() || undefined;
   try {
+    await enforceRateLimit(admin, [{ rule: "regenerateUser", subject: user.id }]);
+    await enforceSpendGuard(admin, workspaceId);
     await requestRegeneration(admin, { workspaceId, userId: user.id, pipelineId, types, nonce, feedback: feedback?.slice(0, 1000) });
   } catch (error) {
     if (error instanceof InsufficientCreditsError) return { insufficient: { required: error.required, available: error.available } };
     if (error instanceof PlanRestrictionError) return { restriction: error.restriction };
     if (error instanceof PipelineBusyError) return { busy: true };
+    if (error instanceof RateLimitedError) return { rateLimited: { minutes: retryMinutes(error.retryAfterSeconds) } };
+    if (error instanceof SpendPausedError) return { spendPaused: true };
     throw error;
   }
   refresh(); // solde de l'en-tête et état des assets

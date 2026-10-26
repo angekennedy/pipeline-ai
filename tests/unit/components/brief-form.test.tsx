@@ -190,4 +190,19 @@ describe("BriefForm", () => {
     expect(within(alert).getByRole("link", { name: "Voir les tarifs" })).toHaveAttribute("href", "/pricing");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
+
+  it.each([
+    [{ rateLimited: { minutes: 1 } }, "Trop de demandes : réessayez dans 1 minute. Aucun crédit n'a été débité."],
+    [{ spendPaused: true }, "La génération est momentanément suspendue. Aucun crédit n'a été débité : réessayez plus tard."],
+    [{ moderated: "medical_misinformation" }, "Ce sujet relève d'une catégorie que Pipeline AI refuse : désinformation médicale. Aucun crédit n'a été débité."],
+    [{ moderationUnavailable: true }, "La vérification du brief a échoué. Aucun crédit n'a été débité : réessayez dans un instant."],
+  ])("explique un refus avant réservation (%o) en gardant la saisie", async (refusal, message) => {
+    const user = userEvent.setup();
+    createPipeline.mockResolvedValue({ fieldErrors: {}, values: { niche: "Santé", topic: "Un remède miracle", durationMinutes: "8" }, ...refusal });
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
+    await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(screen.getByLabelText("Sujet de la vidéo")).toHaveValue("Un remède miracle");
+  });
 });

@@ -7,8 +7,11 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { s
 const cookieSet = vi.fn();
 vi.mock("next/headers", () => ({
   cookies: async () => ({ set: cookieSet }),
-  headers: async () => new Headers({ origin: "http://localhost:3000" }),
+  headers: async () => new Headers({ origin: "http://localhost:3000", "x-forwarded-for": "203.0.113.7, 10.0.0.1" }),
 }));
+let retryAfter = 0;
+const rpc = vi.fn(async () => ({ data: retryAfter, error: null }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc }) }));
 const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT ${url}`);
 });
@@ -24,6 +27,7 @@ const form = (fields: Record<string, string>) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  retryAfter = 0;
 });
 
 describe("sendMagicLink", () => {
@@ -45,7 +49,27 @@ describe("sendMagicLink", () => {
     expect(signInWithOtp).not.toHaveBeenCalled();
   });
 
-  it("explique une limite de fréquence", async () => {
+  it("limite par adresse et par IP, sans jamais les stocker en clair", async () => {
+    signInWithOtp.mockResolvedValue({ error: null });
+    await sendMagicLink(initial, form({ email: "A@Test.local" }));
+    const [, args] = rpc.mock.calls[0] as unknown as [string, { p_buckets: string[]; p_limits: number[]; p_windows: number[] }];
+    expect(args.p_limits).toEqual([5, 5]);
+    expect(args.p_windows).toEqual([900, 900]);
+    expect(args.p_buckets).toEqual([expect.stringMatching(/^loginEmail:[0-9a-f]{32}$/), expect.stringMatching(/^loginIp:[0-9a-f]{32}$/)]);
+    expect(args.p_buckets.join()).not.toMatch(/test\.local|203\.0/);
+
+    retryAfter = 600;
+    expect(await sendMagicLink(initial, form({ email: "a@test.local" }))).toMatchObject({ status: "error", error: "rateLimited" });
+    expect(signInWithOtp).toHaveBeenCalledOnce(); // pas d'envoi au-delà de la limite
+  });
+
+  it("refuse une adresse jetable sans rien compter ni envoyer", async () => {
+    expect(await sendMagicLink(initial, form({ email: "bot@YopMail.com" }))).toMatchObject({ status: "error", error: "disposableEmail" });
+    expect(rpc).not.toHaveBeenCalled();
+    expect(signInWithOtp).not.toHaveBeenCalled();
+  });
+
+  it("explique une limite de fréquence de Supabase", async () => {
     signInWithOtp.mockResolvedValue({ error: { status: 429, message: "rate limit" } });
     expect(await sendMagicLink(initial, form({ email: "a@test.local" }))).toMatchObject({ status: "error", error: "rateLimited" });
   });

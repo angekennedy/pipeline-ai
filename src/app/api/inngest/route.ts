@@ -7,6 +7,7 @@ import { createRegenerateAssetFunction } from "@/lib/jobs/functions/regenerate-a
 import { createRunPipelineFunction } from "@/lib/jobs/functions/run-pipeline";
 import { createStripeSyncFunction } from "@/lib/jobs/functions/stripe-sync";
 import { createSweepReservationsFunction } from "@/lib/jobs/functions/sweep-reservations";
+import { purgeRateLimits } from "@/lib/security/rate-limit";
 import type { JobDeps } from "@/lib/jobs/step-errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createBroadcastPublisher } from "@/lib/supabase/broadcast";
@@ -30,7 +31,7 @@ export const { GET, POST, PUT } = serve({
   functions: [
     createRunPipelineFunction(deps),
     createRegenerateAssetFunction(deps),
-    createSweepReservationsFunction({ sweep: () => sweepStaleReservations(db()) }),
+    createSweepReservationsFunction({ sweep: () => sweepStaleReservations(db()), purgeRateLimits: () => purgeRateLimits(db()) }),
     createStripeSyncFunction({ sync: (eventId) => syncStripeEvent(eventId, { stripe: stripeReader(getStripe()), db: db() }) }),
   ],
 });
