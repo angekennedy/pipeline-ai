@@ -325,6 +325,54 @@ isOneToOne: false
 "mark_generation_failed":
 { Args: { "p_code": string,"p_cost_usd_micros"?: number,"p_generation": string,"p_message": string }; Returns: undefined
                            },
+"stripe_apply_subscription":
+{ Args: { "p_cancel_at_period_end": boolean,"p_period_end": string,"p_plan": string,"p_price": string,"p_status": string,"p_subscription": string,"p_workspace": string }; Returns: string
+                           },
+"stripe_credit":
+{ Args: { "p_amount": number,"p_key": string,"p_kind": Database["public"]['Enums']["ledger_kind"],"p_meta"?: Json,"p_ref": string,"p_workspace": string }; Returns: {
+              "amount": number,
+"balance_after": number,
+"created_at": string,
+"generation_id": string | null,
+"id": number,
+"idempotency_key": string,
+"kind": Database["public"]['Enums']["ledger_kind"],
+"metadata": NonNullable<Json>,
+"pipeline_id": string | null,
+"reserved_after": number,
+"stripe_ref": string | null,
+"workspace_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "credit_ledger"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"stripe_link_customer":
+{ Args: { "p_customer": string,"p_workspace": string }; Returns: undefined
+                           },
+"stripe_renew":
+{ Args: { "p_allocation": number,"p_invoice": string,"p_meta"?: Json,"p_workspace": string }; Returns: {
+              "amount": number,
+"balance_after": number,
+"created_at": string,
+"generation_id": string | null,
+"id": number,
+"idempotency_key": string,
+"kind": Database["public"]['Enums']["ledger_kind"],
+"metadata": NonNullable<Json>,
+"pipeline_id": string | null,
+"reserved_after": number,
+"stripe_ref": string | null,
+"workspace_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "credit_ledger"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "sweep_stale_reservations":
 { Args: { "p_idle"?: string }; Returns: number
                            },

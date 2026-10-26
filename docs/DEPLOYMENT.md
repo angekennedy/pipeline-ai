@@ -95,10 +95,25 @@ Les réglages de confidentialité :
 - aucune donnée personnelle n'est envoyée (`sendDefaultPii: false`) ;
 - il n'y a pas de Session Replay, car il enregistrerait les briefs et les scripts.
 
+## 4 bis. Stripe : paiements (tâches 3.3 et 3.4)
+
+Tout se fait d'abord en **mode test** (bascule « Mode test » en haut du tableau de bord Stripe). La production en live relève de la tâche 5.5.
+
+1. **Clés** (Développeurs → Clés API) : copie la clé secrète `sk_test_…` dans `.env.local` (`STRIPE_SECRET_KEY`) et dans Vercel (Preview). Ne la colle jamais ailleurs.
+2. **Catalogue** : `pnpm stripe:seed`. Le script crée un produit par plan payant et par pack, et un prix en euros qui porte la clé de recherche de l'offre (`plan_creator_monthly`, `pack_200`…). Il est sans effet s'il est relancé ; un montant modifié dans `src/lib/billing/plans.ts` crée un nouveau prix et archive l'ancien.
+3. **Customer Portal** (Paramètres → Facturation → Portail client) : active le portail, autorise la mise à jour du moyen de paiement, l'historique des factures, la résiliation, et le **changement de plan** entre les produits Creator, Pro et Studio (prorata activé).
+4. **Webhook en local** : installe la Stripe CLI (`brew install stripe/stripe-cli/stripe`), puis `stripe login`. Pendant le développement :
+   ```
+   stripe listen --forward-to localhost:3000/api/webhooks/stripe
+   ```
+   La commande affiche un secret `whsec_…` : mets-le dans `.env.local` (`STRIPE_WEBHOOK_SECRET`) et redémarre le serveur. Un serveur Inngest local (`npx inngest-cli@latest dev`) doit tourner pour que `stripe-sync` traite les événements.
+5. **Webhook déployé** (Développeurs → Webhooks → Ajouter un endpoint) : URL `https://<preview ou domaine>/api/webhooks/stripe`, événements `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`, `charge.refunded`. Copie le secret de signature dans Vercel (`STRIPE_WEBHOOK_SECRET`).
+6. **Vérifier** : sur `/billing`, choisis un plan et paie avec la carte de test `4242 4242 4242 4242` (date future, CVC quelconque). Le retour se fait sur `/w/<workspace>/billing?success=1`, et le plan et les crédits apparaissent après le traitement du webhook. `stripe trigger invoice.payment_failed` ou `stripe trigger charge.refunded` rejouent les autres cas.
+
 ## 5. Vérifier le critère d'acceptation
 
 1. Ouvre une PR : le bot Vercel commente l'URL de la preview, et le déploiement est vert.
-2. Dans Inngest, l'environnement de branche de la PR montre l'app synchronisée, avec 3 fonctions.
+2. Dans Inngest, l'environnement de branche de la PR montre l'app synchronisée, avec 4 fonctions.
 3. Sur la preview, la page d'accueil s'affiche. Une erreur provoquée apparaît dans Sentry avec l'environnement `preview`.
 4. Après la fusion d'une PR qui touche `supabase/migrations/`, le workflow **Staging DB** passe au vert.
 
@@ -109,6 +124,7 @@ Les réglages de confidentialité :
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Vercel | Oui (build) |
 | `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY` | Vercel | Oui (build) |
 | `INNGEST_SIGNING_KEY`, `INNGEST_EVENT_KEY` | Vercel (intégration Inngest) | Oui sur Vercel |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `.env.local`, Vercel | Oui sur Vercel ; sans elles en local, la facturation est indisponible |
 | `NEXT_PUBLIC_SENTRY_DSN` | Vercel | Non : Sentry inactif sans DSN |
 | `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED` | Vercel | Non : `true` affiche le bouton Google, une fois le fournisseur configuré dans Supabase |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Vercel (build) | Non : pas de source maps sans eux |

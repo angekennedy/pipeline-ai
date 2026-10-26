@@ -33,6 +33,14 @@ vi.mock("@/lib/workspaces/access", () => ({
   hasRole: (r: string, min: string) => ["viewer", "editor", "admin", "owner"].indexOf(r) >= ["viewer", "editor", "admin", "owner"].indexOf(min),
 }));
 
+let stripeConfigured = false;
+const stripeCancel = vi.fn();
+vi.mock("@/lib/billing/stripe", () => ({
+  billingEnabled: () => stripeConfigured,
+  getStripe: () => ({}),
+  stripeCanceler: () => stripeCancel,
+}));
+
 const deleteAccount = vi.fn();
 vi.mock("@/lib/account/delete", async (original) => ({
   ...(await original<typeof import("@/lib/account/delete")>()),
@@ -53,6 +61,7 @@ beforeEach(() => {
   user = { id: "user-1", email: "Ada@Test.local" };
   role = "owner";
   deleteAccount.mockResolvedValue(1);
+  stripeConfigured = false;
 });
 
 describe("updateProfile", () => {
@@ -86,8 +95,15 @@ describe("renameWorkspace", () => {
 describe("deleteAccountAction", () => {
   it("supprime le compte confirmé par l'adresse e-mail, efface la session puis quitte l'application", async () => {
     await expect(deleteAccountAction({}, form({ confirmation: " ada@test.LOCAL " }))).rejects.toThrow("NEXT_REDIRECT /compte-supprime");
-    expect(deleteAccount).toHaveBeenCalledWith(expect.anything(), "user-1");
+    expect(deleteAccount).toHaveBeenCalledWith(expect.anything(), "user-1", { cancelSubscriptions: expect.any(Function) });
+    expect(deleteAccount.mock.calls[0]![2].cancelSubscriptions).not.toBe(stripeCancel); // Stripe absent : refus s'il y a un abonnement
     expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("résilie les abonnements chez Stripe quand il est configuré", async () => {
+    stripeConfigured = true;
+    await expect(deleteAccountAction({}, form({ confirmation: "ada@test.local" }))).rejects.toThrow("NEXT_REDIRECT /compte-supprime");
+    expect(deleteAccount.mock.calls[0]![2].cancelSubscriptions).toBe(stripeCancel);
   });
 
   it("ne supprime rien sans la bonne adresse e-mail", async () => {

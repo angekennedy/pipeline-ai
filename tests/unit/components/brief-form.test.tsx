@@ -157,7 +157,7 @@ describe("BriefForm", () => {
 
     const dialog = await screen.findByRole("dialog", { name: "Crédits insuffisants" });
     expect(dialog).toHaveTextContent("Ce pipeline coûte 35 crédits et vous en avez 30 disponibles : il en manque 5.");
-    expect(within(dialog).getByRole("link", { name: "Voir les tarifs" })).toHaveAttribute("href", "/pricing");
+    expect(within(dialog).getByRole("link", { name: "Acheter des crédits" })).toHaveAttribute("href", "/billing");
     // La saisie est conservée pour ajuster le brief.
     expect(screen.getByLabelText("Durée cible (minutes)")).toHaveValue(10);
     expect(screen.getByLabelText(/Premium/)).toBeChecked();

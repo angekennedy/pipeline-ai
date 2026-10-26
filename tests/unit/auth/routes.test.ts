@@ -3,7 +3,7 @@ import { isAppRoute, safeNext, workspaceTarget } from "@/lib/auth/routes";
 
 describe("isAppRoute", () => {
   it("protège les routes de l'application et leurs sous-chemins", () => {
-    for (const path of ["/dashboard", "/pipelines/new", "/w", "/w/mon-espace/pipelines", "/settings", "/settings/account"]) {
+    for (const path of ["/billing", "/dashboard", "/pipelines/new", "/w", "/w/mon-espace/pipelines", "/settings", "/settings/account"]) {
       expect(isAppRoute(path), path).toBe(true);
     }
   });

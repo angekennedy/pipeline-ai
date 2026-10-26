@@ -33,12 +33,21 @@ describe("serverEnv", () => {
     expect(env.INNGEST_SIGNING_KEY).toBeUndefined();
   });
 
-  it.each(["production", "preview"])("exige les clés Inngest sur Vercel (%s)", async (vercelEnv) => {
+  it.each(["production", "preview"])("exige les clés Inngest et Stripe sur Vercel (%s)", async (vercelEnv) => {
     vi.stubEnv("VERCEL_ENV", vercelEnv);
     vi.stubEnv("INNGEST_SIGNING_KEY", "signkey-test");
     await expect(loadServerEnv()).rejects.toThrow(/INNGEST_EVENT_KEY/);
 
     vi.stubEnv("INNGEST_EVENT_KEY", "event-key-test");
-    await expect(loadServerEnv()).resolves.toMatchObject({ INNGEST_SIGNING_KEY: "signkey-test", INNGEST_EVENT_KEY: "event-key-test" });
+    await expect(loadServerEnv()).rejects.toThrow(/STRIPE_SECRET_KEY/);
+
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_cle");
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_secret");
+    await expect(loadServerEnv()).resolves.toMatchObject({ INNGEST_SIGNING_KEY: "signkey-test", INNGEST_EVENT_KEY: "event-key-test", STRIPE_SECRET_KEY: "sk_test_cle" });
+  });
+
+  it("refuse une clé Stripe qui n'en est pas une", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "pk_test_publique");
+    await expect(loadServerEnv()).rejects.toThrow(/STRIPE_SECRET_KEY/);
   });
 });

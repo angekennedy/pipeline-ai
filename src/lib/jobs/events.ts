@@ -22,3 +22,9 @@ export const assetRegenerateRequested = eventType("asset/regenerate.requested", 
     feedback: z.string().trim().min(1).max(1000).optional(), // consigne libre, non fiable
   }),
 });
+
+// Envoyé par le webhook Stripe, une fois l'événement enregistré dans stripe_events. Seul l'id voyage :
+// la fonction stripe-sync relit l'événement chez Stripe.
+export const stripeEventReceived = eventType("stripe/event", {
+  schema: z.object({ id: z.string().regex(/^evt_\w+$/) }),
+});

@@ -3,8 +3,9 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { AccountDeletionBlockedError, deleteAccount } from "@/lib/account/delete";
+import { AccountDeletionBlockedError, deleteAccount, stripeNotConfigured } from "@/lib/account/delete";
 import { requireUser } from "@/lib/auth/session";
+import { billingEnabled, getStripe, stripeCanceler } from "@/lib/billing/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
@@ -47,7 +48,8 @@ export async function deleteAccountAction(_previous: SettingsState, formData: Fo
   if (!user.email || confirmation !== user.email.toLowerCase()) return { error: "Saisissez exactement votre adresse e-mail pour confirmer." };
 
   try {
-    await deleteAccount(createAdminClient(), user.id);
+    // Résiliation réelle chez Stripe quand il est configuré ; sinon un abonnement bloque la suppression.
+    await deleteAccount(createAdminClient(), user.id, { cancelSubscriptions: billingEnabled() ? stripeCanceler(getStripe()) : stripeNotConfigured });
   } catch (error) {
     if (error instanceof AccountDeletionBlockedError) return { error: error.message };
     throw error;

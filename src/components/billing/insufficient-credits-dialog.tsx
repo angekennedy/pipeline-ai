@@ -37,8 +37,8 @@ export function InsufficientCreditsDialog({
         </p>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>Modifier le brief</DialogClose>
-          <Link href="/pricing" className={buttonVariants()}>
-            Voir les tarifs
+          <Link href="/billing" className={buttonVariants()}>
+            Acheter des crédits
           </Link>
         </DialogFooter>
       </DialogContent>
