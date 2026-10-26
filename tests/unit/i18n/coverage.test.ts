@@ -48,8 +48,9 @@ const SKIP_CALLS = new Set([
   "t", "cn", "cva", "querySelector", "querySelectorAll", "Error", "require", "import", "super", "addIssue", "rpc", "failure", "throwReservationError",
   "log", "info", "warn", "error", "captureMessage",
 ]);
-// Fichiers rendus hors du fournisseur next-intl, qui portent leurs deux langues eux-mêmes.
-const EXEMPT_FILES = new Set(["src/app/global-error.tsx"]);
+// Fichiers rendus hors du fournisseur next-intl : la page d'erreur globale porte ses deux langues,
+// l'image de partage est générée au build, sans langue d'interface.
+const EXEMPT_FILES = new Set(["src/app/global-error.tsx", "src/app/opengraph-image.tsx"]);
 
 function files(dir: string, extension: RegExp, skip: RegExp): string[] {
   return readdirSync(dir).flatMap((name) => {

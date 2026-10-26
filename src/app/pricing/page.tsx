@@ -9,7 +9,7 @@ import { CREDIT_PACKS, PLAN_KEYS, PLANS, type Plan } from "@/lib/billing/plans";
 import { buttonVariants } from "@/components/ui/button";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getTranslations("Meta"))("pricing") };
+  return { title: (await getTranslations("Meta"))("pricing"), alternates: { canonical: "/pricing" } };
 }
 
 // Grille de crédits (ARCHITECTURE §5.1), en clair : la formule de chaque asset (Pricing.rule) et

@@ -4,11 +4,13 @@ import type { AssetType, Brief, Script, Seo, Thumbnails, Titles, Voiceover } fro
 import { registry } from "@/lib/pipeline/registry";
 import { regenerationCredits } from "@/lib/pipeline/staleness";
 import { emptyPipelineView, type AssetView, type PipelineView, type VersionSummary } from "@/lib/pipeline/view";
+import { EXAMPLE_IDS, example, type ExampleMeta } from "./examples";
 
 // Pipelines de démonstration, en attendant la base (tâche 0.4) : un par état à montrer.
 // Le contenu passe par les vrais post-traitements (durées, chapitres, tags), comme une génération.
 
-export const DEMO_PIPELINE_IDS = ["demo-running", "demo-completed", "demo-partial", "demo-failed", "demo-stale"] as const;
+// Plus les pipelines d'exemple réels (./examples.ts, tâche 5.1).
+export const DEMO_PIPELINE_IDS = ["demo-running", "demo-completed", "demo-partial", "demo-failed", "demo-stale", ...EXAMPLE_IDS] as const;
 export type DemoPipelineId = (typeof DEMO_PIPELINE_IDS)[number];
 
 const brief: Brief = {
@@ -310,7 +312,7 @@ function staleView(): PipelineView {
 }
 
 export type DemoPipeline =
-  | { replay: false; view: PipelineView }
+  | { replay: false; view: PipelineView; example?: ExampleMeta } // `example` : sortie réelle des modèles
   | { replay: true; view: PipelineView; final: PipelineView }; // rejoue la génération en direct
 
 export function demoPipeline(id: string): DemoPipeline | null {
@@ -325,7 +327,9 @@ export function demoPipeline(id: string): DemoPipeline | null {
       return { replay: false, view: failedView() };
     case "demo-stale":
       return { replay: false, view: staleView() };
-    default:
-      return null;
+    default: {
+      const real = example(id);
+      return real ? { replay: false, view: real.view, example: real.meta } : null;
+    }
   }
 }

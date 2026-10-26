@@ -244,6 +244,13 @@ pipeline-ai/
 > - **Alertes** (cron Inngest `monitor-economics`, toutes les 15 min, vers Sentry) : coût par minute de vidéo à plus de 3× la médiane de la formule sur 7 jours (`cost_outliers`, au moins 5 pipelines dans la formule) ; taux d'échec des générations au-delà de 5 % sur 15 min (`generation_failures`, au moins 20 générations) ; réservations sans activité depuis plus d'une heure (`stale_reservations`, mêmes critères que le balayage : il ne les a pas libérées). Le disjoncteur alerte de son côté (tâche 4.5). La réconciliation Stripe/registre reste à faire.
 > - **Tests** : unitaires (`tests/unit/admin/economics.test.ts`, page, proxy) et en base (`tests/integration/economics.test.ts` : agrégats, médiane, fenêtre des échecs, réservations inactives, accès service role seul).
 
+> **Révision (octobre 2026, tâche 5.1).** Landing, exemple réel, SEO.
+> - **Exemple réel** (`src/lib/demo/examples.ts`, `examples/*.json`) : deux pipelines de l'évaluation v3 (`fr-histoire-rome`, `en-finance-compound`, juge 4,86/5, tous contrôles passés), extraits tels quels des traces (non versionnées) avec leur brief, leurs modèles, leur coût et leur durée mesurés. Ils passent par les contrats et les post-traitements actuels comme une génération (un test échoue si un schéma ne les accepte plus) et sont servis comme démonstrations (`/pipelines/demo-rome`, `/pipelines/demo-compound-interest`), avec la mention « exemple réel, sans retouche ».
+> - **Landing** (`src/app/page.tsx`) : promesse, exemple réel dans la langue de l'interface (titre recommandé, accroche, chiffres), cinq livrables, trois étapes, tarifs (coût calculé par `pipelineCredits`), FAQ avec données structurées `FAQPage`. Le JSON-LD est la seule exception à « pas de `dangerouslySetInnerHTML` » : nos propres messages, `<` échappé (guide Next « JSON-LD »).
+> - **Métadonnées** : `metadataBase` (`src/lib/site.ts` : `NEXT_PUBLIC_SITE_URL`, sinon le domaine de production de Vercel), Open Graph et carte Twitter dans le layout, image générée au build (`opengraph-image.tsx`), canoniques de l'accueil et des tarifs, `sitemap.xml` (pages publiques et exemples réels) et `robots.txt` (application, admin, API et connexion exclues).
+> - **Sélecteur de langue** : le rôle `group` passe du `<form>` à un `div` intérieur (il écrasait le rôle du formulaire, relevé par l'audit « agentic browsing »).
+> - **Lighthouse mobile** (build de production) : accueil, tarifs et exemple réel à 100 en SEO, accessibilité et bonnes pratiques.
+
 ---
 
 ## 3. Modèle de données

@@ -10,8 +10,8 @@ import { applyPipelineEvent, initialLiveState } from "@/lib/realtime/pipeline-st
 const completed = demoPipeline("demo-completed")!.view;
 
 describe("pipelines de démonstration", () => {
-  it("expose un pipeline par état à montrer", () => {
-    expect(DEMO_PIPELINE_IDS).toEqual(["demo-running", "demo-completed", "demo-partial", "demo-failed", "demo-stale"]);
+  it("expose un pipeline par état à montrer, plus les exemples réels", () => {
+    expect(DEMO_PIPELINE_IDS).toEqual(["demo-running", "demo-completed", "demo-partial", "demo-failed", "demo-stale", "demo-rome", "demo-compound-interest"]);
     expect(demoPipeline("inconnu")).toBeNull();
   });
 
