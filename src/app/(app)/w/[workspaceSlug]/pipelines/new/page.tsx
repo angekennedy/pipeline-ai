@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { randomUUID } from "node:crypto";
+import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { BriefForm } from "@/components/pipeline/brief-form";
 import { channelOption } from "@/lib/channels/form";
@@ -8,13 +9,16 @@ import { loadBriefValues } from "@/lib/pipeline/list";
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
 
-export const metadata: Metadata = { title: "Nouveau pipeline · Pipeline AI" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("Meta"))("newPipeline") };
+}
 export const instant = false; // bloque avec le layout (vérification d'appartenance)
 
 export default async function NewPipelinePage({ params, searchParams }: PageProps<"/w/[workspaceSlug]/pipelines/new">) {
   const { workspaceSlug } = await params;
   const { workspace, role, credits } = await requireMembership(workspaceSlug);
   const canEdit = hasRole(role, "editor");
+  const t = await getTranslations("NewPipeline");
 
   // `?from=<pipeline>` : duplication d'un brief du même workspace. Un id inconnu ou d'un autre
   // workspace (RLS et filtre) laisse simplement le formulaire vide.
@@ -29,15 +33,15 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">Nouveau pipeline</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
       <p className="mt-1 mb-8 text-muted-foreground">
-        Décrivez la vidéo : le script, les titres, le SEO, la voix off et les miniatures sont générés à partir de ce brief.
+        {t("intro")}
       </p>
       {canEdit ? (
         <>
           {source && (
             <p role="status" className="mb-6 rounded-xl border bg-muted/50 p-4 text-sm">
-              Brief repris de « {source.title} ». Modifiez-le avant de lancer : un nouveau pipeline sera créé.
+              {t("copied", { title: source.title })}
             </p>
           )}
           {/* Une clé par affichage du formulaire : un double envoi ne crée et ne débite qu'un pipeline. */}
@@ -51,8 +55,7 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
         </>
       ) : (
         <p role="status" className="rounded-xl border p-4 text-sm">
-          Votre rôle dans {workspace.name} permet de consulter les pipelines, pas d&apos;en créer. Demandez à un administrateur de vous passer
-          éditeur.
+          {t("viewer", { workspace: workspace.name })}
         </p>
       )}
     </main>

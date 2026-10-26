@@ -52,7 +52,7 @@ describe("RegenerateButton", () => {
     await user.click(screen.getByRole("button", { name: /Régénérer/ }));
     expect(await screen.findByRole("dialog", { name: "Crédits insuffisants" })).toBeInTheDocument();
 
-    regenerateAssets.mockResolvedValueOnce({ error: "Le script Premium n'est pas inclus dans le plan Free." });
+    regenerateAssets.mockResolvedValueOnce({ restriction: { reason: "premium", plan: "free" } });
     await user.click(screen.getByRole("button", { name: "Modifier le brief" }));
     await user.click(screen.getByRole("button", { name: /Régénérer/ }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Le script Premium n'est pas inclus");
@@ -99,7 +99,7 @@ describe("ScriptEditor", () => {
   it("affiche les erreurs par champ sans se fermer", async () => {
     const user = userEvent.setup();
     const onDone = vi.fn();
-    saveScript.mockResolvedValue({ fieldErrors: { [sceneFieldName(1, "narration")]: "La narration fait au moins 20 caractères." }, error: "Corrigez les champs signalés." });
+    saveScript.mockResolvedValue({ fieldErrors: { [sceneFieldName(1, "narration")]: "narration" }, error: "fix" });
     render(<ScriptEditor script={validScript as Script} actions={actions} onDone={onDone} />);
     await user.click(screen.getByRole("button", { name: "Enregistrer une nouvelle version" }));
 

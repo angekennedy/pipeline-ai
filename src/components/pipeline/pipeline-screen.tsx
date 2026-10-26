@@ -1,9 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ASSET_TYPES, type Scene } from "@/lib/ai/schemas";
 import { useDemoPipeline } from "@/hooks/use-demo-pipeline";
 import { usePipelineChannel } from "@/hooks/use-pipeline-channel";
-import { PIPELINE_STATUS_LABELS } from "@/lib/pipeline/labels";
 import type { PipelineStatus } from "@/lib/pipeline/status";
 import { mergeLiveState, type PipelineView } from "@/lib/pipeline/view";
 import { Badge } from "@/components/ui/badge";
@@ -21,20 +21,17 @@ const STATUS_VARIANTS: Record<PipelineStatus, "default" | "secondary" | "destruc
 };
 
 export function PipelineStatusBadge({ status }: { status: PipelineStatus }) {
+  const t = useTranslations("Labels");
   return (
     <span aria-live="polite">
-      <Badge variant={STATUS_VARIANTS[status]}>{PIPELINE_STATUS_LABELS[status]}</Badge>
+      <Badge variant={STATUS_VARIANTS[status]}>{t(`pipelineStatus.${status}`)}</Badge>
     </span>
   );
 }
 
-const STATUS_HINTS: Partial<Record<PipelineStatus, string>> = {
-  partial: "Certains assets n'ont pas pu être générés. Les autres sont prêts, et les crédits des assets en échec sont restitués.",
-  failed: "Le script n'a pas pu être généré, les autres assets n'ont donc pas été lancés. Les crédits ont été restitués.",
-};
-
 function PipelineBody({ view, scenes }: { view: PipelineView; scenes: Scene[] }) {
-  const hint = STATUS_HINTS[view.status];
+  const t = useTranslations("Pipeline");
+  const hint = view.status === "partial" || view.status === "failed" ? t(`hint.${view.status}`) : null;
   const stale = ASSET_TYPES.filter((type) => view.assets[type].stale);
   return (
     <div className="grid grid-cols-1 gap-4">

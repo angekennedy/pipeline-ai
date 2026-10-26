@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CREDIT_PACKS, formatCredits, formatEuros } from "@/lib/billing/plans";
+import { useFormatter, useTranslations } from "next-intl";
+import { PRICE } from "@/i18n/format";
+import { CREDIT_PACKS } from "@/lib/billing/plans";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -17,6 +19,9 @@ export function InsufficientCreditsDialog({
   required: number;
   available: number;
 }) {
+  const t = useTranslations("InsufficientCredits");
+  const common = useTranslations("Common");
+  const format = useFormatter();
   const missing = required - available;
   // Le plus petit pack qui couvre le manque, sinon le plus grand.
   const pack = CREDIT_PACKS.find((p) => p.credits >= missing) ?? CREDIT_PACKS[CREDIT_PACKS.length - 1]!;
@@ -25,20 +30,18 @@ export function InsufficientCreditsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Crédits insuffisants</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Ce pipeline coûte {formatCredits(required)} et vous en avez {available} disponibles : il en manque {missing}. Rien n&apos;a été lancé
-            ni débité.
+            {t("description", { required: common("credits", { count: required }), available, missing })}
           </DialogDescription>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Réduisez la durée ou passez en Standard, ou rechargez votre compte : un pack de {formatCredits(pack.credits)} coûte{" "}
-          {formatEuros(pack.priceEurCents)}, sans expiration.
+          {t("hint", { credits: common("credits", { count: pack.credits }), price: format.number(pack.priceEurCents / 100, PRICE) })}
         </p>
         <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>Modifier le brief</DialogClose>
+          <DialogClose render={<Button variant="outline" />}>{t("edit")}</DialogClose>
           <Link href="/billing" className={buttonVariants()}>
-            Acheter des crédits
+            {t("buy")}
           </Link>
         </DialogFooter>
       </DialogContent>

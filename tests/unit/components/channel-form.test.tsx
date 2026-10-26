@@ -3,7 +3,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ChannelForm } from "@/components/channels/channel-form";
-import { CHANNEL_FIELD_MESSAGES } from "@/lib/channels/form";
 
 const CHANNEL = "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f";
 const saveChannel = vi.fn();
@@ -53,7 +52,7 @@ describe("ChannelForm", () => {
   it("affiche les erreurs par champ et la limite du plan", async () => {
     const user = userEvent.setup();
     saveChannel.mockResolvedValue({
-      fieldErrors: { thumbnailPalette: CHANNEL_FIELD_MESSAGES.thumbnailPalette },
+      fieldErrors: { thumbnailPalette: true },
       values: { name: "Mystères", thumbnailPalette: "rouge" },
       restriction: { reason: "channel_presets", plan: "free", limit: 1 },
     });
@@ -62,7 +61,7 @@ describe("ChannelForm", () => {
 
     const palette = await screen.findByLabelText("Palette des miniatures");
     expect(palette).toHaveAttribute("aria-invalid", "true");
-    expect(palette).toHaveAccessibleDescription(expect.stringContaining(CHANNEL_FIELD_MESSAGES.thumbnailPalette));
+    expect(palette).toHaveAccessibleDescription(expect.stringContaining("#RRGGBB"));
     expect(screen.getByLabelText("Nom du preset")).toHaveValue("Mystères");
     expect(screen.getByRole("alert")).toHaveTextContent("Le plan Free est limité à 1 preset de chaîne");
     expect(screen.getByRole("link", { name: "Voir les tarifs" })).toHaveAttribute("href", "/pricing");

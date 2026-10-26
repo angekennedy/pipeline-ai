@@ -58,7 +58,6 @@ describe("création d'un pipeline selon le plan", () => {
     const error = await create(workspaceId, 11).catch((e) => e);
     expect(error).toBeInstanceOf(PlanRestrictionError);
     expect(error).toMatchObject({ status: 403, restriction: { reason: "duration", plan: "free", limit: 10 } });
-    expect(error.message).toMatch(/^Le plan Free limite les vidéos à 10 min\./);
     expect(await state(workspaceId)).toEqual({ balance: 1000, reserved: 21, pipelines: 1 });
   });
 

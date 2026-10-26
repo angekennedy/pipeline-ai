@@ -12,7 +12,6 @@ export type PlanKey = (typeof PLAN_KEYS)[number];
 export type Plan = {
   key: PlanKey;
   name: string;
-  pitch: string;
   credits: number;
   renewal: "once" | "monthly"; // Free : crédits offerts une seule fois
   priceEurCents: number; // par mois, 0 pour Free
@@ -27,7 +26,6 @@ export const PLANS: Record<PlanKey, Plan> = {
   free: {
     key: "free",
     name: "Free",
-    pitch: "Pour essayer sur une première vidéo.",
     credits: 30,
     renewal: "once",
     priceEurCents: 0,
@@ -40,7 +38,6 @@ export const PLANS: Record<PlanKey, Plan> = {
   creator: {
     key: "creator",
     name: "Creator",
-    pitch: "Pour publier chaque semaine sur une ou deux chaînes.",
     credits: 400,
     renewal: "monthly",
     priceEurCents: 1900,
@@ -53,7 +50,6 @@ export const PLANS: Record<PlanKey, Plan> = {
   pro: {
     key: "pro",
     name: "Pro",
-    pitch: "Pour gérer plusieurs chaînes avec un style constant.",
     credits: 1500,
     renewal: "monthly",
     priceEurCents: 4900,
@@ -66,7 +62,6 @@ export const PLANS: Record<PlanKey, Plan> = {
   studio: {
     key: "studio",
     name: "Studio",
-    pitch: "Pour les agences : plusieurs sièges et le script Premium.",
     credits: 5000,
     renewal: "monthly",
     priceEurCents: 14900,
@@ -97,8 +92,5 @@ export function itemForLookupKey(lookupKey: string | null | undefined): CatalogI
 
 export const isPlanKey = (value: string): value is PlanKey => (PLAN_KEYS as readonly string[]).includes(value);
 
-const euros = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 2 });
-export const formatEuros = (cents: number) => euros.format(cents / 100);
-
-const integer = new Intl.NumberFormat("fr-FR");
-export const formatCredits = (credits: number) => `${integer.format(credits)} ${Math.abs(credits) > 1 ? "crédits" : "crédit"}`;
+// Prix et crédits s'affichent dans la langue de l'interface : `PRICE` (src/i18n/format.ts) et le
+// message Common.credits.

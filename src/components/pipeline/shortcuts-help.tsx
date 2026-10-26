@@ -1,6 +1,7 @@
 "use client";
 
 import { Keyboard } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { SHORTCUTS, shortcutFor, type ShortcutAction } from "@/lib/pipeline/shortcuts";
 import { Button } from "@/components/ui/button";
@@ -49,31 +50,32 @@ export function useAssetShortcuts(onAction: (action: ShortcutAction) => void) {
 }
 
 export function ShortcutsHelp({ open, onOpenChange, enabled, onToggle }: { open: boolean; onOpenChange: (open: boolean) => void; enabled: boolean; onToggle: (enabled: boolean) => void }) {
+  const t = useTranslations("Shortcuts");
   return (
     <>
       <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(true)} aria-keyshortcuts="Shift+?">
         <Keyboard aria-hidden="true" />
-        Raccourcis
+        {t("button")}
       </Button>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Raccourcis clavier</DialogTitle>
-            <DialogDescription>Une seule touche, en dehors des champs de saisie.</DialogDescription>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
             {SHORTCUTS.map((shortcut) => (
-              <div key={shortcut.keys} className="contents">
+              <div key={shortcut} className="contents">
                 <dt>
-                  <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs">{shortcut.keys}</kbd>
+                  <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs">{t(`keys.${shortcut}`)}</kbd>
                 </dt>
-                <dd>{shortcut.label}</dd>
+                <dd>{t(`label.${shortcut}`)}</dd>
               </div>
             ))}
           </dl>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={enabled} onChange={(event) => onToggle(event.target.checked)} />
-            Activer les raccourcis à une touche
+            {t("toggle")}
           </label>
         </DialogContent>
       </Dialog>

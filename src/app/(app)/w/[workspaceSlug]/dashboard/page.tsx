@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
+import { DATE_TIME } from "@/i18n/format";
 import { PipelineStatusBadge } from "@/components/pipeline/pipeline-screen";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +10,11 @@ import { listPipelines, parseListParams, SEARCH_MAX_LENGTH, type PipelineListIte
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
 
-export const metadata: Metadata = { title: "Tableau de bord · Pipeline AI" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations("Meta"))("dashboard") };
+}
 export const instant = false; // bloque avec le layout (vérification d'appartenance)
 
-// Heure de Paris, comme l'interface : le rendu serveur ne dépend pas du fuseau de la machine.
-const DATE = new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Paris" });
 
 const listHref = (slug: string, q: string, page: number) => {
   const params = new URLSearchParams();
@@ -22,9 +24,9 @@ const listHref = (slug: string, q: string, page: number) => {
   return `/w/${slug}/dashboard${query ? `?${query}` : ""}`;
 };
 
-const plural = (count: number) => `${count} pipeline${count > 1 ? "s" : ""}`;
 
-function PipelineRow({ slug, pipeline, canEdit }: { slug: string; pipeline: PipelineListItem; canEdit: boolean }) {
+async function PipelineRow({ slug, pipeline, canEdit }: { slug: string; pipeline: PipelineListItem; canEdit: boolean }) {
+  const [t, format] = await Promise.all([getTranslations("Dashboard"), getFormatter()]);
   const details = [pipeline.niche, pipeline.durationMinutes && `${pipeline.durationMinutes} min`, pipeline.tier === "premium" && "Premium"]
     .filter(Boolean)
     .join(" · ");
@@ -35,7 +37,7 @@ function PipelineRow({ slug, pipeline, canEdit }: { slug: string; pipeline: Pipe
           {pipeline.title}
         </Link>
         <p className="mt-1 text-sm text-muted-foreground">
-          {details} · <time dateTime={pipeline.createdAt}>{DATE.format(new Date(pipeline.createdAt))}</time>
+          {details} · <time dateTime={pipeline.createdAt}>{format.dateTime(new Date(pipeline.createdAt), DATE_TIME)}</time>
         </p>
       </div>
       <PipelineStatusBadge status={pipeline.status} />
@@ -43,9 +45,9 @@ function PipelineRow({ slug, pipeline, canEdit }: { slug: string; pipeline: Pipe
         <Link
           href={`/w/${slug}/pipelines/new?from=${pipeline.id}`}
           className={buttonVariants({ variant: "outline", size: "sm" })}
-          aria-label={`Dupliquer le brief « ${pipeline.title} »`}
+          aria-label={t("duplicateLabel", { title: pipeline.title })}
         >
-          Dupliquer
+          {t("duplicate")}
         </Link>
       )}
     </li>
@@ -63,21 +65,22 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
   const canEdit = hasRole(role, "editor");
   const newPipelineHref = `/w/${workspace.slug}/pipelines/new`;
   const empty = list.total === 0 && !q; // aucun pipeline du tout, pas une recherche vide
+  const t = await getTranslations("Dashboard");
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Pipelines</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="mt-1 text-muted-foreground">{workspace.name}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link href={`/w/${workspace.slug}/channels`} className={buttonVariants({ variant: "outline" })}>
-            Presets de chaîne
+            {t("channels")}
           </Link>
           {canEdit && !empty && (
             <Link href={newPipelineHref} className={buttonVariants()}>
-              Nouveau pipeline
+              {t("new")}
             </Link>
           )}
         </div>
@@ -85,37 +88,37 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
 
       {empty ? (
         <section className="flex flex-col items-center gap-4 rounded-xl border border-dashed px-4 py-16 text-center">
-          <h2 className="text-lg font-semibold">Aucun pipeline pour l&apos;instant</h2>
+          <h2 className="text-lg font-semibold">{t("emptyTitle")}</h2>
           <p className="max-w-md text-muted-foreground">
-            Un brief suffit : le script, les titres, le SEO, la voix off et les miniatures sont générés à partir de lui.
+            {t("emptyText")}
           </p>
           {canEdit ? (
             <Link href={newPipelineHref} className={buttonVariants({ size: "lg" })}>
-              Créer mon premier pipeline
+              {t("emptyCta")}
             </Link>
           ) : (
-            <p className="text-sm text-muted-foreground">Les pipelines créés par les éditeurs de ce workspace apparaîtront ici.</p>
+            <p className="text-sm text-muted-foreground">{t("emptyViewer")}</p>
           )}
         </section>
       ) : (
         <>
           <form role="search" action={`/w/${workspace.slug}/dashboard`} className="mb-4 flex gap-2">
             <label htmlFor="q" className="sr-only">
-              Rechercher un pipeline par sujet
+              {t("searchLabel")}
             </label>
-            <Input id="q" name="q" type="search" defaultValue={q} maxLength={SEARCH_MAX_LENGTH} placeholder="Rechercher par sujet" />
+            <Input id="q" name="q" type="search" defaultValue={q} maxLength={SEARCH_MAX_LENGTH} placeholder={t("searchPlaceholder")} />
             <button type="submit" className={buttonVariants({ variant: "outline" })}>
-              Rechercher
+              {t("search")}
             </button>
           </form>
 
-          <p className="mb-3 text-sm text-muted-foreground">{q ? `${plural(list.total)} pour « ${q} »` : plural(list.total)}</p>
+          <p className="mb-3 text-sm text-muted-foreground">{q ? t("countFor", { count: list.total, q }) : t("count", { count: list.total })}</p>
 
           {list.items.length === 0 ? (
             <div className="rounded-xl border p-6 text-sm">
-              <p>Aucun pipeline ne correspond à cette recherche.</p>
+              <p>{t("noMatch")}</p>
               <Link href={listHref(workspace.slug, "", 1)} className="mt-2 inline-block font-medium underline underline-offset-4">
-                Effacer la recherche
+                {t("clear")}
               </Link>
             </div>
           ) : (
@@ -127,20 +130,20 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
           )}
 
           {list.pageCount > 1 && (
-            <nav aria-label="Pagination" className="mt-6 flex items-center justify-between gap-4 text-sm">
+            <nav aria-label={t("pagination")} className="mt-6 flex items-center justify-between gap-4 text-sm">
               {list.page > 1 ? (
                 <Link href={listHref(workspace.slug, q, list.page - 1)} rel="prev" className={buttonVariants({ variant: "outline", size: "sm" })}>
-                  Précédent
+                  {t("previous")}
                 </Link>
               ) : (
                 <span />
               )}
               <span>
-                Page {list.page} sur {list.pageCount}
+                {t("page", { page: list.page, count: list.pageCount })}
               </span>
               {list.page < list.pageCount ? (
                 <Link href={listHref(workspace.slug, q, list.page + 1)} rel="next" className={buttonVariants({ variant: "outline", size: "sm" })}>
-                  Suivant
+                  {t("next")}
                 </Link>
               ) : (
                 <span />

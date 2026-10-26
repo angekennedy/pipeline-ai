@@ -4,10 +4,10 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { ASSET_TYPES, ScriptSchema } from "@/lib/ai/schemas";
 import { requireUser } from "@/lib/auth/session";
-import { PlanRestrictionError, restrictionMessage } from "@/lib/billing/entitlements";
+import { PlanRestrictionError, type PlanRestriction } from "@/lib/billing/entitlements";
 import { InsufficientCreditsError } from "@/lib/billing/reservation";
 import { PipelineBusyError, requestRegeneration } from "@/lib/jobs/request-regeneration";
-import { applyScriptForm, scriptFieldErrors } from "@/lib/pipeline/script-form";
+import { applyScriptForm, scriptFieldErrors, type ScriptErrorField } from "@/lib/pipeline/script-form";
 import { AssetValidationError, editAsset, restoreVersion } from "@/lib/pipeline/versions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
@@ -19,7 +19,7 @@ import { findMembership, hasRole } from "@/lib/workspaces/access";
 // directement), puis écriture en service role par les fonctions du domaine.
 
 const TERMINAL = new Set(["completed", "partial", "failed", "canceled"]);
-const BUSY = "Le pipeline est encore en cours : attendez la fin de la génération.";
+const BUSY = "busy" as const;
 
 async function editorOf(formData: FormData) {
   const slug = String(formData.get("workspaceSlug") ?? "");
@@ -39,7 +39,8 @@ async function editorOf(formData: FormData) {
   return { user, workspaceId: membership.workspace.id, pipelineId, admin, terminal: TERMINAL.has(pipeline.status) };
 }
 
-export type ScriptEditState = { fieldErrors: Record<string, string>; error?: string; saved?: boolean };
+// `error` : clé du message affiché par l'éditeur (ScriptEditor.errors).
+export type ScriptEditState = { fieldErrors: Record<string, ScriptErrorField>; error?: "busy" | "noScript" | "fix"; saved?: boolean };
 
 // Nouvelle version `user_edit` du script, gratuite. Les dérivés deviennent obsolètes et se
 // régénèrent à partir d'elle.
@@ -48,12 +49,12 @@ export async function saveScript(_previous: ScriptEditState, formData: FormData)
   if (!terminal) return { fieldErrors: {}, error: BUSY };
   const store = new SupabasePipelineStore(admin);
   const current = await store.getCurrentVersion(pipelineId, "script");
-  if (!current) return { fieldErrors: {}, error: "Ce pipeline n'a pas encore de script à modifier." };
+  if (!current) return { fieldErrors: {}, error: "noScript" };
 
   try {
     await editAsset(pipelineId, "script", applyScriptForm(ScriptSchema.parse(current.content), formData), { store, userId: user.id });
   } catch (error) {
-    if (error instanceof AssetValidationError) return { fieldErrors: scriptFieldErrors(error.issues), error: "Corrigez les champs signalés." };
+    if (error instanceof AssetValidationError) return { fieldErrors: scriptFieldErrors(error.issues), error: "fix" };
     throw error;
   }
   refresh();
@@ -63,14 +64,16 @@ export async function saveScript(_previous: ScriptEditState, formData: FormData)
 // Restaurer crée une copie de l'ancienne version : l'historique reste linéaire.
 export async function restoreAssetVersion(formData: FormData): Promise<void> {
   const { user, pipelineId, admin, terminal } = await editorOf(formData);
-  if (!terminal) throw new Error(BUSY);
+  if (!terminal) throw new Error("Pipeline encore en cours");
   const type = z.enum(ASSET_TYPES).parse(formData.get("assetType"));
   await restoreVersion(pipelineId, type, z.uuid().parse(formData.get("versionId")), { store: new SupabasePipelineStore(admin), userId: user.id });
   refresh();
 }
 
+// Refus traduits par le bouton : restriction du plan, pipeline encore en cours.
 export type RegenerateState = {
-  error?: string;
+  restriction?: PlanRestriction;
+  busy?: true;
   insufficient?: { required: number; available: number };
   requested?: boolean;
 };
@@ -85,8 +88,8 @@ export async function regenerateAssets(_previous: RegenerateState, formData: For
     await requestRegeneration(admin, { workspaceId, userId: user.id, pipelineId, types, nonce, feedback: feedback?.slice(0, 1000) });
   } catch (error) {
     if (error instanceof InsufficientCreditsError) return { insufficient: { required: error.required, available: error.available } };
-    if (error instanceof PlanRestrictionError) return { error: restrictionMessage(error.restriction) };
-    if (error instanceof PipelineBusyError) return { error: error.message };
+    if (error instanceof PlanRestrictionError) return { restriction: error.restriction };
+    if (error instanceof PipelineBusyError) return { busy: true };
     throw error;
   }
   refresh(); // solde de l'en-tête et état des assets

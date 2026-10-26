@@ -9,17 +9,17 @@ import { InsufficientCreditsError, createPipelineWithReservation } from "@/lib/b
 import { getChannel } from "@/lib/channels/store";
 import { inngest } from "@/lib/jobs/client";
 import { pipelineRequested } from "@/lib/jobs/events";
-import { BRIEF_FIELD_MESSAGES, parseBriefForm, type BriefFormField, type BriefFormValues } from "@/lib/pipeline/brief-form";
+import { parseBriefForm, type BriefFieldErrors, type BriefFormValues } from "@/lib/pipeline/brief-form";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
 
 export type CreatePipelineState = {
-  fieldErrors: Partial<Record<BriefFormField, string>>;
+  fieldErrors: BriefFieldErrors; // messages affichés par le formulaire (BriefForm.errors)
   values: BriefFormValues; // saisie renvoyée pour réafficher le formulaire
   restriction?: PlanRestriction; // refusé par le plan (403) : message explicite et lien vers les tarifs
   insufficient?: { required: number; available: number }; // ouvre le modal « crédits insuffisants »
-  launchError?: string; // pipeline créé mais non lancé : réservation libérée
+  launchError?: true; // pipeline créé mais non lancé : réservation libérée
 };
 
 const KeySchema = z.uuid();
@@ -43,7 +43,7 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   // modifier ensuite ne change pas les pipelines déjà créés.
   const { channelId } = result.brief;
   const channel = channelId ? await getChannel(await createClient(), membership.workspace.id, channelId) : null;
-  if (channelId && !channel) return { fieldErrors: { channelId: BRIEF_FIELD_MESSAGES.channelId }, values: result.values };
+  if (channelId && !channel) return { fieldErrors: { channelId: true }, values: result.values };
 
   const admin = createAdminClient();
   let pipelineId: string;
@@ -70,7 +70,7 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   } catch {
     // Sans exécution, la réservation resterait bloquée jusqu'au balayage : on la libère tout de suite.
     await admin.rpc("finalize_pipeline", { p_pipeline: pipelineId, p_status: "failed" });
-    return { fieldErrors: {}, values: result.values, launchError: "Le lancement a échoué : aucun crédit n'a été débité. Réessayez dans un instant." };
+    return { fieldErrors: {}, values: result.values, launchError: true };
   }
   refresh(); // le solde de l'en-tête (layout racine, conservé par le routeur) suit la réservation
   redirect(`/w/${slug}/pipelines/${pipelineId}`);

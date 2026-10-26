@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BRIEF_FIELD_MESSAGES, briefToFormValues, parseBriefForm } from "@/lib/pipeline/brief-form";
+import { briefToFormValues, parseBriefForm } from "@/lib/pipeline/brief-form";
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -52,9 +52,9 @@ describe("parseBriefForm", () => {
     expect(result).toEqual({
       ok: false,
       fieldErrors: {
-        niche: BRIEF_FIELD_MESSAGES.niche,
-        durationMinutes: BRIEF_FIELD_MESSAGES.durationMinutes,
-        language: BRIEF_FIELD_MESSAGES.language,
+        niche: true,
+        durationMinutes: true,
+        language: true,
       },
       values: { ...valid, niche: "H", durationMinutes: "90", language: "jp" },
     });
@@ -82,7 +82,7 @@ describe("parseBriefForm", () => {
     expect(parseBriefForm(form({ ...valid, channelId }))).toMatchObject({ ok: true, brief: { channelId } });
     const none = parseBriefForm(form({ ...valid, channelId: "" }));
     expect(none.ok && none.brief.channelId).toBeUndefined();
-    expect(parseBriefForm(form({ ...valid, channelId: "pas-un-uuid" }))).toMatchObject({ ok: false, fieldErrors: { channelId: BRIEF_FIELD_MESSAGES.channelId } });
+    expect(parseBriefForm(form({ ...valid, channelId: "pas-un-uuid" }))).toMatchObject({ ok: false, fieldErrors: { channelId: true } });
   });
 
   it("relit sans perte un brief remis en formulaire (duplication)", () => {

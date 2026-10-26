@@ -18,29 +18,19 @@ export const BRIEF_FORM_FIELDS = [
 ] as const;
 export type BriefFormField = (typeof BRIEF_FORM_FIELDS)[number];
 
-// Un message par champ, compréhensible sans connaître les règles du schéma.
-export const BRIEF_FIELD_MESSAGES: Record<BriefFormField, string> = {
-  niche: "Indiquez la niche de la chaîne, en 2 à 80 caractères.",
-  topic: "Décrivez le sujet de la vidéo, en 5 à 300 caractères.",
-  language: "Choisissez une langue dans la liste.",
-  tone: "Choisissez un ton dans la liste.",
-  style: "Choisissez un style dans la liste.",
-  durationMinutes: "La durée est un nombre entier de minutes, de 1 à 60.",
-  targetAudience: "Décrivez le public en 200 caractères au plus.",
-  extraNotes: "Les consignes tiennent en 2 000 caractères au plus.",
-  tier: "Choisissez la formule Standard ou Premium.",
-  channelId: "Ce preset n'existe plus. Choisissez-en un autre, ou aucun.",
-};
 
 const BriefFormSchema = BriefSchema.extend({
   tier: z.enum(["standard", "premium"]),
 });
 
 export type BriefFormValues = Partial<Record<BriefFormField, string>>;
+// Champs en erreur ; le formulaire affiche le message de chacun (BriefForm.errors), compréhensible sans
+// connaître les règles du schéma.
+export type BriefFieldErrors = Partial<Record<BriefFormField, true>>;
 
 export type BriefFormResult =
   | { ok: true; brief: Brief; tier: ModelTier; values: BriefFormValues }
-  | { ok: false; fieldErrors: Partial<Record<BriefFormField, string>>; values: BriefFormValues };
+  | { ok: false; fieldErrors: BriefFieldErrors; values: BriefFormValues };
 
 const text = (data: FormData, field: BriefFormField) => {
   const value = data.get(field);
@@ -71,10 +61,10 @@ export function parseBriefForm(data: FormData): BriefFormResult {
     const { tier, ...brief } = result.data;
     return { ok: true, brief, tier, values };
   }
-  const fieldErrors: Partial<Record<BriefFormField, string>> = {};
+  const fieldErrors: BriefFieldErrors = {};
   for (const issue of result.error.issues) {
     const field = issue.path[0] as BriefFormField;
-    fieldErrors[field] = BRIEF_FIELD_MESSAGES[field];
+    fieldErrors[field] = true;
   }
   return { ok: false, fieldErrors, values };
 }

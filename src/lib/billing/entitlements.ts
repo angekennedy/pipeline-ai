@@ -1,3 +1,4 @@
+import type { Translator } from "@/i18n/types";
 import type { Brief } from "@/lib/ai/schemas";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import { PLANS, PLAN_KEYS, isPlanKey, type PlanKey } from "./plans";
@@ -15,7 +16,7 @@ export class PlanRestrictionError extends Error {
   readonly code = "PLAN_RESTRICTED";
   readonly status = 403;
   constructor(readonly restriction: PlanRestriction) {
-    super(restrictionMessage(restriction));
+    super(`Restriction du plan ${restriction.plan} : ${restriction.reason}`);
     this.name = "PlanRestrictionError";
   }
 }
@@ -29,17 +30,18 @@ export function restrictionFromDetails(details: string): PlanRestriction {
 // Premier plan, dans l'ordre du catalogue, qui lève la restriction.
 const upgradeFor = (test: (plan: (typeof PLANS)[PlanKey]) => boolean) => PLAN_KEYS.map((key) => PLANS[key]).find(test)?.name;
 
-export function restrictionMessage(restriction: PlanRestriction): string {
+// Message affiché, dans la langue de l'interface (Restriction) : ce que le plan interdit et quoi faire.
+export function restrictionMessage(restriction: PlanRestriction, t: Translator<"Restriction">): string {
   const plan = PLANS[restriction.plan].name;
   switch (restriction.reason) {
     case "subscription_past_due":
-      return "Le dernier paiement de votre abonnement a échoué : la création de pipelines est suspendue. Vos pipelines restent consultables. Mettez à jour votre moyen de paiement pour la rétablir.";
+      return t("subscription_past_due");
     case "duration":
-      return `Le plan ${plan} limite les vidéos à ${restriction.limit} min. Réduisez la durée, ou passez au plan ${upgradeFor((p) => p.maxDurationMinutes > restriction.limit)} pour aller jusqu'à 60 min.`;
+      return t("duration", { plan, limit: restriction.limit, upgrade: upgradeFor((p) => p.maxDurationMinutes > restriction.limit) ?? "" });
     case "premium":
-      return `Le script Premium n'est pas inclus dans le plan ${plan}. Choisissez la formule Standard, ou passez au plan ${upgradeFor((p) => p.premium)}.`;
+      return t("premium", { plan, upgrade: upgradeFor((p) => p.premium) ?? "" });
     case "channel_presets":
-      return `Le plan ${plan} est limité à ${restriction.limit} ${restriction.limit > 1 ? "presets de chaîne" : "preset de chaîne"}. Supprimez-en un, ou passez à un plan supérieur.`;
+      return t("channel_presets", { plan, limit: restriction.limit });
   }
 }
 

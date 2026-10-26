@@ -1,11 +1,11 @@
 import { cn } from "cn";
+import { useFormatter, useTranslations } from "next-intl";
 import type { ThumbnailConcept } from "@/lib/ai/schemas";
 import type { CounterStatus } from "@/lib/pipeline/youtube-limits";
 
 // Aperçus « comme sur YouTube » (tâche 4.3) : compteurs de caractères des champs de YouTube Studio et
 // miniature dans le fil mobile, en CSS seulement (aucune image générée).
 
-const integer = new Intl.NumberFormat("fr-FR");
 
 const STATUS_CLASS: Record<CounterStatus, string> = {
   ok: "text-muted-foreground",
@@ -13,17 +13,18 @@ const STATUS_CLASS: Record<CounterStatus, string> = {
   over: "text-destructive",
 };
 
-const STATUS_HINT: Record<CounterStatus, string> = { ok: "", warn: " (tronqué à l'affichage)", over: " (au-delà de la limite YouTube)" };
 
 export function CharCounter({ count, max, status, label }: { count: number; max: number; status: CounterStatus; label: string }) {
+  const t = useTranslations("Preview");
+  const format = useFormatter();
   return (
     <span className={cn("text-xs tabular-nums", STATUS_CLASS[status])}>
       <span aria-hidden="true">
-        {integer.format(count)} / {integer.format(max)}
+        {format.number(count)} / {format.number(max)}
       </span>
       <span className="sr-only">
-        {label} : {integer.format(count)} caractères sur {integer.format(max)}
-        {STATUS_HINT[status]}
+        {t("counter", { label, count, max })}
+        {status !== "ok" && t(status)}
       </span>
     </span>
   );
@@ -59,6 +60,7 @@ export function ThumbnailPreview({
   durationMinutes: number;
   size: "feed" | "suggested";
 }) {
+  const channel = useTranslations("Preview")("channel");
   const { text, placement, colorHex, strokeHex, fontStyle } = concept.textOverlay;
   const feed = size === "feed";
   return (
@@ -90,7 +92,7 @@ export function ThumbnailPreview({
           {feed && <span aria-hidden="true" className="mt-0.5 size-8 shrink-0 rounded-full bg-muted" />}
           <span className="grid gap-0.5">
             <span className={cn("line-clamp-2 font-medium", feed ? "text-sm" : "text-xs")}>{title}</span>
-            <span className="text-xs text-muted-foreground">Votre chaîne · aperçu</span>
+            <span className="text-xs text-muted-foreground">{channel}</span>
           </span>
         </figcaption>
       )}

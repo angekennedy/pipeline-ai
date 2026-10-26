@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { restrictionFr } from "../../fixtures/i18n";
 import { PlanRestrictionError, pipelineRestriction, restrictionMessage } from "@/lib/billing/entitlements";
 
 const minutes = (durationMinutes: number) => ({ durationMinutes });
@@ -27,18 +28,18 @@ describe("pipelineRestriction", () => {
 
 describe("messages de refus", () => {
   it("dit ce qui bloque et comment le lever", () => {
-    expect(restrictionMessage({ reason: "premium", plan: "creator" })).toBe(
+    expect(restrictionMessage({ reason: "premium", plan: "creator" }, restrictionFr)).toBe(
       "Le script Premium n'est pas inclus dans le plan Creator. Choisissez la formule Standard, ou passez au plan Studio.",
     );
-    expect(restrictionMessage({ reason: "channel_presets", plan: "free", limit: 1 })).toBe(
+    expect(restrictionMessage({ reason: "channel_presets", plan: "free", limit: 1 }, restrictionFr)).toBe(
       "Le plan Free est limité à 1 preset de chaîne. Supprimez-en un, ou passez à un plan supérieur.",
     );
-    expect(restrictionMessage({ reason: "subscription_past_due", plan: "pro" })).toMatch(/paiement .* a échoué.*restent consultables/);
+    expect(restrictionMessage({ reason: "subscription_past_due", plan: "pro" }, restrictionFr)).toMatch(/paiement .* a échoué.*restent consultables/);
   });
 
-  it("porte le statut 403 et le code PLAN_RESTRICTED", () => {
+  it("porte le statut 403 et le code PLAN_RESTRICTED, avec un message technique", () => {
     const error = new PlanRestrictionError({ reason: "duration", plan: "free", limit: 10 });
     expect(error).toMatchObject({ status: 403, code: "PLAN_RESTRICTED", name: "PlanRestrictionError" });
-    expect(error.message).toBe(restrictionMessage(error.restriction));
+    expect(error.message).toBe("Restriction du plan free : duration");
   });
 });

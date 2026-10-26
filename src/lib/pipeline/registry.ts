@@ -62,6 +62,7 @@ const capped = (n: number) => Math.min(MAX_OUTPUT_TOKENS, n);
 const unchanged = <T>(content: T) => content;
 const light = () => "light" as const;
 
+// i18n-ignore : message de réparation adressé au modèle, jamais affiché.
 const missingScene = (count: number) => `Scène inexistante (le script en compte ${count})`;
 
 // Règles qui dépendent du pipeline, partagées par le contrat stocké et la sortie du modèle.

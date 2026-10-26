@@ -108,14 +108,14 @@ describe("deleteAccountAction", () => {
 
   it("ne supprime rien sans la bonne adresse e-mail", async () => {
     for (const confirmation of ["", "autre@test.local", "SUPPRIMER"]) {
-      expect(await deleteAccountAction({}, form({ confirmation }))).toEqual({ error: "Saisissez exactement votre adresse e-mail pour confirmer." });
+      expect(await deleteAccountAction({}, form({ confirmation }))).toEqual({ error: "confirmation" });
     }
     expect(deleteAccount).not.toHaveBeenCalled();
   });
 
   it("affiche le refus de la suppression, sans déconnecter", async () => {
     deleteAccount.mockRejectedValue(new AccountDeletionBlockedError({ reason: "workspace_shared", workspaces: "Équipe" }));
-    expect(await deleteAccountAction({}, form({ confirmation: "ada@test.local" }))).toEqual({ error: expect.stringContaining("seul propriétaire de Équipe") });
+    expect(await deleteAccountAction({}, form({ confirmation: "ada@test.local" }))).toEqual({ error: "workspaceShared", workspaces: "Équipe" });
     expect(signOut).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
   });

@@ -13,16 +13,6 @@ import type { AssetView, AssetViewStatus, PipelineAssets, PipelineView } from ".
 
 const TERMINAL: ReadonlySet<PipelineStatus> = new Set(["completed", "partial", "failed", "canceled"]);
 
-// Message affiché pour un asset en échec. Les codes connus ont un texte prévu ; le message technique
-// (fournisseur, erreur interne) reste dans `generations` et dans Sentry.
-const FAILURE_MESSAGES: Record<string, string> = {
-  CONTENT_REFUSED: "Le modèle a refusé de générer cet asset. Reformulez le brief puis régénérez-le.",
-  SCHEMA_INVALID: "La réponse du modèle était incomplète, même après correction. Régénérez cet asset.",
-  MAX_TOKENS: "La réponse a dépassé la longueur maximale. Réduisez la durée ou régénérez cet asset.",
-  PROVIDER_ERROR: "Le service de génération est indisponible ou surchargé. Réessayez dans quelques minutes.",
-  DEPENDENCY_MISSING: "Un asset dont celui-ci dépend n'a pas abouti.",
-};
-const GENERIC_FAILURE = "Une erreur inattendue est survenue. Régénérez cet asset.";
 
 export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId: string, pipelineId: string): Promise<PipelineView | null> {
   const pipeline = check(
@@ -97,10 +87,9 @@ function assetStatus(stored: string | undefined, hasVersion: boolean, pipelineDo
   }
 }
 
-function failureView(code: string | null) {
-  const known = code ?? "INTERNAL";
-  return { code: known, message: FAILURE_MESSAGES[known] ?? GENERIC_FAILURE };
-}
+// Code de l'échec, affiché par un message prévu (Failures) ; le message technique (fournisseur, erreur
+// interne) reste dans `generations` et dans Sentry.
+const failureView = (code: string | null) => ({ code: code ?? "INTERNAL" });
 
 type Result<T> = { data: T; error: { message: string; code?: string } | null };
 function check<T>({ data, error }: Result<T>, what: string): T {

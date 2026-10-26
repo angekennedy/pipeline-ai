@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createContext, useActionState, useContext, useEffect, useState } from "react";
 import { regenerateAssets, restoreAssetVersion, type RegenerateState } from "@/app/(app)/w/[workspaceSlug]/pipelines/[pipelineId]/actions";
 import type { AssetType } from "@/lib/ai/schemas";
-import { formatCredits } from "@/lib/billing/plans";
+import { restrictionMessage } from "@/lib/billing/entitlements";
 import { InsufficientCreditsDialog } from "@/components/billing/insufficient-credits-dialog";
 import { Button } from "@/components/ui/button";
 
@@ -14,8 +15,6 @@ export type PipelineActionsValue = { workspaceSlug: string; pipelineId: string }
 const PipelineActionsContext = createContext<PipelineActionsValue | null>(null);
 export const PipelineActionsProvider = PipelineActionsContext.Provider;
 export const usePipelineActions = () => useContext(PipelineActionsContext);
-
-const UNAVAILABLE = "Réservé aux éditeurs, sur un pipeline terminé";
 
 function Hidden({ actions }: { actions: PipelineActionsValue }) {
   return (
@@ -33,7 +32,7 @@ const nonce = () => crypto.randomUUID();
 export function RegenerateButton({
   types,
   credits,
-  label = "Régénérer",
+  label,
   variant = "outline",
 }: {
   types: AssetType[];
@@ -41,6 +40,9 @@ export function RegenerateButton({
   label?: string;
   variant?: "default" | "outline";
 }) {
+  const t = useTranslations("PipelineActions");
+  const common = useTranslations("Common");
+  const restriction = useTranslations("Restriction");
   const actions = usePipelineActions();
   const [state, action, pending] = useActionState<RegenerateState, FormData>(regenerateAssets, {});
   const [key, setKey] = useState(nonce);
@@ -52,10 +54,10 @@ export function RegenerateButton({
     setDialogOpen(Boolean(state.insufficient));
   }
 
-  const text = `${pending ? "Lancement…" : label} (${formatCredits(credits)})`;
+  const text = t("withCost", { label: pending ? t("launching") : (label ?? t("regenerate")), credits: common("credits", { count: credits }) });
   if (!actions) {
     return (
-      <Button type="button" variant={variant} size="sm" disabled title={UNAVAILABLE}>
+      <Button type="button" variant={variant} size="sm" disabled title={t("unavailable")}>
         {text}
       </Button>
     );
@@ -73,13 +75,13 @@ export function RegenerateButton({
       {state.requested && (
         // La génération démarre dans quelques secondes : la page est relue jusqu'à ce qu'elle apparaisse.
         <p role="status" className="text-sm text-muted-foreground">
-          Régénération lancée : la page se met à jour.
+          {t("launched")}
           <AutoRefresh active />
         </p>
       )}
-      {state.error && (
+      {(state.restriction || state.busy) && (
         <p role="alert" className="text-sm text-destructive">
-          {state.error}
+          {state.restriction ? restrictionMessage(state.restriction, restriction) : t("busy")}
         </p>
       )}
       {state.insufficient && <InsufficientCreditsDialog open={dialogOpen} onOpenChange={setDialogOpen} {...state.insufficient} />}
@@ -88,11 +90,12 @@ export function RegenerateButton({
 }
 
 export function RestoreButton({ type, versionId }: { type: AssetType; versionId: string }) {
+  const t = useTranslations("PipelineActions");
   const actions = usePipelineActions();
   if (!actions) {
     return (
-      <Button type="button" variant="ghost" size="xs" disabled title={UNAVAILABLE}>
-        Restaurer
+      <Button type="button" variant="ghost" size="xs" disabled title={t("unavailable")}>
+        {t("restore")}
       </Button>
     );
   }
@@ -102,7 +105,7 @@ export function RestoreButton({ type, versionId }: { type: AssetType; versionId:
       <input type="hidden" name="assetType" value={type} />
       <input type="hidden" name="versionId" value={versionId} />
       <Button type="submit" variant="ghost" size="xs">
-        Restaurer
+        {t("restore")}
       </Button>
     </form>
   );

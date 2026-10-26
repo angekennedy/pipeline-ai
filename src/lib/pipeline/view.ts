@@ -13,7 +13,7 @@ export type VersionSummary = { id: string; version: number; source: VersionSourc
 export type AssetView<K extends AssetType> = {
   status: AssetViewStatus;
   content: AssetContent[K] | null; // renseigné quand status = ready
-  error: { code: string; message: string } | null; // renseigné quand status = failed
+  error: { code: string } | null; // renseigné quand status = failed ; message traduit à l'affichage (Failures)
   stale: boolean; // produit à partir d'une version précédente d'une dépendance (staleness.ts)
   versions: VersionSummary[]; // historique, la plus récente (courante) d'abord
 };

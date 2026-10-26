@@ -1,20 +1,18 @@
 import { strToU8, zipSync } from "fflate";
+import type { Translator } from "@/i18n/types";
 import type { PipelineView } from "@/lib/pipeline/view";
 import { scriptToSrt } from "./srt";
 import { scriptSpokenText, voiceoverSpokenText } from "./spoken";
 import { scriptToText, seoToText, tagsToText, thumbnailsToText, titlesToText, voiceoverToText } from "./text";
 
 // Exports d'un pipeline (tâche 4.1) : Markdown, JSON, voix off pour ElevenLabs, sous-titres SRT, et une
-// archive ZIP qui les réunit. Seules les versions courantes des assets prêts sont exportées.
+// archive ZIP qui les réunit. Seules les versions courantes des assets prêts sont exportées. Intitulés
+// et rappel dans la langue de l'interface (`t`), contenu dans celle de la vidéo.
 
 // Rappel joint à chaque export (ARCHITECTURE, vérification produit) : YouTube demande de déclarer un
 // contenu réaliste modifié ou synthétique, et sa politique vise les contenus répétitifs produits en masse.
-export const AI_DISCLOSURE = [
-  "Contenu généré avec l'aide de l'IA (Pipeline AI).",
-  "- Avant la mise en ligne, vérifiez les faits signalés dans le script.",
-  "- Si la vidéo montre ou fait entendre un contenu réaliste qui pourrait passer pour réel (voix de synthèse imitant une personne, images générées de lieux ou d'événements réels), déclarez-le dans YouTube Studio : Détails, « Contenu modifié ou synthétique ».",
-  "- Apportez votre valeur propre (angle, montage, commentaire) : YouTube ne monétise pas les contenus répétitifs ou produits en masse.",
-].join("\n");
+export const aiDisclosure = (t: Translator) =>
+  [t("Export.disclosure.title"), t("Export.disclosure.facts"), t("Export.disclosure.synthetic"), t("Export.disclosure.originality")].join("\n");
 
 export type ExportFormat = "md" | "json" | "txt" | "srt" | "zip";
 export const EXPORT_FORMATS: readonly ExportFormat[] = ["md", "json", "txt", "srt", "zip"];
@@ -36,7 +34,7 @@ export function exportBaseName(view: PipelineView): string {
   return `pipeline-${slug || view.id.slice(0, 8)}`;
 }
 
-export function pipelineToMarkdown(view: PipelineView): string {
+export function pipelineToMarkdown(view: PipelineView, t: Translator): string {
   const script = ready(view, "script");
   const titles = ready(view, "titles");
   const seo = ready(view, "seo");
@@ -46,27 +44,35 @@ export function pipelineToMarkdown(view: PipelineView): string {
   const section = (title: string, body: string | null) => (body ? `## ${title}\n\n${body}` : null);
   return [
     `# ${brief.topic}`,
-    [`- Niche : ${brief.niche}`, `- Durée cible : ${brief.durationMinutes} min`, `- Langue : ${brief.language}`, view.channelName && `- Preset : ${view.channelName}`]
+    [
+      t("Export.meta.niche", { value: brief.niche }),
+      t("Export.meta.duration", { minutes: brief.durationMinutes }),
+      t("Export.meta.language", { value: t(`Labels.language.${brief.language}`) }),
+      view.channelName && t("Export.meta.preset", { value: view.channelName }),
+    ]
       .filter(Boolean)
       .join("\n"),
-    AI_DISCLOSURE.split("\n").map((line) => `> ${line}`).join("\n"),
-    section("Titres", titles && titlesToText(titles)),
-    section("Script", script && scriptToText(script)),
-    section("Description YouTube", seo && seoToText(seo)),
-    section("Tags", seo && tagsToText(seo)),
-    section("Voix off", voiceover && voiceoverToText(voiceover)),
-    section("Miniatures", thumbnails && thumbnailsToText(thumbnails, titles)),
+    aiDisclosure(t)
+      .split("\n")
+      .map((line) => `> ${line}`)
+      .join("\n"),
+    section(t("Export.section.titles"), titles && titlesToText(titles, t)),
+    section(t("Export.section.script"), script && scriptToText(script, t)),
+    section(t("Export.section.description"), seo && seoToText(seo)),
+    section(t("Export.section.tags"), seo && tagsToText(seo)),
+    section(t("Export.section.voiceover"), voiceover && voiceoverToText(voiceover, t)),
+    section(t("Export.section.thumbnails"), thumbnails && thumbnailsToText(thumbnails, titles, t)),
   ]
     .filter(Boolean)
     .join("\n\n")
     .concat("\n");
 }
 
-export function pipelineToJson(view: PipelineView, exportedAt = new Date()): string {
+export function pipelineToJson(view: PipelineView, t: Translator, exportedAt = new Date()): string {
   return `${JSON.stringify(
     {
       exportedAt: exportedAt.toISOString(),
-      aiDisclosure: AI_DISCLOSURE,
+      aiDisclosure: aiDisclosure(t),
       pipeline: { id: view.id, status: view.status, tier: view.tier, createdAt: view.createdAt, brief: view.brief, channel: view.channelName ?? null },
       assets: {
         script: ready(view, "script"),
@@ -97,7 +103,7 @@ export function pipelineToSrt(view: PipelineView): string | null {
 const TEXT = "text/plain; charset=utf-8";
 
 // Contenu de l'archive : un fichier par usage, et un LISEZ-MOI avec le rappel de déclaration.
-export function exportBundle(view: PipelineView, exportedAt = new Date()): ExportFile[] {
+export function exportBundle(view: PipelineView, t: Translator, exportedAt = new Date()): ExportFile[] {
   const script = ready(view, "script");
   const titles = ready(view, "titles");
   const seo = ready(view, "seo");
@@ -106,26 +112,26 @@ export function exportBundle(view: PipelineView, exportedAt = new Date()): Expor
   const speech = pipelineToSpeech(view);
   const srt = pipelineToSrt(view);
   const files: Array<ExportFile | null> = [
-    { name: "pipeline.md", type: "text/markdown; charset=utf-8", body: pipelineToMarkdown(view) },
-    { name: "pipeline.json", type: "application/json", body: pipelineToJson(view, exportedAt) },
+    { name: "pipeline.md", type: "text/markdown; charset=utf-8", body: pipelineToMarkdown(view, t) },
+    { name: "pipeline.json", type: "application/json", body: pipelineToJson(view, t, exportedAt) },
     speech ? { name: "voix-off-elevenlabs.txt", type: TEXT, body: speech } : null,
     srt ? { name: "sous-titres.srt", type: "application/x-subrip", body: srt } : null,
-    script ? { name: "script.txt", type: TEXT, body: `${scriptToText(script)}\n` } : null,
-    titles ? { name: "titres.txt", type: TEXT, body: `${titlesToText(titles)}\n` } : null,
+    script ? { name: "script.txt", type: TEXT, body: `${scriptToText(script, t)}\n` } : null,
+    titles ? { name: "titres.txt", type: TEXT, body: `${titlesToText(titles, t)}\n` } : null,
     seo ? { name: "description-youtube.txt", type: TEXT, body: `${seoToText(seo)}\n` } : null,
     seo ? { name: "tags.txt", type: TEXT, body: `${tagsToText(seo)}\n` } : null,
-    voiceover ? { name: "voix-off-indications.txt", type: TEXT, body: `${voiceoverToText(voiceover)}\n` } : null,
-    thumbnails ? { name: "miniatures.txt", type: TEXT, body: `${thumbnailsToText(thumbnails, titles)}\n` } : null,
+    voiceover ? { name: "voix-off-indications.txt", type: TEXT, body: `${voiceoverToText(voiceover, t)}\n` } : null,
+    thumbnails ? { name: "miniatures.txt", type: TEXT, body: `${thumbnailsToText(thumbnails, titles, t)}\n` } : null,
   ];
   const present = files.filter((file): file is ExportFile => file !== null);
-  const readme = [`${view.brief.topic}`, "", AI_DISCLOSURE, "", "Fichiers :", ...present.map((file) => `- ${file.name}`), ""].join("\n");
+  const readme = [view.brief.topic, "", aiDisclosure(t), "", t("Export.files"), ...present.map((file) => `- ${file.name}`), ""].join("\n");
   return [{ name: "LISEZ-MOI.txt", type: TEXT, body: readme }, ...present];
 }
 
-export function pipelineToZip(view: PipelineView, exportedAt = new Date()): Uint8Array {
+export function pipelineToZip(view: PipelineView, t: Translator, exportedAt = new Date()): Uint8Array {
   const mtime = exportedAt;
   return zipSync(
-    Object.fromEntries(exportBundle(view, exportedAt).map((file) => [file.name, [typeof file.body === "string" ? strToU8(file.body) : file.body, { mtime }]])),
+    Object.fromEntries(exportBundle(view, t, exportedAt).map((file) => [file.name, [typeof file.body === "string" ? strToU8(file.body) : file.body, { mtime }]])),
     { level: 6 },
   );
 }

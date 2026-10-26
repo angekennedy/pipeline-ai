@@ -10,6 +10,7 @@ import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { findMembership } from "@/lib/workspaces/access";
 import { validBrief } from "../fixtures/assets";
+import { tFr } from "../fixtures/i18n";
 import { fakeAnthropic } from "./fake-anthropic";
 import { admin, cleanup, createUser, unwrap, type TestUser } from "./helpers";
 
@@ -64,7 +65,7 @@ describe("appartenance au workspace", () => {
 });
 
 describe("page d'un pipeline", () => {
-  it("relit en base l'état du pipeline de A : assets prêts, en échec avec un message clair, sautés", async () => {
+  it("relit en base l'état du pipeline de A : assets prêts, en échec avec un code d'erreur, sautés", async () => {
     const view = await loadPipelineView(a.client, wsA.id, pipelineA);
     expect(view).toMatchObject({ id: pipelineA, status: "partial", tier: "standard", brief: validBrief, staleCredits: 0 });
     expect(Object.fromEntries(Object.entries(view!.assets).map(([type, asset]) => [type, asset.status]))).toEqual({
@@ -76,7 +77,7 @@ describe("page d'un pipeline", () => {
     });
     expect(view!.assets.script.content?.scenes.length).toBeGreaterThan(0);
     expect(view!.assets.script.versions).toEqual([{ id: expect.any(String), version: 1, source: "ai", createdAt: expect.any(String) }]);
-    expect(view!.assets.titles.error).toEqual({ code: "CONTENT_REFUSED", message: expect.stringMatching(/^Le modèle a refusé/) });
+    expect(view!.assets.titles.error).toEqual({ code: "CONTENT_REFUSED" }); // message : Failures.CONTENT_REFUSED
   });
 
   it("exporte le pipeline relu : SRT valide calé sur le script, voix off sans balise, fichiers des assets prêts", async () => {
@@ -86,7 +87,7 @@ describe("page d'un pipeline", () => {
     expect(cues.length).toBeGreaterThan(0);
     expect(cues.at(-1)!.endSeconds).toBe(total);
     expect(pipelineToSpeech(view)).not.toMatch(/\[pause|<|>/);
-    const names = exportBundle(view).map((file) => file.name);
+    const names = exportBundle(view, tFr).map((file) => file.name);
     expect(names).toContain("voix-off-elevenlabs.txt");
     expect(names).not.toContain("titres.txt"); // titres refusés par le modèle
     expect(names).not.toContain("miniatures.txt"); // sautées

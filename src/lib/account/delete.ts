@@ -12,20 +12,11 @@ export type DeletionBlock =
 
 export class AccountDeletionBlockedError extends Error {
   constructor(readonly block: DeletionBlock) {
-    super(deletionBlockMessage(block));
+    super(`Suppression du compte bloquée : ${block.reason}`); // message affiché : Settings.errors
     this.name = "AccountDeletionBlockedError";
   }
 }
 
-export function deletionBlockMessage(block: DeletionBlock): string {
-  switch (block.reason) {
-    case "workspace_shared":
-      return `Vous êtes le seul propriétaire de ${block.workspaces}, qui a d'autres membres. Transférez-en la propriété ou retirez ses membres avant de supprimer votre compte.`;
-    case "subscription_active":
-    case "billing_unavailable":
-      return "Votre abonnement n'a pas pu être annulé : rien n'a été supprimé. Réessayez dans un instant, ou contactez le support.";
-  }
-}
 
 // Annule immédiatement ces abonnements chez Stripe. Rejette si l'un d'eux n'a pas pu l'être.
 export type SubscriptionCanceler = (subscriptionIds: string[]) => Promise<void>;

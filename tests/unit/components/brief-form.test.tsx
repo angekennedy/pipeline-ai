@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BriefForm } from "@/components/pipeline/brief-form";
 import { creditSummary } from "@/lib/billing/balance";
-import { BRIEF_FIELD_MESSAGES } from "@/lib/pipeline/brief-form";
 
 const credits = creditSummary("free", 30);
 const studio = creditSummary("studio", 5000);
@@ -109,7 +108,7 @@ describe("BriefForm", () => {
   it("affiche les erreurs par champ et garde la saisie", async () => {
     const user = userEvent.setup();
     createPipeline.mockResolvedValue({
-      fieldErrors: { niche: BRIEF_FIELD_MESSAGES.niche },
+      fieldErrors: { niche: true },
       values: { niche: "H", topic: "Les pyramides de Gizeh" },
     });
     render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
@@ -117,7 +116,7 @@ describe("BriefForm", () => {
 
     const niche = await screen.findByLabelText("Niche");
     expect(niche).toHaveAttribute("aria-invalid", "true");
-    expect(niche).toHaveAccessibleDescription(expect.stringContaining(BRIEF_FIELD_MESSAGES.niche));
+    expect(niche).toHaveAccessibleDescription(expect.stringContaining("Indiquez la niche de la chaîne"));
     expect(screen.getByLabelText("Sujet de la vidéo")).toHaveValue("Les pyramides de Gizeh");
     expect(screen.getByText("Corrigez les champs signalés.")).toBeInTheDocument();
   });

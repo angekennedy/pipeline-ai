@@ -230,10 +230,10 @@ const ready = <K extends AssetType>(value: AssetView<K>["content"], versions: Ve
   stale: false,
   versions,
 });
-const failed = <K extends AssetType>(code: string, message: string): AssetView<K> => ({
+const failed = <K extends AssetType>(code: string): AssetView<K> => ({
   status: "failed",
   content: null,
-  error: { code, message },
+  error: { code },
   stale: false,
   versions: [],
 });
@@ -260,7 +260,7 @@ function partialView(): PipelineView {
     status: "partial",
     assets: {
       ...view.assets,
-      seo: failed("CONTENT_REFUSED", "Le modèle a refusé de générer cet asset. Reformulez le brief puis régénérez le SEO."),
+      seo: failed("CONTENT_REFUSED"),
     },
   };
 }
@@ -270,7 +270,7 @@ function failedView(): PipelineView {
     ...emptyPipelineView({ id: "demo-failed", ...base }),
     status: "failed",
     assets: {
-      script: failed("PROVIDER_ERROR", "Le service de génération est surchargé. Les crédits ont été restitués : relancez dans quelques minutes."),
+      script: failed("PROVIDER_ERROR"),
       titles: skipped(),
       seo: skipped(),
       voiceover: skipped(),

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useActionState, useRef, useState } from "react";
 import { createPipeline, type CreatePipelineState } from "@/app/(app)/w/[workspaceSlug]/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
@@ -9,7 +10,6 @@ import { restrictionMessage } from "@/lib/billing/entitlements";
 import { PLANS, PLAN_KEYS } from "@/lib/billing/plans";
 import { briefPrefill, type ChannelOption } from "@/lib/channels/form";
 import type { BriefFormField, BriefFormValues } from "@/lib/pipeline/brief-form";
-import { LANGUAGE_LABELS, STYLE_LABELS, TONE_LABELS } from "@/lib/pipeline/labels";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import { CostEstimate } from "@/components/billing/cost-estimate";
 import { InsufficientCreditsDialog } from "@/components/billing/insufficient-credits-dialog";
@@ -72,7 +72,13 @@ export function BriefForm({
   channels?: ChannelOption[];
 }) {
   const [state, formAction, pending] = useActionState<CreatePipelineState, FormData>(createPipeline, { fieldErrors: {}, values: initialValues });
-  const { fieldErrors: errors, values } = state;
+  const t = useTranslations("BriefForm");
+  const labels = useTranslations("Labels");
+  const restriction = useTranslations("Restriction");
+  const { values } = state;
+  const errors = Object.fromEntries(Object.keys(state.fieldErrors).map((field) => [field, t(`errors.${field as keyof typeof state.fieldErrors}`)])) as Partial<
+    Record<keyof typeof state.fieldErrors, string>
+  >;
   const plan = PLANS[credits.planKey];
   // Premium n'est retenu que si le plan l'inclut : l'option grisée ne serait pas envoyée.
   const tierOf = (input: BriefFormValues): ModelTier => (input.tier === "premium" && plan.premium ? "premium" : "standard");
@@ -110,13 +116,13 @@ export function BriefForm({
       {channels.length > 0 ? (
         <Field
           name="channelId"
-          label="Preset de chaîne"
-          hint="Préremplit la niche, la langue, le ton, le style et le public. La voix et les règles de marque du preset guident la génération."
+          label={t("channel")}
+          hint={t("channelHint")}
           error={errors.channelId}
         >
           {(props) => (
             <select key={values.channelId} {...props} defaultValue={values.channelId ?? ""} onChange={(event) => applyPreset(event.target.value)} className={SELECT_CLASS}>
-              <option value="">Aucun preset</option>
+              <option value="">{t("noChannel")}</option>
               {channels.map((channel) => (
                 <option key={channel.id} value={channel.id}>
                   {channel.name}
@@ -127,20 +133,23 @@ export function BriefForm({
         </Field>
       ) : (
         <p className="text-sm text-muted-foreground">
-          <Link href={`/w/${workspaceSlug}/channels/new`} className="font-medium underline underline-offset-4">
-            Créez un preset de chaîne
-          </Link>{" "}
-          pour préremplir vos briefs et garder le même ton d&apos;une vidéo à l&apos;autre.
+          {t.rich("createChannel", {
+            link: (chunks) => (
+              <Link href={`/w/${workspaceSlug}/channels/new`} className="font-medium underline underline-offset-4">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       )}
       <div className="grid gap-5 md:grid-cols-2">
-        <Field name="niche" label="Niche" hint="Le thème de la chaîne, par exemple Histoire ou Finances personnelles." error={errors.niche}>
+        <Field name="niche" label={t("niche")} hint={t("nicheHint")} error={errors.niche}>
           {(props) => <Input {...props} defaultValue={values.niche} required maxLength={80} />}
         </Field>
         <Field
           name="durationMinutes"
-          label="Durée cible (minutes)"
-          hint={`Jusqu'à ${plan.maxDurationMinutes} min avec le plan ${plan.name}.`}
+          label={t("duration")}
+          hint={t("durationHint", { max: plan.maxDurationMinutes, plan: plan.name })}
           error={errors.durationMinutes}
         >
           {(props) => (
@@ -159,39 +168,39 @@ export function BriefForm({
         </Field>
       </div>
 
-      <Field name="topic" label="Sujet de la vidéo" hint="Une question ou un angle précis donne un meilleur script." error={errors.topic}>
+      <Field name="topic" label={t("topic")} hint={t("topicHint")} error={errors.topic}>
         {(props) => <Textarea {...props} defaultValue={values.topic} required maxLength={300} rows={2} />}
       </Field>
 
       <div className="grid gap-5 md:grid-cols-3">
-        <Field name="language" label="Langue" error={errors.language}>
+        <Field name="language" label={t("language")} error={errors.language}>
           {(props) => (
             <select key={values.language} {...props} defaultValue={values.language ?? "fr"} className={SELECT_CLASS}>
               {LANGUAGES.map((language) => (
                 <option key={language} value={language}>
-                  {LANGUAGE_LABELS[language]}
+                  {labels(`language.${language}`)}
                 </option>
               ))}
             </select>
           )}
         </Field>
-        <Field name="tone" label="Ton" error={errors.tone}>
+        <Field name="tone" label={t("tone")} error={errors.tone}>
           {(props) => (
             <select key={values.tone} {...props} defaultValue={values.tone ?? "educational"} className={SELECT_CLASS}>
               {TONES.map((tone) => (
                 <option key={tone} value={tone}>
-                  {TONE_LABELS[tone]}
+                  {labels(`tone.${tone}`)}
                 </option>
               ))}
             </select>
           )}
         </Field>
-        <Field name="style" label="Style" error={errors.style}>
+        <Field name="style" label={t("style")} error={errors.style}>
           {(props) => (
             <select key={values.style} {...props} defaultValue={values.style ?? "documentary"} className={SELECT_CLASS}>
               {STYLES.map((style) => (
                 <option key={style} value={style}>
-                  {STYLE_LABELS[style]}
+                  {labels(`style.${style}`)}
                 </option>
               ))}
             </select>
@@ -199,24 +208,24 @@ export function BriefForm({
         </Field>
       </div>
 
-      <Field name="targetAudience" label="Public visé (facultatif)" error={errors.targetAudience}>
+      <Field name="targetAudience" label={t("audience")} error={errors.targetAudience}>
         {(props) => <Input {...props} defaultValue={values.targetAudience} maxLength={200} />}
       </Field>
 
       <Field
         name="extraNotes"
-        label="Consignes supplémentaires (facultatif)"
-        hint="Points à aborder ou à éviter, sources à privilégier."
+        label={t("notes")}
+        hint={t("notesHint")}
         error={errors.extraNotes}
       >
         {(props) => <Textarea {...props} defaultValue={values.extraNotes} maxLength={2000} rows={3} />}
       </Field>
 
       <fieldset className="grid gap-2">
-        <legend className="mb-1 text-sm font-medium">Formule</legend>
+        <legend className="mb-1 text-sm font-medium">{t("tier")}</legend>
         <label className="flex items-center gap-2 text-sm">
           <input type="radio" name="tier" value="standard" defaultChecked={tierOf(values) === "standard"} onChange={() => setTier("standard")} />
-          Standard : script rédigé par Claude Sonnet
+          {t("standard")}
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -227,23 +236,23 @@ export function BriefForm({
             disabled={!plan.premium}
             onChange={() => setTier("premium")}
           />
-          Premium : script rédigé par Claude Opus, plus de crédits
-          {!plan.premium && <span className="text-muted-foreground">(inclus dans le plan {PREMIUM_PLAN})</span>}
+          {t("premium")}
+          {!plan.premium && <span className="text-muted-foreground">{t("premiumPlan", { plan: PREMIUM_PLAN ?? "" })}</span>}
         </label>
         {errors.tier && <p className="text-sm text-destructive">{errors.tier}</p>}
       </fieldset>
 
       {state.launchError && (
         <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
-          {state.launchError}
+          {t("launchError")}
         </p>
       )}
 
       {state.restriction && (
         <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
-          <p>{restrictionMessage(state.restriction)}</p>
+          <p>{restrictionMessage(state.restriction, restriction)}</p>
           <Link href="/pricing" className="mt-2 inline-block font-medium underline underline-offset-4">
-            Voir les tarifs
+            {restriction("seePricing")}
           </Link>
         </div>
       )}
@@ -252,10 +261,10 @@ export function BriefForm({
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Lancement…" : "Générer le pipeline"}
+          {pending ? t("launching") : t("submit")}
         </Button>
         <p className="text-sm text-muted-foreground" aria-live="polite">
-          {Object.keys(errors).length > 0 ? "Corrigez les champs signalés." : ""}
+          {Object.keys(errors).length > 0 ? t("fix") : ""}
         </p>
       </div>
       {state.insufficient && (

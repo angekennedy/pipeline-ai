@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CircleAlert, CircleCheck, CircleDashed, CircleMinus, LoaderCircle, Pencil } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ASSET_TYPES, type AssetType, type Scene, type Script } from "@/lib/ai/schemas";
 import { assetCredits } from "@/lib/billing/costs";
-import { ASSET_LABELS } from "@/lib/pipeline/labels";
 import type { AssetViewStatus, PipelineView } from "@/lib/pipeline/view";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,13 +20,6 @@ import type { ShortcutAction } from "@/lib/pipeline/shortcuts";
 const EDIT_SCRIPT_EVENT = "pipeline:edit-script";
 import { SceneStream } from "./scene-stream";
 
-export const ASSET_STATUS_LABELS: Record<AssetViewStatus, string> = {
-  pending: "en attente",
-  running: "en cours",
-  ready: "prêt",
-  failed: "échec",
-  skipped: "non généré",
-};
 
 const STATUS_ICONS = {
   pending: CircleDashed,
@@ -54,26 +47,14 @@ export function AssetStatusIcon({ status }: { status: AssetViewStatus }) {
   );
 }
 
-const WAITING_FOR: Record<AssetType, string> = {
-  script: "Le script démarre dès que le pipeline est pris en charge.",
-  titles: "Les titres démarrent dès que le script est prêt.",
-  seo: "Le SEO démarre dès que le script est prêt.",
-  voiceover: "La voix off démarre dès que le script est prêt.",
-  thumbnails: "Les miniatures démarrent dès que les titres sont prêts.",
-};
 
-const SKIPPED_BECAUSE: Record<AssetType, string> = {
-  script: "Le script n'a pas été généré.",
-  titles: "Non généré : le script n'a pas abouti.",
-  seo: "Non généré : le script n'a pas abouti.",
-  voiceover: "Non généré : le script n'a pas abouti.",
-  thumbnails: "Non généré : le script ou les titres n'ont pas abouti.",
-};
 
 function Generating({ type }: { type: AssetType }) {
+  const t = useTranslations("AssetTabs");
+  const labels = useTranslations("Labels");
   return (
     <div role="status" className="grid gap-2">
-      <span className="text-sm text-muted-foreground">Génération : {ASSET_LABELS[type].toLowerCase()}…</span>
+      <span className="text-sm text-muted-foreground">{t("generating", { asset: labels(`assets.${type}`).toLowerCase() })}</span>
       <Skeleton className="h-4 w-2/3" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-1/2" />
@@ -82,18 +63,20 @@ function Generating({ type }: { type: AssetType }) {
 }
 
 function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetType; scenes: Scene[] }) {
+  const t = useTranslations("AssetTabs");
+  const failures = useTranslations("Failures");
   const asset = view.assets[type];
   const regenCredits = assetCredits(view.brief, view.tier)[type]; // une régénération coûte comme la génération
   switch (asset.status) {
     case "pending":
-      return <p className="text-sm text-muted-foreground">{WAITING_FOR[type]}</p>;
+      return <p className="text-sm text-muted-foreground">{t(`waiting.${type}`)}</p>;
     case "skipped":
-      return <p className="text-sm text-muted-foreground">{SKIPPED_BECAUSE[type]}</p>;
+      return <p className="text-sm text-muted-foreground">{t(`skipped.${type}`)}</p>;
     case "failed":
       return (
         <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
-          <p className="font-medium text-destructive">Échec de la génération</p>
-          <p className="mt-1 text-sm">{asset.error?.message ?? "Une erreur inattendue est survenue."}</p>
+          <p className="font-medium text-destructive">{t("failedTitle")}</p>
+          <p className="mt-1 text-sm">{asset.error && failures.has(asset.error.code as "generic") ? failures(asset.error.code as "generic") : failures("generic")}</p>
           {asset.error && <p className="mt-1 font-mono text-xs text-muted-foreground">{asset.error.code}</p>}
           <div className="mt-3">
             <RegenerateButton types={[type]} credits={regenCredits} />
@@ -132,6 +115,7 @@ function ReadyAsset({ view, type }: { view: PipelineView; type: AssetType }) {
 
 // Script prêt : lecture, ou édition dans la page pour un éditeur d'un pipeline réel.
 function ScriptAsset({ script }: { script: Script }) {
+  const t = useTranslations("AssetTabs");
   const actions = usePipelineActions();
   const [editing, setEditing] = useState(false);
   useEffect(() => {
@@ -146,7 +130,7 @@ function ScriptAsset({ script }: { script: Script }) {
       {actions && (
         <Button type="button" variant="outline" size="sm" className="mb-4" onClick={() => setEditing(true)}>
           <Pencil aria-hidden="true" />
-          Modifier le script
+          {t("editScript")}
         </Button>
       )}
       <ScriptPanel script={script} />
@@ -155,6 +139,8 @@ function ScriptAsset({ script }: { script: Script }) {
 }
 
 export function AssetTabs({ view, scenes }: { view: PipelineView; scenes: Scene[] }) {
+  const t = useTranslations("AssetTabs");
+  const labels = useTranslations("Labels");
   const [tab, setTab] = useState<AssetType>("script");
   const [helpOpen, setHelpOpen] = useState(false);
   const onShortcut = useCallback((action: ShortcutAction) => {
@@ -176,11 +162,11 @@ export function AssetTabs({ view, scenes }: { view: PipelineView; scenes: Scene[
           {ASSET_TYPES.map((type) => (
             <TabsTrigger key={type} value={type}>
               <AssetStatusIcon status={view.assets[type].status} />
-              {ASSET_LABELS[type]}
+              {labels(`assets.${type}`)}
               {view.assets[type].stale && <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />}
               <span className="sr-only">
-                ({ASSET_STATUS_LABELS[view.assets[type].status]}
-                {view.assets[type].stale ? ", obsolète" : ""})
+                ({labels(`assetStatus.${view.assets[type].status}`)}
+                {view.assets[type].stale ? `, ${t("stale")}` : ""})
               </span>
             </TabsTrigger>
           ))}

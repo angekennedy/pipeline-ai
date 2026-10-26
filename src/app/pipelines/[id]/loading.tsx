@@ -1,10 +1,12 @@
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
+  const t = useTranslations("PipelineError");
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10" aria-busy="true">
       <span className="sr-only" role="status">
-        Chargement du pipeline…
+        {t("loading")}
       </span>
       <Skeleton className="mb-2 h-7 w-2/3" />
       <Skeleton className="mb-8 h-4 w-1/3" />
