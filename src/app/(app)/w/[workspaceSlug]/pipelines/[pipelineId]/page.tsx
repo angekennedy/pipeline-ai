@@ -41,7 +41,11 @@ export default async function PipelinePage({ params }: PageProps<"/w/[workspaceS
           .filter(Boolean)
           .join(" · ")}
       </p>
-      {TERMINAL.has(view.status) ? <StaticPipeline view={view} /> : <LivePipeline view={view} />}
+      {TERMINAL.has(view.status) ? (
+        <StaticPipeline view={view} actions={hasRole(role, "editor") ? { workspaceSlug: workspace.slug, pipelineId: view.id } : null} />
+      ) : (
+        <LivePipeline view={view} />
+      )}
       {TERMINAL.has(view.status) && view.assets.script.status === "ready" && (
         <div className="mt-6">
           <ExportMenu pipelineId={view.id} />

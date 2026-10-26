@@ -8,6 +8,8 @@ export type JobDeps = {
   store: () => PipelineStore;
   anthropic?: Anthropic; // injecté par les tests ; sinon le client partagé de lib/ai
   publisher?: (pipelineId: string) => PipelineEventPublisher; // Realtime Broadcast du pipeline
+  // Libère les crédits réservés d'une régénération en échec définitif (migration 0012).
+  releaseRegeneration?: (key: string) => Promise<number>;
 };
 
 // Les erreurs marquées `retryable: false` (refus, schéma invalide après réparation, sortie tronquée,

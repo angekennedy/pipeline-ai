@@ -1,9 +1,9 @@
 "use client";
 
-import { CircleAlert, CircleCheck, CircleDashed, CircleMinus, LoaderCircle } from "lucide-react";
-import { ASSET_TYPES, type AssetType, type Scene } from "@/lib/ai/schemas";
+import { CircleAlert, CircleCheck, CircleDashed, CircleMinus, LoaderCircle, Pencil } from "lucide-react";
+import { useState } from "react";
+import { ASSET_TYPES, type AssetType, type Scene, type Script } from "@/lib/ai/schemas";
 import { assetCredits } from "@/lib/billing/costs";
-import { formatCredits } from "@/lib/billing/plans";
 import { ASSET_LABELS } from "@/lib/pipeline/labels";
 import type { AssetViewStatus, PipelineView } from "@/lib/pipeline/view";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StaleNotice, VersionHistory } from "./asset-history";
 import { ScriptPanel, SeoPanel, ThumbnailsPanel, TitlesPanel, VoiceoverPanel } from "./asset-panels";
+import { RegenerateButton, usePipelineActions } from "./pipeline-actions";
+import { ScriptEditor } from "./script-editor";
 import { SceneStream } from "./scene-stream";
 
 export const ASSET_STATUS_LABELS: Record<AssetViewStatus, string> = {
@@ -88,9 +90,9 @@ function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetT
           <p className="font-medium text-destructive">Échec de la génération</p>
           <p className="mt-1 text-sm">{asset.error?.message ?? "Une erreur inattendue est survenue."}</p>
           {asset.error && <p className="mt-1 font-mono text-xs text-muted-foreground">{asset.error.code}</p>}
-          <Button type="button" variant="outline" size="sm" className="mt-3" disabled title="Disponible quand la base de données sera branchée">
-            Régénérer ({formatCredits(regenCredits)})
-          </Button>
+          <div className="mt-3">
+            <RegenerateButton types={[type]} credits={regenCredits} />
+          </div>
         </div>
       );
     case "running":
@@ -100,7 +102,7 @@ function AssetContent({ view, type, scenes }: { view: PipelineView; type: AssetT
       return (
         <>
           {asset.stale && <StaleNotice type={type} credits={regenCredits} />}
-          <VersionHistory versions={asset.versions} />
+          <VersionHistory type={type} versions={asset.versions} />
           <ReadyAsset view={view} type={type} />
         </>
       );
@@ -111,7 +113,7 @@ function ReadyAsset({ view, type }: { view: PipelineView; type: AssetType }) {
   const { assets } = view;
   switch (type) {
     case "script":
-      return assets.script.content && <ScriptPanel script={assets.script.content} />;
+      return assets.script.content && <ScriptAsset script={assets.script.content} />;
     case "titles":
       return assets.titles.content && <TitlesPanel titles={assets.titles.content} />;
     case "seo":
@@ -121,6 +123,24 @@ function ReadyAsset({ view, type }: { view: PipelineView; type: AssetType }) {
     case "thumbnails":
       return assets.thumbnails.content && <ThumbnailsPanel thumbnails={assets.thumbnails.content} titles={assets.titles.content} />;
   }
+}
+
+// Script prêt : lecture, ou édition dans la page pour un éditeur d'un pipeline réel.
+function ScriptAsset({ script }: { script: Script }) {
+  const actions = usePipelineActions();
+  const [editing, setEditing] = useState(false);
+  if (actions && editing) return <ScriptEditor script={script} actions={actions} onDone={() => setEditing(false)} />;
+  return (
+    <>
+      {actions && (
+        <Button type="button" variant="outline" size="sm" className="mb-4" onClick={() => setEditing(true)}>
+          <Pencil aria-hidden="true" />
+          Modifier le script
+        </Button>
+      )}
+      <ScriptPanel script={script} />
+    </>
+  );
 }
 
 export function AssetTabs({ view, scenes }: { view: PipelineView; scenes: Scene[] }) {

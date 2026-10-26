@@ -31,7 +31,7 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
   );
   if (!pipeline) return null;
 
-  const [assets, versions, failures] = await Promise.all([
+  const [assets, versions, failures, regenerations] = await Promise.all([
     db.from("pipeline_assets").select("type, status, current_version_id").eq("pipeline_id", pipelineId),
     db
       .from("asset_versions")
@@ -39,10 +39,13 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
       .eq("asset.pipeline_id", pipelineId)
       .order("version", { ascending: false }),
     db.from("generations").select("asset_type, error_code, created_at").eq("pipeline_id", pipelineId).eq("status", "failed").order("created_at", { ascending: false }),
+    // Régénérations demandées et pas encore terminées : l'asset s'affiche en cours.
+    db.from("generations").select("asset_type").eq("pipeline_id", pipelineId).like("idempotency_key", "regen:%").in("status", ["queued", "running"]),
   ]);
   const assetRows = check(assets, "Assets") ?? [];
   const versionRows = check(versions, "Versions") ?? [];
   const failureRows = check(failures, "Générations") ?? [];
+  const regenerating = new Set((check(regenerations, "Régénérations") ?? []).map((g) => g.asset_type));
 
   const brief = pipeline.brief as Brief; // validé par BriefSchema à la création
   const tier = pipeline.model_tier as ModelTier; // contrainte CHECK (standard, premium)
@@ -57,7 +60,7 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
     current[type] = version && { id: version.id, sourceVersions: version.source_versions as SourceVersions, restoredFrom: version.restored_from };
 
     const failure = failureRows.find((g) => g.asset_type === type);
-    const viewStatus = assetStatus(row?.status, Boolean(version), TERMINAL.has(status));
+    const viewStatus = regenerating.has(type) ? "running" : assetStatus(row?.status, Boolean(version), TERMINAL.has(status));
     views[type] = {
       status: viewStatus,
       content: viewStatus === "ready" && version ? (version.content as AssetContent[AssetType]) : null,

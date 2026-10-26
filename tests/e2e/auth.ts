@@ -14,6 +14,14 @@ function admin() {
 
 export const testEmail = () => `e2e-${randomUUID().slice(0, 8)}@test.local`;
 
+// Utilisateurs créés par signIn, pour les données préparées ensuite (tests/e2e/pipelines.ts).
+const users = new Map<string, string>();
+export function userIdFor(email: string): string {
+  const id = users.get(email);
+  if (!id) throw new Error(`Utilisateur inconnu : ${email} (connecter d'abord avec signIn)`);
+  return id;
+}
+
 export async function magicLinkPath(email: string) {
   const { data, error } = await admin().auth.admin.generateLink({ type: "magiclink", email });
   if (error) throw error;
@@ -26,6 +34,7 @@ export async function signIn(page: Page, { email = testEmail(), reserved = 0 }: 
   const db = admin();
   const { data, error } = await db.auth.admin.createUser({ email, email_confirm: true });
   if (error) throw error;
+  users.set(email, data.user.id);
   if (reserved > 0) {
     const { data: membership } = await db.from("workspace_members").select("workspace_id").eq("user_id", data.user.id).single();
     const { error: rpcError } = await db.rpc("create_pipeline_with_reservation", {

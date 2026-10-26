@@ -47,7 +47,7 @@ describe("fonction Inngest regenerate-asset", () => {
     mock(() => jsonReplyStream(validTitles, { model: "claude-haiku-5-5" }));
     const { result } = await run({ assetType: "titles", regenerationKey: "regen:abcdef12", feedback: "Plus courts" });
 
-    expect(result).toEqual({ versionId: expect.any(String), stale: ["thumbnails"] });
+    expect(result).toEqual({ versionIds: [expect.any(String)], stale: ["thumbnails"] });
     expect(await store.listVersions(PIPELINE_ID, "titles")).toMatchObject([{ source: "ai_regen" }, { source: "ai" }]);
     expect(store.generation("regen:abcdef12").userFeedback).toBe("Plus courts");
     expect(events.map((event) => event.type)).toEqual(["asset.started", "asset.completed"]);
@@ -79,5 +79,32 @@ describe("fonction Inngest regenerate-asset", () => {
       concurrency: [{ key: "event.data.workspaceId", limit: 2 }],
       retries: 3,
     });
+  });
+});
+
+describe("régénération des dérivés", () => {
+  it("régénère les titres puis les miniatures, qui partent des nouveaux titres", async () => {
+    const calls = mock(
+      () => jsonReplyStream({ ...validTitles, variants: validTitles.variants.map((v) => ({ ...v, title: `${v.title} (v2)` })) }, { model: "claude-haiku-5-5" }),
+      () => jsonReplyStream(validThumbnails, { model: "claude-haiku-5-5" }),
+    );
+    const { result } = await run({
+      assetType: "titles",
+      regenerationKey: "regen:abcdef20-titles",
+      then: [{ assetType: "thumbnails", regenerationKey: "regen:abcdef20-thumbnails" }],
+    });
+    expect(result).toEqual({ versionIds: [expect.any(String), expect.any(String)], stale: [] });
+    expect(JSON.stringify(calls[1])).toContain("(v2)"); // le prompt des miniatures cite les titres régénérés
+    expect(store.generation("regen:abcdef20-thumbnails")).toBeDefined();
+  });
+});
+
+describe("échec définitif d'une régénération", () => {
+  it("libère sa réservation, une fois les relances épuisées", async () => {
+    const { releaseFailedRegeneration } = await import("@/lib/jobs/functions/regenerate-asset");
+    const released: string[] = [];
+    const event = { data: { event: { data: { regenerationKey: "regen:abcdef14-titles", then: [{ regenerationKey: "regen:abcdef14-thumbnails" }] } } } };
+    await releaseFailedRegeneration(async (key) => (released.push(key), 3))({ event });
+    expect(released).toEqual(["regen:abcdef14-titles", "regen:abcdef14-thumbnails"]);
   });
 });

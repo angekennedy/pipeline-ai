@@ -8,6 +8,7 @@ import type { PipelineStatus } from "@/lib/pipeline/status";
 import { mergeLiveState, type PipelineView } from "@/lib/pipeline/view";
 import { Badge } from "@/components/ui/badge";
 import { StaleBanner } from "./asset-history";
+import { AutoRefresh, PipelineActionsProvider, type PipelineActionsValue } from "./pipeline-actions";
 import { AssetTabs } from "./asset-tabs";
 
 const STATUS_VARIANTS: Record<PipelineStatus, "default" | "secondary" | "destructive" | "outline"> = {
@@ -34,22 +35,29 @@ const STATUS_HINTS: Partial<Record<PipelineStatus, string>> = {
 
 function PipelineBody({ view, scenes }: { view: PipelineView; scenes: Scene[] }) {
   const hint = STATUS_HINTS[view.status];
-  const staleCount = ASSET_TYPES.filter((type) => view.assets[type].stale).length;
+  const stale = ASSET_TYPES.filter((type) => view.assets[type].stale);
   return (
     <div className="grid grid-cols-1 gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <PipelineStatusBadge status={view.status} />
         {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
       </div>
-      {staleCount > 0 && <StaleBanner count={staleCount} credits={view.staleCredits} />}
+      {stale.length > 0 && <StaleBanner types={stale} credits={view.staleCredits} />}
       <AssetTabs view={view} scenes={scenes} />
     </div>
   );
 }
 
-// Pipeline terminé ou relu en base, sans suivi en direct.
-export function StaticPipeline({ view }: { view: PipelineView }) {
-  return <PipelineBody view={view} scenes={[]} />;
+// Pipeline terminé ou relu en base, sans suivi en direct. `actions` : pipeline réel ouvert par un
+// éditeur (édition, restauration, régénération) ; la page est relue tant qu'un asset se régénère.
+export function StaticPipeline({ view, actions = null }: { view: PipelineView; actions?: PipelineActionsValue | null }) {
+  const regenerating = ASSET_TYPES.some((type) => view.assets[type].status === "running");
+  return (
+    <PipelineActionsProvider value={actions}>
+      <AutoRefresh active={Boolean(actions) && regenerating} />
+      <PipelineBody view={view} scenes={[]} />
+    </PipelineActionsProvider>
+  );
 }
 
 // Mode démo : génération rejouée dans le navigateur.

@@ -204,6 +204,14 @@ pipeline-ai/
 > - **ZIP** (`fflate`) : Markdown, JSON, voix off, SRT, script, titres, description, tags, indications de voix et miniatures, plus un `LISEZ-MOI.txt`.
 > - **Rappel de déclaration du contenu IA** (`AI_DISCLOSURE`) dans le Markdown, le JSON, le LISEZ-MOI et sous les boutons : vérifier les faits signalés, déclarer dans YouTube Studio un contenu réaliste modifié ou synthétique, apporter sa valeur propre (contenus répétitifs non monétisés).
 > - **E2E** : Playwright démarre l'application avec `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET` vides, prioritaires sur `.env.local` ; l'environnement serveur traite une variable vide comme absente. Aucun test e2e n'appelle Stripe.
+>
+> **Révision (octobre 2026, tâche 4.2).** Éditeur du script et régénérations, sur un pipeline terminé, pour un éditeur (`src/app/(app)/w/[workspaceSlug]/pipelines/[pipelineId]/actions.ts`).
+> - **Édition** (« Modifier le script ») : titre de travail, résumé, appel à l'action et, par scène, titre, narration, direction visuelle et texte à l'écran (`src/lib/pipeline/script-form.ts`). Le reste de la version courante est conservé. `editAsset` valide comme une sortie du modèle, recalcule la durée des scènes et enregistre une version `user_edit`, gratuite. Les dérivés deviennent obsolètes.
+> - **Restauration** : copie de l'ancienne version (`restore`), historique linéaire ; les dérivés produits à partir d'elle redeviennent à jour.
+> - **Régénération** (`src/lib/jobs/request-regeneration.ts`), au coût d'une génération. Le solde total est vérifié d'abord, puis chaque asset est réservé avec sa clé `regen:<nonce>-<type>`. Une seule exécution `regenerate-asset` les enchaîne dans l'ordre du DAG (`then`) : les miniatures partent des titres régénérés, et chaque dérivé lit le script édité. Si l'envoi échoue, les réservations sont libérées.
+> - **Facturation** (migration 0012) : `reserve_regeneration` (rôle, plan, solde, idempotente par clé) ; capture dans `commit_asset_version`, plafonnée au reliquat ; `release_regeneration` à l'échec définitif (`onFailure`, une tentative ratée pouvant être relancée) ; `sweep_stale_reservations` libère aussi une régénération restée sans activité 30 min.
+> - **Affichage** : une régénération en attente ou en cours affiche l'asset « en cours », et la page se relit toutes les 4 s jusqu'à la fin (`AutoRefresh`). Sur les démonstrations ou pour un lecteur, les boutons restent désactivés.
+> - **Tests** : intégration sur la vraie base (édition versionnée, dérivés régénérés à partir du script édité, prompt vérifié, capture, libération, balayage) ; la suppression de la capture des régénérations a été testée par mutation. E2E : édition, « Régénérer les dérivés » (6 crédits réservés, une exécution chaînée), restauration, exports, sur un pipeline terminé préparé par les vraies RPC (`tests/e2e/pipelines.ts`).
 
 ---
 
@@ -868,7 +876,7 @@ La double facturation est impossible à trois niveaux : la contrainte `unique(id
 >
 > **Capture.** `commit_asset_version` capture `generations.credits` avec la clé `capture:pipe:<id>:<type>`, dans la même transaction que la version.
 > - Le montant est plafonné au reliquat réservé (`private.pipeline_reservation_remaining`). Une génération qui se termine après une annulation est donc enregistrée sans être facturée, au lieu de faire échouer le `CHECK reserved >= 0`.
-> - Aucune capture n'a lieu sans réservation. Les régénérations (`regen:<nonce>`) ne sont pas encore facturées : leur réservation viendra avec la Server Action `regenerateAsset`.
+> - Aucune capture n'a lieu sans réservation. Les régénérations (`regen:<nonce>`) sont facturées depuis la tâche 4.2 (migration 0012).
 >
 > **Libération.** `finalize_pipeline` pose le statut terminal et libère le reliquat avec la clé `release:pipe:<id>`. Elle est idempotente.
 > - `SupabasePipelineStore.setPipelineStatus` l'appelle pour tout statut terminal : fin du DAG, `onFailure` et annulation.

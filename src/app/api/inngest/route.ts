@@ -1,5 +1,5 @@
 import { serve } from "inngest/next";
-import { sweepStaleReservations } from "@/lib/billing/reservation";
+import { releaseRegeneration, sweepStaleReservations } from "@/lib/billing/reservation";
 import { getStripe } from "@/lib/billing/stripe";
 import { stripeReader, syncStripeEvent } from "@/lib/billing/stripe-sync";
 import { inngest } from "@/lib/jobs/client";
@@ -22,6 +22,7 @@ const db = () => (admin ??= createAdminClient());
 const deps: JobDeps = {
   store: () => new SupabasePipelineStore(db()),
   publisher: (pipelineId) => createBroadcastPublisher(db(), pipelineId),
+  releaseRegeneration: (key) => releaseRegeneration(db(), key),
 };
 
 export const { GET, POST, PUT } = serve({
