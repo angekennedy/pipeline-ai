@@ -196,7 +196,7 @@ pipeline-ai/
 >   3. La session est effacée du navigateur (`signOut({ scope: "local" })`) : le JWT, encore signé, ferait sinon croire à une session ouverte.
 > - **Refus, sans rien supprimer** : seul owner d'un workspace qui a d'autres membres (`WORKSPACE_SHARED`, à transférer d'abord) ; abonnement resté actif (`SUBSCRIPTION_ACTIVE`, vérifié en base même si l'application l'oublie).
 > - **Dans le workspace d'un autre**, les pipelines et versions de l'utilisateur restent, sans auteur (`created_by` passe à null).
-> - **Stripe n'est pas encore branché.** L'annulation par défaut (`stripeNotConfigured`) refuse la suppression s'il existe un abonnement à annuler : le compte resterait facturé. Aucun abonnement ne peut être créé avant la tâche 3.3. **La tâche 3.4 doit fournir l'annulation réelle** (`stripe.subscriptions.cancel`) et la passer à `deleteAccount`.
+> - **Stripe n'est pas encore branché.** L'annulation par défaut (`stripeNotConfigured`) refuse la suppression s'il existe un abonnement à annuler : le compte resterait facturé. Aucun abonnement ne peut être créé avant la tâche 3.3. Depuis la tâche 3.4, la Server Action passe `stripeCanceler` (`stripe.subscriptions.cancel`) quand `STRIPE_SECRET_KEY` est configurée.
 
 ---
 
@@ -947,6 +947,18 @@ Le traitement passe par la fonction `stripe-sync`. Elle relit l'objet par l'API 
 | `charge.refunded` | `adjust`, plafonné au solde disponible (`balance ≥ reserved`), alerte admin si un écart subsiste |
 
 Les changements de plan passent par le Stripe Customer Portal, sans UI de gestion maison.
+
+> **Révision (octobre 2026, tâches 3.3 et 3.4).**
+> - **Catalogue** : chaque offre payante de `src/lib/billing/plans.ts` porte une clé de recherche Stripe (`lookupKey`). `pnpm stripe:seed` (`scripts/stripe-seed.mts`) crée produits et prix ; Checkout retrouve le prix par sa clé, la synchronisation retrouve l'offre par la clé du prix. Aucun identifiant `price_…` dans le code.
+> - **Achat** (`/w/[workspaceSlug]/billing`, raccourci `/billing`, admins seulement) : `createCheckoutSession` crée au besoin le client Stripe du workspace (clé d'idempotence `customer:<workspace>`), puis une session avec `metadata.workspace_id` (et sur l'abonnement ou le paiement). Retour sur `/w/<slug>/billing?success=1`. Un workspace déjà abonné passe par le portail. Les crédits n'arrivent que par le webhook.
+> - **Webhook** (`/api/webhooks/stripe`) : signature vérifiée, `stripe_events` en déduplication, transmission à Inngest avec l'id Stripe comme id d'événement. Si l'envoi échoue, la ligne est retirée et Stripe renverra l'événement (500). Les types non traités sont enregistrés comme traités.
+> - **`stripe-sync`** (`src/lib/billing/stripe-sync.ts`) relit l'événement, puis l'objet, chez Stripe. Écritures par les RPC service role de la migration 0011, toutes idempotentes :
+>   - `stripe_apply_subscription` : upsert de l'abonnement et plan du workspace (celui d'un abonnement `active`, `trialing` ou `past_due`, Free sinon) ;
+>   - `stripe_renew` (facture `subscription_create` ou `subscription_cycle` payée) : `expire` du disponible au-delà d'une allocation, puis `grant`, clés `stripe:inv:<id>[:expire]` ;
+>   - `stripe_credit` : pack (`purchase`, `stripe:cs:<session>`, référence du paiement), upgrade au prorata du temps restant (`stripe:upg:<sub>:<début de période>:<plan>`), remboursement de pack (`adjust` de la part remboursée, `stripe:refund:<charge>:<montant remboursé>`).
+>   - Un remboursement d'abonnement n'est pas rapproché automatiquement (`ignored:unmatched`) : il relève de la réconciliation (tâche 4.6).
+> - **Suppression du compte** : `stripeCanceler` résilie immédiatement les abonnements quand Stripe est configuré.
+> - **Tests** : fixtures d'événements et lecteur Stripe en mémoire (`tests/fixtures/stripe.ts`) contre la vraie base (`tests/integration/stripe-sync.test.ts`, rejeu et désordre compris) ; signatures générées par le SDK pour la route (`tests/unit/app/stripe-webhook.test.ts`). La suppression de l'idempotence d'un pack et du prorata de l'upgrade a été testée par mutation.
 
 ---
 

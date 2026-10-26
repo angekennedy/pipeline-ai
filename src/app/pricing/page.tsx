@@ -70,10 +70,10 @@ export default function PricingPage() {
                   Commencer
                 </Link>
               ) : (
-                // Paiement Stripe : tâche 3.3.
-                <span className={buttonVariants({ variant: "outline", className: "mt-5 opacity-60" })} aria-disabled="true">
-                  Bientôt disponible
-                </span>
+                // Paiement depuis la facturation du workspace (connexion demandée au besoin).
+                <Link href="/billing" className={buttonVariants({ variant: "outline", className: "mt-5" })} aria-label={`Choisir le plan ${plan.name}`}>
+                  Choisir
+                </Link>
               )}
             </li>
           );

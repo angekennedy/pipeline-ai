@@ -1,7 +1,7 @@
 // Routes de l'application connectée (groupe `(app)`, ARCHITECTURE §2) : le proxy renvoie vers
 // /login sans session. Ce n'est qu'un filtre optimiste, sur le cookie : chaque page et chaque Server
 // Action revérifie l'utilisateur (src/lib/auth/session.ts).
-export const APP_ROUTE_PREFIXES = ["/dashboard", "/pipelines/new", "/w", "/settings"] as const;
+export const APP_ROUTE_PREFIXES = ["/billing", "/dashboard", "/pipelines/new", "/w", "/settings"] as const;
 
 export const LOGIN_PATH = "/login";
 

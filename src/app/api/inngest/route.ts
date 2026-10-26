@@ -1,8 +1,11 @@
 import { serve } from "inngest/next";
 import { sweepStaleReservations } from "@/lib/billing/reservation";
+import { getStripe } from "@/lib/billing/stripe";
+import { stripeReader, syncStripeEvent } from "@/lib/billing/stripe-sync";
 import { inngest } from "@/lib/jobs/client";
 import { createRegenerateAssetFunction } from "@/lib/jobs/functions/regenerate-asset";
 import { createRunPipelineFunction } from "@/lib/jobs/functions/run-pipeline";
+import { createStripeSyncFunction } from "@/lib/jobs/functions/stripe-sync";
 import { createSweepReservationsFunction } from "@/lib/jobs/functions/sweep-reservations";
 import type { JobDeps } from "@/lib/jobs/step-errors";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -27,5 +30,6 @@ export const { GET, POST, PUT } = serve({
     createRunPipelineFunction(deps),
     createRegenerateAssetFunction(deps),
     createSweepReservationsFunction({ sweep: () => sweepStaleReservations(db()) }),
+    createStripeSyncFunction({ sync: (eventId) => syncStripeEvent(eventId, { stripe: stripeReader(getStripe()), db: db() }) }),
   ],
 });

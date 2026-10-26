@@ -31,3 +31,16 @@ describe("catalogue des plans", () => {
     expect(formatEuros(0)).toBe("0 €");
   });
 });
+
+describe("itemForLookupKey", () => {
+  it("retrouve chaque offre payante par la clé de son prix Stripe, et rien d'autre", async () => {
+    const { CREDIT_PACKS, PLAN_KEYS, PLANS, itemForLookupKey } = await import("@/lib/billing/plans");
+    for (const key of PLAN_KEYS.filter((k) => PLANS[k].lookupKey)) {
+      expect(itemForLookupKey(PLANS[key].lookupKey)).toEqual({ type: "plan", plan: PLANS[key], lookupKey: PLANS[key].lookupKey });
+    }
+    for (const pack of CREDIT_PACKS) expect(itemForLookupKey(pack.lookupKey)).toEqual({ type: "pack", credits: pack.credits, lookupKey: pack.lookupKey });
+    const keys = [...PLAN_KEYS.map((k) => PLANS[k].lookupKey).filter(Boolean), ...CREDIT_PACKS.map((p) => p.lookupKey)];
+    expect(new Set(keys).size).toBe(keys.length); // une clé par offre
+    for (const unknown of [null, undefined, "", "plan_free_monthly", "pack_999"]) expect(itemForLookupKey(unknown)).toBeNull();
+  });
+});
