@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { creditSummary } from "@/lib/billing/balance";
 import { PlanRestrictionError } from "@/lib/billing/entitlements";
 import { InsufficientCreditsError } from "@/lib/billing/reservation";
+import { ModerationUnavailableError } from "@/lib/security/moderation";
+import { RateLimitedError } from "@/lib/security/rate-limit";
+import { SpendPausedError } from "@/lib/security/spend-guard";
 
 // La réservation, les droits et le plan sont testés en base (tests/integration) ; ici, l'enchaînement
 // de la Server Action et la traduction de ses issues pour le formulaire.
@@ -36,6 +39,23 @@ vi.mock("@/lib/channels/store", () => ({ getChannel: (...args: unknown[]) => get
 const send = vi.fn();
 vi.mock("@/lib/jobs/client", () => ({ inngest: { send: (...args: unknown[]) => send(...args) } }));
 
+// Limites (tâche 4.5) : leurs règles sont testées à part (tests/unit/security, tests/integration/limits).
+const rateLimit = vi.fn();
+vi.mock("@/lib/security/rate-limit", async (original) => ({
+  ...(await original<typeof import("@/lib/security/rate-limit")>()),
+  enforceRateLimit: (...args: unknown[]) => rateLimit(...args),
+}));
+const spendGuard = vi.fn();
+vi.mock("@/lib/security/spend-guard", async (original) => ({
+  ...(await original<typeof import("@/lib/security/spend-guard")>()),
+  enforceSpendGuard: (...args: unknown[]) => spendGuard(...args),
+}));
+const moderate = vi.fn();
+vi.mock("@/lib/security/moderation", async (original) => ({
+  ...(await original<typeof import("@/lib/security/moderation")>()),
+  moderateBrief: (...args: unknown[]) => moderate(...args),
+}));
+
 const { createPipeline } = await import("@/app/(app)/w/[workspaceSlug]/pipelines/new/actions");
 
 const KEY = "8b0b2e2a-6f3e-4e0e-9a51-2a8f4c1d9e70";
@@ -55,6 +75,9 @@ beforeEach(() => {
   membership = { workspace: { id: WS, slug: "mon-espace", name: "Mon espace" }, role: "owner", credits: creditSummary("free", 30) };
   reserve.mockResolvedValue({ pipelineId: PIPELINE, created: true, credits: 18 });
   send.mockResolvedValue({ ids: ["evt"] });
+  rateLimit.mockResolvedValue(undefined);
+  spendGuard.mockResolvedValue(undefined);
+  moderate.mockResolvedValue({ allowed: true });
 });
 
 describe("Server Action createPipeline", () => {
@@ -119,6 +142,44 @@ describe("Server Action createPipeline", () => {
     reserve.mockRejectedValueOnce(new InsufficientCreditsError(21, 20));
     expect((await createPipeline(initial, form())).insufficient).toEqual({ required: 21, available: 20 });
     expect(send).not.toHaveBeenCalled();
+  });
+
+  it("limite par utilisateur et par workspace, vérifie la dépense, puis modère le brief, avant de réserver", async () => {
+    await expect(createPipeline(initial, form())).rejects.toThrow("NEXT_REDIRECT");
+    expect(rateLimit).toHaveBeenCalledWith(expect.anything(), [
+      { rule: "pipelineUser", subject: "user-1" },
+      { rule: "pipelineWorkspace", subject: WS },
+    ]);
+    expect(spendGuard).toHaveBeenCalledWith(expect.anything(), WS);
+    expect(moderate).toHaveBeenCalledWith(expect.objectContaining({ topic: "Les pyramides de Gizeh" }));
+    expect(rateLimit.mock.invocationCallOrder[0]).toBeLessThan(moderate.mock.invocationCallOrder[0]!);
+    expect(moderate.mock.invocationCallOrder[0]).toBeLessThan(reserve.mock.invocationCallOrder[0]!);
+  });
+
+  it("refuse sans débit au-delà de la limite, disjoncteur déclenché ou brief refusé, en gardant la saisie", async () => {
+    rateLimit.mockRejectedValueOnce(new RateLimitedError(125));
+    const limited = await createPipeline(initial, form());
+    expect(limited).toMatchObject({ rateLimited: { minutes: 3 }, values: expect.objectContaining({ topic: "Les pyramides de Gizeh" }) });
+    expect(spendGuard).not.toHaveBeenCalled();
+    expect(moderate).not.toHaveBeenCalled(); // un brief au-delà de la limite ne coûte aucun appel au modèle
+
+    spendGuard.mockRejectedValueOnce(new SpendPausedError("global"));
+    expect((await createPipeline(initial, form())).spendPaused).toBe(true);
+
+    moderate.mockResolvedValueOnce({ allowed: false, category: "medical_misinformation" });
+    expect((await createPipeline(initial, form())).moderated).toBe("medical_misinformation");
+
+    moderate.mockRejectedValueOnce(new ModerationUnavailableError(new Error("529")));
+    expect((await createPipeline(initial, form())).moderationUnavailable).toBe(true);
+
+    expect(reserve).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("laisse remonter une erreur inattendue des limites", async () => {
+    rateLimit.mockRejectedValueOnce(new Error("Rate limit : connexion perdue"));
+    await expect(createPipeline(initial, form())).rejects.toThrow("connexion perdue");
+    expect(reserve).not.toHaveBeenCalled();
   });
 
   it("libère la réservation si l'événement ne part pas", async () => {

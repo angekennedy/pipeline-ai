@@ -3,6 +3,8 @@ import { PlanRestrictionError } from "@/lib/billing/entitlements";
 import { InsufficientCreditsError } from "@/lib/billing/reservation";
 import { AssetValidationError } from "@/lib/pipeline/versions";
 import { sceneFieldName } from "@/lib/pipeline/script-form";
+import { RateLimitedError } from "@/lib/security/rate-limit";
+import { SpendPausedError } from "@/lib/security/spend-guard";
 import { validScript } from "../../fixtures/assets";
 
 // Contrôles des Server Actions d'un pipeline et traduction de leurs issues. L'édition, la
@@ -43,6 +45,17 @@ vi.mock("@/lib/jobs/request-regeneration", async (original) => ({
   requestRegeneration: (...args: unknown[]) => requestRegeneration(...args),
 }));
 
+const rateLimit = vi.fn();
+vi.mock("@/lib/security/rate-limit", async (original) => ({
+  ...(await original<typeof import("@/lib/security/rate-limit")>()),
+  enforceRateLimit: (...args: unknown[]) => rateLimit(...args),
+}));
+const spendGuard = vi.fn();
+vi.mock("@/lib/security/spend-guard", async (original) => ({
+  ...(await original<typeof import("@/lib/security/spend-guard")>()),
+  enforceSpendGuard: (...args: unknown[]) => spendGuard(...args),
+}));
+
 const { regenerateAssets, restoreAssetVersion, saveScript } = await import("@/app/(app)/w/[workspaceSlug]/pipelines/[pipelineId]/actions");
 const { PipelineBusyError } = await import("@/lib/jobs/request-regeneration");
 
@@ -62,6 +75,8 @@ beforeEach(() => {
   pipeline = { status: "completed" };
   editAsset.mockResolvedValue("v2");
   requestRegeneration.mockResolvedValue({ credits: 6 });
+  rateLimit.mockResolvedValue(undefined);
+  spendGuard.mockResolvedValue(undefined);
 });
 
 describe("saveScript", () => {
@@ -124,6 +139,16 @@ describe("regenerateAssets", () => {
     expect(await regenerateAssets({}, form({ assetType: "script", nonce: NONCE }))).toEqual({ restriction: { reason: "premium", plan: "free" } });
     requestRegeneration.mockRejectedValueOnce(new PipelineBusyError());
     expect(await regenerateAssets({}, form({ assetType: "seo", nonce: NONCE }))).toEqual({ busy: true });
+  });
+
+  it("limite les régénérations par utilisateur et coupe au disjoncteur, sans rien réserver", async () => {
+    const request = form({ assetType: "titles", nonce: NONCE });
+    rateLimit.mockRejectedValueOnce(new RateLimitedError(30));
+    expect(await regenerateAssets({}, request)).toEqual({ rateLimited: { minutes: 1 } });
+    expect(rateLimit).toHaveBeenCalledWith(expect.anything(), [{ rule: "regenerateUser", subject: "user-1" }]);
+    spendGuard.mockRejectedValueOnce(new SpendPausedError("workspace"));
+    expect(await regenerateAssets({}, request)).toEqual({ spendPaused: true });
+    expect(requestRegeneration).not.toHaveBeenCalled();
   });
 
   it("refuse un asset inconnu ou une clé invalide", async () => {

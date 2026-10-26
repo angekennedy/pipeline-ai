@@ -43,6 +43,7 @@ export function RegenerateButton({
   const t = useTranslations("PipelineActions");
   const common = useTranslations("Common");
   const restriction = useTranslations("Restriction");
+  const limits = useTranslations("Limits");
   const actions = usePipelineActions();
   const [state, action, pending] = useActionState<RegenerateState, FormData>(regenerateAssets, {});
   const [key, setKey] = useState(nonce);
@@ -54,6 +55,15 @@ export function RegenerateButton({
     setDialogOpen(Boolean(state.insufficient));
   }
 
+  const refusal = state.restriction
+    ? restrictionMessage(state.restriction, restriction)
+    : state.busy
+      ? t("busy")
+      : state.rateLimited
+        ? limits("rateLimited", state.rateLimited)
+        : state.spendPaused
+          ? limits("spendPaused")
+          : null;
   const text = t("withCost", { label: pending ? t("launching") : (label ?? t("regenerate")), credits: common("credits", { count: credits }) });
   if (!actions) {
     return (
@@ -79,9 +89,9 @@ export function RegenerateButton({
           <AutoRefresh active />
         </p>
       )}
-      {(state.restriction || state.busy) && (
+      {refusal && (
         <p role="alert" className="text-sm text-destructive">
-          {state.restriction ? restrictionMessage(state.restriction, restriction) : t("busy")}
+          {refusal}
         </p>
       )}
       {state.insufficient && <InsufficientCreditsDialog open={dialogOpen} onOpenChange={setDialogOpen} {...state.insufficient} />}

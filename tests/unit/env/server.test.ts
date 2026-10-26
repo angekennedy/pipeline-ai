@@ -27,6 +27,14 @@ describe("serverEnv", () => {
     await expect(loadServerEnv()).rejects.toThrow();
   });
 
+  it("fixe des seuils de dépense par défaut, surchargeables, et refuse un seuil nul", async () => {
+    await expect(loadServerEnv()).resolves.toMatchObject({ SPEND_DAILY_LIMIT_USD: 200, SPEND_DAILY_WORKSPACE_LIMIT_USD: 25 });
+    vi.stubEnv("SPEND_DAILY_WORKSPACE_LIMIT_USD", "7.5");
+    await expect(loadServerEnv()).resolves.toMatchObject({ SPEND_DAILY_WORKSPACE_LIMIT_USD: 7.5 });
+    vi.stubEnv("SPEND_DAILY_LIMIT_USD", "0");
+    await expect(loadServerEnv()).rejects.toThrow(/SPEND_DAILY_LIMIT_USD/);
+  });
+
   it("ne demande pas les clés Inngest hors de Vercel", async () => {
     vi.stubEnv("VERCEL_ENV", undefined);
     const env = await loadServerEnv();

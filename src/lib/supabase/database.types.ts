@@ -325,11 +325,20 @@ isOneToOne: false
 "mark_generation_failed":
 { Args: { "p_code": string,"p_cost_usd_micros"?: number,"p_generation": string,"p_message": string }; Returns: undefined
                            },
+"purge_rate_limits":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"rate_limit_hit":
+{ Args: { "p_buckets": (string)[],"p_limits": (number)[],"p_windows": (number)[] }; Returns: number
+                           },
 "release_regeneration":
 { Args: { "p_key": string }; Returns: number
                            },
 "reserve_regeneration":
 { Args: { "p_credits": number,"p_key": string,"p_pipeline": string,"p_tier": string,"p_user": string,"p_workspace": string }; Returns: boolean
+                           },
+"spend_since":
+{ Args: { "p_since": string,"p_workspace"?: string }; Returns: number
                            },
 "stripe_apply_subscription":
 { Args: { "p_cancel_at_period_end": boolean,"p_period_end": string,"p_plan": string,"p_price": string,"p_status": string,"p_subscription": string,"p_workspace": string }; Returns: string

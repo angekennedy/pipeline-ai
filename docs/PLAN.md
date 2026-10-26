@@ -72,7 +72,7 @@
 - Inngest : DAG durable, retries, idempotence, concurrence par workspace
 - SDK Anthropic. Les IDs de modèles sont centralisés dans `src/lib/ai/models.ts` et surchargeables par variables d'environnement.
 - Stripe : Checkout, Customer Portal, webhooks. Le registre de crédits est tenu dans Postgres.
-- Upstash Redis : rate limiting et disjoncteur de dépense
+- Postgres (Supabase) : rate limiting et disjoncteur de dépense, plutôt qu'Upstash Redis (tâche 4.5)
 - Sentry, logs pino, PostHog, table `generations` (tokens, coût, latence)
 - Vitest, Testing Library, MSW, `@inngest/test`, Playwright, suite `evals/`
 - Vercel Pro (Fluid compute, `maxDuration` élevé sur `/api/inngest`)

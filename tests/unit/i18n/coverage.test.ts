@@ -43,10 +43,10 @@ const ALLOWED = new Set(["Pipeline AI", "Pipeline AI · ", "#FFD400, #000000", "
 const TEXT_ATTRIBUTES = new Set(["aria-label", "title", "placeholder", "alt", "label", "hint", "description", "accessibleLabel", "empty", "saved", "aria-description"]);
 // Textes techniques, jamais affichés : erreurs internes (super, Error), messages de réparation adressés
 // au modèle (addIssue), préfixes des erreurs de base de données (rpc, failure, throwReservationError).
-// Journaux (console.warn…) et messages d'une ligne marquée `i18n-ignore` : même raison.
+// Journaux (console.warn…), alertes Sentry (captureMessage) et messages d'une ligne marquée `i18n-ignore` : même raison.
 const SKIP_CALLS = new Set([
   "t", "cn", "cva", "querySelector", "querySelectorAll", "Error", "require", "import", "super", "addIssue", "rpc", "failure", "throwReservationError",
-  "log", "info", "warn", "error",
+  "log", "info", "warn", "error", "captureMessage",
 ]);
 // Fichiers rendus hors du fournisseur next-intl, qui portent leurs deux langues eux-mêmes.
 const EXEMPT_FILES = new Set(["src/app/global-error.tsx"]);

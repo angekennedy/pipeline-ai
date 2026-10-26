@@ -10,6 +10,9 @@ import { getChannel } from "@/lib/channels/store";
 import { inngest } from "@/lib/jobs/client";
 import { pipelineRequested } from "@/lib/jobs/events";
 import { parseBriefForm, type BriefFieldErrors, type BriefFormValues } from "@/lib/pipeline/brief-form";
+import { moderateBrief, ModerationUnavailableError, type ModerationCategory } from "@/lib/security/moderation";
+import { enforceRateLimit, RateLimitedError, retryMinutes } from "@/lib/security/rate-limit";
+import { enforceSpendGuard, SpendPausedError } from "@/lib/security/spend-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
@@ -20,6 +23,11 @@ export type CreatePipelineState = {
   restriction?: PlanRestriction; // refusé par le plan (403) : message explicite et lien vers les tarifs
   insufficient?: { required: number; available: number }; // ouvre le modal « crédits insuffisants »
   launchError?: true; // pipeline créé mais non lancé : réservation libérée
+  // Refus avant toute réservation (tâche 4.5) : aucun crédit n'est débité.
+  rateLimited?: { minutes: number };
+  spendPaused?: true;
+  moderated?: ModerationCategory;
+  moderationUnavailable?: true;
 };
 
 const KeySchema = z.uuid();
@@ -27,7 +35,8 @@ const KeySchema = z.uuid();
 // Création d'un pipeline (ARCHITECTURE §5.2) : appartenance et rôle revérifiés ici (une Server Action
 // est appelable directement), brief validé, puis réservation en service role. La base refuse ce que
 // le plan n'autorise pas et un solde insuffisant ; rien n'est créé dans ces deux cas.
-// À venir : rate limit (tâche 4.5).
+// Avant la réservation, dans cet ordre (tâche 4.5) : rate limit, disjoncteur de dépense, puis
+// modération, la seule étape qui peut appeler le modèle.
 export async function createPipeline(_previous: CreatePipelineState, formData: FormData): Promise<CreatePipelineState> {
   const slug = String(formData.get("workspaceSlug") ?? "");
   const user = await requireUser(`/w/${slug}/pipelines/new`);
@@ -46,6 +55,22 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   if (channelId && !channel) return { fieldErrors: { channelId: true }, values: result.values };
 
   const admin = createAdminClient();
+  const refused = (state: Partial<CreatePipelineState>): CreatePipelineState => ({ fieldErrors: {}, values: result.values, ...state });
+  try {
+    await enforceRateLimit(admin, [
+      { rule: "pipelineUser", subject: user.id },
+      { rule: "pipelineWorkspace", subject: membership.workspace.id },
+    ]);
+    await enforceSpendGuard(admin, membership.workspace.id);
+    const verdict = await moderateBrief(result.brief);
+    if (!verdict.allowed) return refused({ moderated: verdict.category });
+  } catch (error) {
+    if (error instanceof RateLimitedError) return refused({ rateLimited: { minutes: retryMinutes(error.retryAfterSeconds) } });
+    if (error instanceof SpendPausedError) return refused({ spendPaused: true });
+    if (error instanceof ModerationUnavailableError) return refused({ moderationUnavailable: true });
+    throw error;
+  }
+
   let pipelineId: string;
   try {
     ({ pipelineId } = await createPipelineWithReservation(admin, {
@@ -57,10 +82,8 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
       channel: channel ? { id: channel.id, snapshot: channel.preset } : undefined,
     }));
   } catch (error) {
-    if (error instanceof PlanRestrictionError) return { fieldErrors: {}, values: result.values, restriction: error.restriction };
-    if (error instanceof InsufficientCreditsError) {
-      return { fieldErrors: {}, values: result.values, insufficient: { required: error.required, available: error.available } };
-    }
+    if (error instanceof PlanRestrictionError) return refused({ restriction: error.restriction });
+    if (error instanceof InsufficientCreditsError) return refused({ insufficient: { required: error.required, available: error.available } });
     throw error;
   }
 
@@ -70,7 +93,7 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   } catch {
     // Sans exécution, la réservation resterait bloquée jusqu'au balayage : on la libère tout de suite.
     await admin.rpc("finalize_pipeline", { p_pipeline: pipelineId, p_status: "failed" });
-    return { fieldErrors: {}, values: result.values, launchError: true };
+    return refused({ launchError: true });
   }
   refresh(); // le solde de l'en-tête (layout racine, conservé par le routeur) suit la réservation
   redirect(`/w/${slug}/pipelines/${pipelineId}`);

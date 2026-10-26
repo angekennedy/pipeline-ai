@@ -12,6 +12,8 @@ import {
   type ExportFormat,
 } from "@/lib/export/document";
 import { loadPipelineView } from "@/lib/pipeline/load-view";
+import { enforceRateLimit, RateLimitedError } from "@/lib/security/rate-limit";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 // Téléchargement d'un export (tâche 4.1, ARCHITECTURE §2 : les GET de téléchargement passent par un
@@ -28,7 +30,6 @@ const CONTENT: Record<ExportFormat, { type: string; extension: string }> = {
   zip: { type: "application/zip", extension: "zip" },
 };
 
-
 export async function GET(request: Request, { params }: RouteContext<"/api/pipelines/[id]/export">): Promise<Response> {
   const { id } = await params;
   const t = await getTranslations();
@@ -36,7 +37,14 @@ export async function GET(request: Request, { params }: RouteContext<"/api/pipel
   const format = FormatSchema.safeParse(new URL(request.url).searchParams.get("format"));
   if (!format.success) return new Response(t("Export.unknownFormat", { formats: EXPORT_FORMATS.join(", ") }), { status: 400 });
   if (!z.uuid().safeParse(id).success) return notFound();
-  if (!(await getUser())) return new Response(t("Export.signIn"), { status: 401 });
+  const user = await getUser();
+  if (!user) return new Response(t("Export.signIn"), { status: 401 });
+  try {
+    await enforceRateLimit(createAdminClient(), [{ rule: "exportUser", subject: user.id }]);
+  } catch (error) {
+    if (!(error instanceof RateLimitedError)) throw error;
+    return new Response(t("Export.rateLimited"), { status: 429, headers: { "Retry-After": String(error.retryAfterSeconds) } });
+  }
 
   const db = await createClient();
   const { data: pipeline, error } = await db.from("pipelines").select("workspace_id").eq("id", id).maybeSingle();
