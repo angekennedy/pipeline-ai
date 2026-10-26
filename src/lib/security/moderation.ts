@@ -13,21 +13,29 @@ export const MODERATION_CATEGORIES = ["medical_misinformation", "sexual", "extre
 export type ModerationCategory = (typeof MODERATION_CATEGORIES)[number];
 
 // Formes sans accents et en minuscules, en français et en anglais. Un mot-clé correspond au début
-// d'un mot : « terroris » couvre terrorisme, terroriste, terrorism.
+// d'un mot : « terroris » couvre terrorisme, terroriste, terrorism. Un espace ou un tiret du
+// mot-clé est facultatif : « anti-vax » couvre aussi antivax et anti vax. Un mot-clé de trop ne coûte qu'un
+// appel à Haiku, un mot-clé manquant laisse passer le brief sans vérification : la liste est large.
 const KEYWORDS: Record<ModerationCategory, string[]> = {
   medical_misinformation: [
-    "antivax", "anti-vax", "antivaccin", "anti-vaccin", "vaccins tuent", "vaccines kill",
+    "anti-vax", "anti-vaccin", "vaccin", "vaccine", "autism", "cancer",
     // i18n-ignore : mots-clés recherchés dans le brief, jamais affichés.
     "guerir le cancer", "guerit le cancer", "cure cancer", "cures cancer", "cancer cure",
     "remede miracle", "miracle cure", "chimio naturelle", "natural chemo", "arreter son traitement",
-    "stop your medication", "eau de javel", "bleach", "ivermectine", "ivermectin", "plandemi",
-    "covid hoax", "covid canular", "aids denial",
+    "stop your medication", "eau de javel", "bleach", "dioxyde de chlore", "chlorine dioxide", "mms",
+    "ivermectine", "ivermectin", "hydroxychloroquine", "jeune sec", "dry fasting", "homeopath",
+    "naturopath", "plandemi", "covid hoax", "covid canular", "aids denial",
   ],
-  sexual: ["porn", "xxx", "nsfw", "onlyfans", "erotique", "erotic", "sexe explicite", "explicit sex", "hentai", "camgirl", "escort"],
+  sexual: [
+    "porn", "xxx", "nsfw", "onlyfans", "erotique", "erotic", "sexe explicite", "explicit sex", "sex", "sextape",
+    "nude", "strip-tease", "fetich", "fetish", "bdsm", "prostitu", "sugar daddy", "milf", "hentai", "cam girl", "escort",
+  ],
   extremism: [
-    "nazi", "neonazi", "neo-nazi", "jihad", "djihad", "terroris", "white power", "suprematis", "supremacis",
-    "grand remplacement", "great replacement", "race war", "guerre raciale", "ethnic cleansing",
-    "epuration ethnique", "accelerationis", "incel",
+    "nazi", "neo-nazi", "hitler", "jihad", "djihad", "terroris", "daech", "daesh", "isis", "etat islamique",
+    "islamic state", "al qaida", "al qaeda", "kkk", "ku klux", "white power", "suprematis", "supremacis",
+    "grand remplacement", "great replacement", "remigration", "1488", "race war", "guerre raciale",
+    "ethnic cleansing", "epuration ethnique", "negationnis", "holocaust denial", "holocaust hoax", "shoah",
+    "antisemit", "radicalis", "accelerationis", "incel", "mass shooting", "tuerie de masse",
   ],
 };
 
