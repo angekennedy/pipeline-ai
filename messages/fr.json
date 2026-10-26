@@ -426,7 +426,8 @@
     "demoDescription": "Démonstration Pipeline AI : script, titres, SEO, voix off et miniatures pour « {topic} ».",
     "settings": "Paramètres · Pipeline AI",
     "login": "Connexion · Pipeline AI",
-    "admin": "Administration · Pipeline AI"
+    "admin": "Administration · Pipeline AI",
+    "home": "Pipeline AI : script, titres, SEO et voix off pour chaînes YouTube faceless"
   },
   "Channels": {
     "allPipelines": "← Tous les pipelines",
@@ -477,7 +478,8 @@
     "allPipelines": "← Tous les pipelines",
     "duplicate": "Dupliquer le brief",
     "preset": "Preset {name}",
-    "demoNotice": "Démonstration : contenu d'exemple, aucune génération réelle n'est lancée."
+    "demoNotice": "Démonstration : contenu d'exemple, aucune génération réelle n'est lancée.",
+    "exampleNotice": "Exemple réel, sans retouche : script rédigé par {script}, dérivés par {derived}. Coût de génération mesuré : {cost}, en {seconds} s."
   },
   "Billing": {
     "ledger": {
@@ -602,7 +604,7 @@
   "Home": {
     "tagline": "Du brief à la vidéo faceless prête à produire : script, titres, SEO, voix off et miniatures.",
     "create": "Créer un pipeline",
-    "demosTitle": "Démonstrations",
+    "demosTitle": "Autres démonstrations",
     "demos": {
       "running": {
         "label": "Génération en direct",
@@ -623,6 +625,69 @@
       "stale": {
         "label": "Script modifié",
         "description": "Le script a été retouché : les autres assets sont obsolètes."
+      }
+    },
+    "heroTitle": "Tout ce qu'il faut pour une vidéo YouTube faceless, en quelques minutes",
+    "seeExample": "Voir un exemple réel",
+    "freeCredits": "{credits} crédits offerts à l'inscription, sans carte bancaire.",
+    "assetsTitle": "Cinq livrables par vidéo",
+    "assets": {
+      "script": "Des scènes minutées avec narration, visuels et B-roll, une accroche de 15 s au plus, et les affirmations à vérifier signalées.",
+      "titles": "De 5 à 10 variantes sous des angles différents, avec leur longueur et une recommandation.",
+      "seo": "Description, tags, hashtags et chapitres horodatés, dans les limites de YouTube.",
+      "voiceover": "Le texte prêt pour ElevenLabs, avec le rythme, les pauses et les mots appuyés de chaque segment.",
+      "thumbnails": "Des concepts avec prompt d'image et texte en surimpression, à vérifier en aperçu mobile."
+    },
+    "exampleTitle": "Un exemple réel, sans retouche",
+    "exampleText": "Ce pipeline a été généré par Pipeline AI à partir de ce brief. Rien n'a été réécrit.",
+    "exampleBrief": "Brief : « {topic} », {minutes} min, niche {niche}.",
+    "exampleRecommended": "Titre recommandé",
+    "exampleHook": "Accroche",
+    "exampleStats": "{scenes} scènes, {titles} titres, {chapters} chapitres. Généré en {seconds} s, pour {cost} de calcul.",
+    "exampleOpen": "Ouvrir le pipeline complet",
+    "stepsTitle": "Comment ça marche",
+    "steps": {
+      "brief": {
+        "title": "Décrivez la vidéo",
+        "text": "Niche, sujet, durée, ton : un preset de chaîne peut tout préremplir."
+      },
+      "live": {
+        "title": "Suivez la génération",
+        "text": "Le script s'écrit sous vos yeux, scène par scène, puis les quatre autres livrables suivent."
+      },
+      "export": {
+        "title": "Retouchez et exportez",
+        "text": "Modifiez le script, régénérez un livrable, exportez en Markdown, JSON, SRT ou ZIP."
+      }
+    },
+    "pricingTitle": "Des crédits, au prix de chaque livrable",
+    "pricingText": "Le coût dépend de la durée et de la formule : {credits} crédits pour une vidéo de 10 min en Standard. Le total s'affiche avant chaque lancement.",
+    "pricingLink": "Voir les tarifs",
+    "faqTitle": "Questions fréquentes",
+    "faq": {
+      "faceless": {
+        "q": "Qu'est-ce qu'une chaîne faceless ?",
+        "a": "Une chaîne dont les vidéos sont racontées en voix off sur des images, sans présentateur à l'écran. Pipeline AI prépare tout ce qu'il faut pour en produire une."
+      },
+      "video": {
+        "q": "Pipeline AI fabrique-t-il la vidéo elle-même ?",
+        "a": "Non. Il livre le script, les titres, le SEO, le texte de la voix off et les concepts de miniatures. Vous enregistrez ou synthétisez la voix, par exemple avec ElevenLabs, puis vous montez les images."
+      },
+      "models": {
+        "q": "Quels modèles écrivent les contenus ?",
+        "a": "Claude Sonnet écrit le script en Standard, Claude Opus en Premium (plan Studio). Claude Haiku produit les quatre autres livrables."
+      },
+      "failures": {
+        "q": "Que se passe-t-il si une génération échoue ?",
+        "a": "Les crédits sont réservés au lancement, et seuls les livrables réussis sont débités : un livrable en échec vous est rendu automatiquement."
+      },
+      "accuracy": {
+        "q": "Peut-on publier les contenus tels quels ?",
+        "a": "Relisez-les d'abord : le script signale les affirmations à vérifier. Sur YouTube, déclarez les contenus synthétiques réalistes, comme une voix qui imite une personne."
+      },
+      "languages": {
+        "q": "Dans quelles langues ?",
+        "a": "L'interface est en français et en anglais. Les contenus peuvent être générés en français, anglais, espagnol, portugais, allemand et italien."
       }
     }
   },

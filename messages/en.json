@@ -426,7 +426,8 @@
     "demoDescription": "Pipeline AI demo: script, titles, SEO, voice-over and thumbnails for “{topic}”.",
     "settings": "Settings · Pipeline AI",
     "login": "Sign in · Pipeline AI",
-    "admin": "Administration · Pipeline AI"
+    "admin": "Administration · Pipeline AI",
+    "home": "Pipeline AI: scripts, titles, SEO and voiceover for faceless YouTube channels"
   },
   "Channels": {
     "allPipelines": "← All pipelines",
@@ -477,7 +478,8 @@
     "allPipelines": "← All pipelines",
     "duplicate": "Duplicate the brief",
     "preset": "Preset {name}",
-    "demoNotice": "Demo: sample content, no real generation is started."
+    "demoNotice": "Demo: sample content, no real generation is started.",
+    "exampleNotice": "Real example, unedited: script written by {script}, derived assets by {derived}. Measured generation cost: {cost}, in {seconds} s."
   },
   "Billing": {
     "ledger": {
@@ -602,7 +604,7 @@
   "Home": {
     "tagline": "From brief to a production-ready faceless video: script, titles, SEO, voice-over and thumbnails.",
     "create": "Create a pipeline",
-    "demosTitle": "Demos",
+    "demosTitle": "More demos",
     "demos": {
       "running": {
         "label": "Live generation",
@@ -623,6 +625,69 @@
       "stale": {
         "label": "Edited script",
         "description": "The script was edited: the other assets are out of date."
+      }
+    },
+    "heroTitle": "Everything a faceless YouTube video needs, in minutes",
+    "seeExample": "See a real example",
+    "freeCredits": "{credits} free credits when you sign up, no card required.",
+    "assetsTitle": "Five deliverables per video",
+    "assets": {
+      "script": "Timed scenes with narration, visuals and B-roll, a hook of 15 s at most, and the claims to check flagged.",
+      "titles": "5 to 10 variants from different angles, with their length and a recommendation.",
+      "seo": "Description, tags, hashtags and timestamped chapters, within YouTube's limits.",
+      "voiceover": "Text ready for ElevenLabs, with the pace, pauses and emphasis of each segment.",
+      "thumbnails": "Concepts with an image prompt and overlay text, checked in a mobile preview."
+    },
+    "exampleTitle": "A real example, unedited",
+    "exampleText": "Pipeline AI generated this pipeline from this brief. Nothing was rewritten.",
+    "exampleBrief": "Brief: “{topic}”, {minutes} min, {niche} niche.",
+    "exampleRecommended": "Recommended title",
+    "exampleHook": "Hook",
+    "exampleStats": "{scenes} scenes, {titles} titles, {chapters} chapters. Generated in {seconds} s, for {cost} of compute.",
+    "exampleOpen": "Open the full pipeline",
+    "stepsTitle": "How it works",
+    "steps": {
+      "brief": {
+        "title": "Describe the video",
+        "text": "Niche, topic, length, tone: a channel preset can fill it all in."
+      },
+      "live": {
+        "title": "Watch it generate",
+        "text": "The script appears scene by scene as it is written, then the four other deliverables follow."
+      },
+      "export": {
+        "title": "Edit and export",
+        "text": "Edit the script, regenerate a deliverable, export to Markdown, JSON, SRT or ZIP."
+      }
+    },
+    "pricingTitle": "Credits, priced per deliverable",
+    "pricingText": "The cost depends on length and tier: {credits} credits for a 10-minute video in Standard. The total is shown before every run.",
+    "pricingLink": "See pricing",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "faceless": {
+        "q": "What is a faceless channel?",
+        "a": "A channel whose videos are narrated over footage, with no presenter on screen. Pipeline AI prepares everything you need to produce one."
+      },
+      "video": {
+        "q": "Does Pipeline AI make the video itself?",
+        "a": "No. It delivers the script, titles, SEO, voiceover text and thumbnail concepts. You record or synthesize the voice, for example with ElevenLabs, then edit the footage."
+      },
+      "models": {
+        "q": "Which models write the content?",
+        "a": "Claude Sonnet writes the script in Standard, Claude Opus in Premium (Studio plan). Claude Haiku produces the four other deliverables."
+      },
+      "failures": {
+        "q": "What happens if a generation fails?",
+        "a": "Credits are reserved at launch and only successful deliverables are charged: a failed deliverable is refunded automatically."
+      },
+      "accuracy": {
+        "q": "Can I publish the content as is?",
+        "a": "Review it first: the script flags the claims to check. On YouTube, disclose realistic synthetic content, such as a voice imitating a real person."
+      },
+      "languages": {
+        "q": "In which languages?",
+        "a": "The interface is in French and English. Content can be generated in French, English, Spanish, Portuguese, German and Italian."
       }
     }
   },

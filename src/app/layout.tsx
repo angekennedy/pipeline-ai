@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { AccountMenu } from "@/components/auth/account-menu";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,8 +19,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Métadonnées par défaut de toutes les pages (tâche 5.1) : base des URL absolues, carte de partage.
+// L'image vient de `opengraph-image.tsx` ; titre et description, de chaque page.
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: "Pipeline AI", description: (await getTranslations("Home"))("tagline") };
+  const [locale, description] = await Promise.all([getLocale(), getTranslations("Home").then((t) => t("tagline"))]);
+  return {
+    metadataBase: siteUrl(),
+    title: "Pipeline AI",
+    description,
+    openGraph: { type: "website", siteName: "Pipeline AI", locale: locale === "en" ? "en_US" : "fr_FR", description },
+    twitter: { card: "summary_large_image" },
+  };
 }
 
 // La langue de l'interface vient de la requête (cookie, Accept-Language) : chaque page est rendue à la

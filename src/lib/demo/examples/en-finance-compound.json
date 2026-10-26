@@ -1,0 +1,729 @@
+{
+ "source": "evals/report/v3 (tâche 1.11) : sortie brute des modèles, prompts script@2, titles@3, seo@1, voiceover@1, thumbnails@3",
+ "case": "en-finance-compound",
+ "brief": {
+  "niche": "Personal finance",
+  "topic": "How compound interest actually works, and why starting ten years earlier matters",
+  "language": "en",
+  "tone": "educational",
+  "durationMinutes": 10,
+  "style": "explainer",
+  "targetAudience": "People in their twenties who have never invested"
+ },
+ "tier": "standard",
+ "judge": 4.86,
+ "costUsd": 0.1282,
+ "generationSeconds": 107,
+ "models": {
+  "script": "claude-sonnet-5-5",
+  "titles": "claude-haiku-5-5",
+  "seo": "claude-haiku-5-5",
+  "voiceover": "claude-haiku-5-5",
+  "thumbnails": "claude-haiku-5-5"
+ },
+ "assets": {
+  "script": {
+   "workingTitle": "Why Starting 10 Years Earlier Beats Investing Twice As Much",
+   "hookSummary": "Two investors put in the same monthly amount, but the one who stops after ten years ends up richer than the one who keeps going for thirty.",
+   "scenes": [
+    {
+     "index": 1,
+     "purpose": "hook",
+     "title": "The investor who quit early and won",
+     "narration": "Two people invest the same amount every month. One stops after ten years and never adds another cent. Decades later, that person has more money than the one who kept going. How?",
+     "visualDirection": "Split screen of two silhouettes dropping coins into jars. One stops while the other keeps going. A question mark pulses between them.",
+     "bRollKeywords": [
+      "coins falling into jar",
+      "split screen",
+      "piggy bank",
+      "time lapse calendar"
+     ],
+     "onScreenText": "Stops at 35. Still wins.",
+     "estimatedSeconds": 12
+    },
+    {
+     "index": 2,
+     "purpose": "context",
+     "title": "What interest really is",
+     "narration": "Let's start with a word everyone uses and few people explain. Interest is simply a payment for letting your money work. When you put money in a savings account, the bank borrows it and pays you a little for the privilege. When you invest, you own a slice of businesses, and those businesses can grow and pay you back. Either way, your money earns more money. That part is easy. The magic comes from what happens next. Because the money you earn does not have to leave. It can stay right where it is and join the original pile. From that moment, you are no longer earning on just the amount you put in. You are earning on everything, including your earlier earnings. That single change, earnings that earn their own earnings, is the entire secret of compound interest.",
+     "visualDirection": "Motion graphic of a coin stack with small coins sprouting from it and merging back into the stack. Cut to a bank building, then a stock ticker.",
+     "bRollKeywords": [
+      "bank interior",
+      "stack of coins",
+      "stock market ticker",
+      "money growing animation"
+     ],
+     "onScreenText": "Earnings that earn earnings",
+     "estimatedSeconds": 54
+    },
+    {
+     "index": 3,
+     "purpose": "context",
+     "title": "Simple versus compound",
+     "narration": "Here is the difference in plain numbers. Imagine you put ten thousand dollars into something that pays seven percent a year. With simple interest, you get seven hundred dollars every year, always calculated on the original ten thousand. After forty years, you would have collected twenty-eight thousand dollars in interest, for a total of thirty-eight thousand. Now switch to compound interest. In year one, you earn the same seven hundred. But in year two, you earn seven percent on ten thousand seven hundred, not ten thousand. It is a small difference, just forty-nine dollars extra. Easy to ignore. But that extra grows every year, and it brings its own extras. After forty years, the same ten thousand dollars would be worth about one hundred fifty thousand. Same money, same rate, same time. Nearly four times the result, just because earnings were allowed to stay.",
+     "visualDirection": "Animated bar chart comparing a flat simple-interest line with a curving compound line over 40 years. Numbers appear at the end of each line.",
+     "bRollKeywords": [
+      "bar chart animation",
+      "calculator",
+      "growth graph",
+      "financial charts"
+     ],
+     "onScreenText": "$38,000 vs about $150,000",
+     "estimatedSeconds": 56
+    },
+    {
+     "index": 4,
+     "purpose": "development",
+     "title": "The snowball effect",
+     "narration": "Think of a snowball rolling down a hill. At the top, it picks up a few flakes. Barely anything. But as it grows, each rotation collects more snow, because there is more surface touching the ground. Money behaves the same way. Look at that ten thousand dollars again at seven percent. After ten years, it is about nineteen thousand seven hundred. After twenty years, about thirty-eight thousand seven hundred. After thirty, about seventy-six thousand. After forty, about one hundred fifty thousand. Notice something strange. The first ten years added less than ten thousand dollars. The last ten years added more than seventy thousand. The pace of growth is not steady. It accelerates. This is called exponential growth, and our brains are terrible at feeling it. We expect straight lines. Compounding gives us a curve that starts flat and then bends sharply upward. Most of the reward is hiding at the end.",
+     "visualDirection": "A snowball rolling down a snowy slope, growing larger. Then a motion graphic of an exponential curve with milestone labels at years 10, 20, 30 and 40.",
+     "bRollKeywords": [
+      "snowball rolling downhill",
+      "snowy mountain",
+      "exponential curve",
+      "hockey stick graph"
+     ],
+     "onScreenText": "Flat at first. Steep at the end.",
+     "estimatedSeconds": 58
+    },
+    {
+     "index": 5,
+     "purpose": "development",
+     "title": "The rule of 72",
+     "narration": "There is a quick shortcut worth remembering. It is called the rule of seventy-two. Divide seventy-two by the annual return, and you get a rough estimate of how many years it takes your money to double. At seven percent, seventy-two divided by seven is about ten. So your money doubles roughly every decade. At four percent, it takes about eighteen years. At ten percent, a little over seven. Now apply that to a young person. Start at twenty-five and leave money alone until sixty-five, and that is forty years. Four doublings. One dollar becomes about sixteen. Start at thirty-five, and you get only three doublings. One dollar becomes about eight. One extra decade does not add ten or twenty percent. It cuts the final result in half. That is the real cost of waiting, and it is bigger than almost anyone expects. It is a rough tool, not an exact answer, but it makes the pattern easy to see.",
+     "visualDirection": "Chalkboard-style animation of 72 divided by 7 equals roughly 10. A coin doubles four times in a row, with a timeline from age 25 to 65 beneath it.",
+     "bRollKeywords": [
+      "chalkboard math",
+      "doubling coins animation",
+      "timeline graphic",
+      "young person thinking"
+     ],
+     "onScreenText": "72 ÷ return = years to double",
+     "estimatedSeconds": 62
+    },
+    {
+     "index": 6,
+     "purpose": "development",
+     "title": "Meet Ava and Ben",
+     "narration": "Now let's go back to our two investors. Meet Ava and Ben. Both invest three hundred dollars a month, and both earn an average of seven percent a year. Let's assume that return stays steady, which real markets never do, but it keeps the math clean. Ava starts at age twenty-five. She invests for exactly ten years, until she is thirty-five, and then she stops. She never adds another dollar. Her money simply sits there, growing. Ben is more cautious. He decides to wait. He starts at thirty-five, right when Ava stops, and he keeps investing three hundred dollars every month for thirty years, all the way until he is sixty-five. So Ben invests for three times longer than Ava. He puts in three times as much money. Ava contributes thirty-six thousand dollars in total. Ben contributes one hundred eight thousand. Before we reveal the results, make a guess. Who wins?",
+     "visualDirection": "Two simple illustrated characters on parallel timelines from age 25 to 65. Ava's timeline lights up from 25 to 35 and then goes quiet. Ben's lights up from 35 to 65. Total contributions appear beside each.",
+     "bRollKeywords": [
+      "timeline animation",
+      "young professional laptop",
+      "monthly budget",
+      "calendar pages flipping"
+     ],
+     "onScreenText": "$300/month. 7%. Who wins?",
+     "estimatedSeconds": 58
+    },
+    {
+     "index": 7,
+     "purpose": "twist",
+     "title": "The result",
+     "narration": "At sixty-five, here is what the math says. Ben, who invested every month for thirty years, ends up with roughly three hundred sixty-six thousand dollars. Not bad at all. But Ava, who invested for only ten years and then walked away, ends up with roughly four hundred twenty thousand dollars. She wins. She put in only a third of the money, and still finished about fifty thousand dollars ahead. Think about what that means. Ava's thirty-six thousand dollars did more work than Ben's one hundred eight thousand. Her early dollars had thirty to forty years to compound. Ben's later dollars had far less time, and the ones he invested in his sixties barely had time to grow at all. Time was not just helping. Time was doing most of the heavy lifting. Money can be replaced. Years cannot.",
+     "visualDirection": "Two bars rise side by side from zero. Ben's stops at about 366 thousand and Ava's overshoots to about 420 thousand. Highlight the gap, then show the contribution totals shrinking beneath each bar.",
+     "bRollKeywords": [
+      "bar chart race",
+      "surprised reaction",
+      "money growth graph",
+      "hourglass sand"
+     ],
+     "onScreenText": "Ava ≈ $420K. Ben ≈ $366K.",
+     "estimatedSeconds": 53
+    },
+    {
+     "index": 8,
+     "purpose": "development",
+     "title": "Why early dollars are worth more",
+     "narration": "Why does this happen? Because compounding rewards the earliest dollars the most. Each dollar you invest starts its own little snowball. A dollar invested at twenty-five has forty years to roll. A dollar invested at fifty-five has ten. Those are not the same dollar, even though they look identical on your bank statement. Another way to see it: by the time you are in your late fifties, a large portfolio is mostly made of growth, not of your contributions. In Ava's case, the majority of her final balance is earnings on top of earnings, not money she deposited. That is why people who understand this often say the hardest part is the beginning. In the early years, the numbers look tiny and progress feels invisible. You might invest for two years and see only a few hundred dollars of growth. That is when most people quit. But the early years are not wasted. They are building the base that all future growth stands on.",
+     "visualDirection": "Animated stack of colored layers, each layer a different year's contribution, with the oldest layers at the bottom growing thickest. Cut to a young person checking a phone app with a small balance.",
+     "bRollKeywords": [
+      "layered bar graph",
+      "smartphone investing app",
+      "tree growing time lapse",
+      "seedling sprouting"
+     ],
+     "onScreenText": "Early dollars have more time to roll",
+     "estimatedSeconds": 63
+    },
+    {
+     "index": 9,
+     "purpose": "development",
+     "title": "Where returns actually come from",
+     "narration": "So where does a seven percent return come from? Not from a typical savings account. Most savings accounts pay far less, and the rate changes over time. The long-term average many people quote comes from stock markets, where you buy small pieces of many companies at once. A common way beginners do this is through a broad index fund, which holds hundreds or thousands of companies in a single purchase. Over very long periods, stock markets have tended to rise, but that is a pattern, not a promise. Some years they fall sharply. Some decades disappoint. The seven percent we used is an illustration, not a forecast, and real returns bounce around unpredictably. This is why time matters twice. It gives compounding room to work, and it gives you room to recover from the bad years. Money you need within a few years usually does not belong in the stock market. Money you will not touch for decades has a lot more patience to spend.",
+     "visualDirection": "A jagged long-term stock market line chart trending upward with dips highlighted. Cut to a diagram of an index fund as one basket holding many company logos represented by generic icons.",
+     "bRollKeywords": [
+      "stock market chart",
+      "index fund concept",
+      "city skyline business",
+      "market crash chart"
+     ],
+     "onScreenText": "7% is an example, not a promise",
+     "estimatedSeconds": 64
+    },
+    {
+     "index": 10,
+     "purpose": "development",
+     "title": "What works against you",
+     "narration": "Compounding works in both directions, so let's talk about what quietly works against you. First, fees. Suppose an investment charges one percent a year. That sounds tiny. But over forty years, that one percent is taken from a balance that is growing, and it can swallow a large share of your final result. Always check the cost of any fund you buy. Second, inflation. Prices rise over time, so a dollar in forty years will buy less than a dollar today. Your returns need to outrun that. Third, and most dangerous, is debt. Credit card interest compounds too, often at rates above twenty percent. That means the same snowball effect rolls against you, growing what you owe. Paying off high-interest debt is often a guaranteed return that investing cannot match. The same force that builds wealth slowly can drain it quickly, depending on which side of the equation you stand on.",
+     "visualDirection": "Three-part motion graphic: a coin with a small slice being bitten off for fees, a grocery receipt with rising prices for inflation, and a credit card with a growing red balance for debt.",
+     "bRollKeywords": [
+      "credit card statement",
+      "grocery prices",
+      "fees concept",
+      "red growing debt graph"
+     ],
+     "onScreenText": "Fees, inflation, debt",
+     "estimatedSeconds": 58
+    },
+    {
+     "index": 11,
+     "purpose": "payoff",
+     "title": "What to do if you are starting now",
+     "narration": "Now, if you are in your twenties and have never invested, this video is not meant to make you feel behind. It is meant to show you how powerful a small start can be. You do not need thousands of dollars. Many platforms let you begin with very small amounts. The habit matters more than the size. Here is a simple order to think about. First, build a small emergency fund, so you are not forced to sell investments in a crisis. Second, clear any high-interest debt. Third, if your employer offers a retirement plan with matching contributions, learn how that match works, because it is effectively free money. Then automate a fixed amount every month, and leave it alone. Increase it when your income grows. And if you are already older than twenty-five, the message is the same. The best time to start was years ago. The second best time is today. This is general education, not personal financial advice.",
+     "visualDirection": "A clean checklist animation ticking off emergency fund, pay off debt, employer match and automate. Cut to a person setting up an automatic transfer on a phone at a tidy desk.",
+     "bRollKeywords": [
+      "checklist animation",
+      "emergency fund",
+      "automatic transfer phone",
+      "young adult budgeting"
+     ],
+     "onScreenText": "Start small. Automate. Wait.",
+     "estimatedSeconds": 62
+    },
+    {
+     "index": 12,
+     "purpose": "cta",
+     "title": "The real lesson",
+     "narration": "Let's return to where we began. How can someone who stops investing after ten years beat someone who keeps going for thirty? Because compound interest is not really about money. It is about time. Every year you wait is not just one year of lost growth. It is the loss of that year's growth, and of everything that growth would have grown into. The numbers feel small at the start and enormous at the end. And the people who benefit most are usually not the smartest or the richest. They are simply the ones who began early and stayed patient. So your task is small. Pick an amount you will not miss. Set it to happen automatically. Then let the snowball roll. If this made compounding finally click, subscribe for more plain-English money lessons, and send this to a friend who has not started yet.",
+     "visualDirection": "Slow time-lapse of a snowball-shaped curve rising across a sunrise skyline. Closing animation with subscribe button and a share icon.",
+     "bRollKeywords": [
+      "sunrise city time lapse",
+      "subscribe button",
+      "growth curve",
+      "friends talking"
+     ],
+     "onScreenText": "Time is the real asset",
+     "estimatedSeconds": 56
+    }
+   ],
+   "callToAction": "Subscribe for more plain-English money lessons, and send this video to a friend who has not started investing yet.",
+   "factCheckFlags": [
+    {
+     "sceneIndex": 3,
+     "claim": "Ten thousand dollars at 7% simple interest for 40 years earns $28,000 in interest, for a total of $38,000."
+    },
+    {
+     "sceneIndex": 3,
+     "claim": "In year two, compounding on $10,700 at 7% yields $49 more than simple interest on $10,000."
+    },
+    {
+     "sceneIndex": 3,
+     "claim": "Ten thousand dollars compounded annually at 7% for 40 years grows to about $150,000 (approx. $149,745)."
+    },
+    {
+     "sceneIndex": 4,
+     "claim": "$10,000 at 7% compounded annually is about $19,700 after 10 years, $38,700 after 20, $76,100 after 30 and $149,700 after 40."
+    },
+    {
+     "sceneIndex": 4,
+     "claim": "The first ten years add less than $10,000 and the last ten years add more than $70,000 (about $73,600)."
+    },
+    {
+     "sceneIndex": 5,
+     "claim": "Rule of 72: 72 divided by the annual return approximates the years to double. About 10 years at 7%, about 18 at 4%, a little over 7 at 10%."
+    },
+    {
+     "sceneIndex": 5,
+     "claim": "Four doublings turn $1 into about $16 and three doublings into about $8."
+    },
+    {
+     "sceneIndex": 6,
+     "claim": "Ava invests $300 a month from 25 to 35 ($36,000 total). Ben invests $300 a month from 35 to 65 ($108,000 total). Both assume a constant 7% annual return compounded monthly."
+    },
+    {
+     "sceneIndex": 7,
+     "claim": "Under those assumptions, Ben ends with roughly $366,000 and Ava with roughly $420,000 at age 65, a gap of about $50,000. These are approximations and depend on the constant 7% assumption."
+    },
+    {
+     "sceneIndex": 9,
+     "claim": "Stock markets have tended to rise over very long periods, with an average long-term return often quoted near 7% after inflation or higher before inflation. This varies by source, market and period."
+    },
+    {
+     "sceneIndex": 9,
+     "claim": "Most savings accounts pay lower rates than long-term stock market averages."
+    },
+    {
+     "sceneIndex": 10,
+     "claim": "A 1% annual fee can consume a large share of final investment results over 40 years."
+    },
+    {
+     "sceneIndex": 10,
+     "claim": "Credit card interest rates are often above 20% APR."
+    }
+   ]
+  },
+  "titles": {
+   "variants": [
+    {
+     "title": "Why the investor who quit at 35 ends up richer than Ben",
+     "angle": "curiosity_gap",
+     "rationale": "Scene 6 and 7 reveal the Ava and Ben result, showing the early stopper finishing ahead. The hook makes viewers want the counterintuitive answer.",
+     "heuristicScore": 8,
+     "charCount": 55
+    },
+    {
+     "title": "3 things that quietly work against your investments",
+     "angle": "number",
+     "rationale": "Scene 10 lists exactly three drains: fees, inflation and debt. Beginners who fear hidden costs will want to know what they are.",
+     "heuristicScore": 7,
+     "charCount": 51
+    },
+    {
+     "title": "How to turn $10,000 into about $150,000 without adding more",
+     "angle": "how_to",
+     "rationale": "Scene 3 shows $10,000 at 7% compounding to about $150,000 with no further deposits. The concrete figure makes the promise specific and credible.",
+     "heuristicScore": 8,
+     "charCount": 59
+    },
+    {
+     "title": "Is starting 10 years earlier worth more than investing 3 times longer?",
+     "angle": "question",
+     "rationale": "Scenes 6 and 7 compare Ava's 10 years with Ben's 30 years of contributions. The question frames the video's central trade-off for people who have never invested.",
+     "heuristicScore": 7,
+     "charCount": 70
+    },
+    {
+     "title": "The rule of 72: how fast your money doubles at any return",
+     "angle": "number",
+     "rationale": "Scene 5 explains the rule of 72 and gives examples at 4%, 7% and 10%. Viewers get a memorable shortcut they can apply to any investment.",
+     "heuristicScore": 6,
+     "charCount": 57
+    },
+    {
+     "title": "Why waiting 10 years can cut your final result in half",
+     "angle": "negative",
+     "rationale": "Scene 5 shows that one extra decade of waiting roughly halves the final amount. The loss framing appeals to young viewers who think they have time.",
+     "heuristicScore": 7,
+     "charCount": 54
+    },
+    {
+     "title": "Ava stopped investing at 35 and still finished $50,000 ahead",
+     "angle": "story",
+     "rationale": "Scene 7 gives the roughly $50,000 gap between Ava and Ben at 65. The personal story of a person who stopped and still won draws viewers in.",
+     "heuristicScore": 8,
+     "charCount": 60
+    },
+    {
+     "title": "Early dollars grow the most, so every year you wait costs you",
+     "angle": "urgency",
+     "rationale": "Scenes 8 and 12 explain why early dollars have more time to compound and why each waiting year is costly. This speaks to people in their twenties.",
+     "heuristicScore": 6,
+     "charCount": 61
+    }
+   ],
+   "recommendedIndex": 0
+  },
+  "seo": {
+   "description": "Two people invest the same monthly amount, yet the one who stops after ten years can end up ahead of the one who keeps going for thirty. Here is how compound interest really works and why time matters more than the amount you invest.",
+   "tags": [
+    "compound interest explained",
+    "why start investing early",
+    "rule of 72",
+    "how compound interest works",
+    "power of compound interest",
+    "start investing early",
+    "time in the market",
+    "simple vs compound interest",
+    "personal finance for beginners",
+    "investing for beginners",
+    "index fund basics",
+    "growing money over time",
+    "never invested before",
+    "money lessons for 20s"
+   ],
+   "hashtags": [
+    "#personalfinance",
+    "#compoundinterest",
+    "#investingforbeginners"
+   ],
+   "chapterTitles": [
+    {
+     "startsAtSceneIndex": 1,
+     "title": "The investor who quit early and won"
+    },
+    {
+     "startsAtSceneIndex": 2,
+     "title": "What interest really is"
+    },
+    {
+     "startsAtSceneIndex": 3,
+     "title": "Simple versus compound interest"
+    },
+    {
+     "startsAtSceneIndex": 4,
+     "title": "The snowball effect"
+    },
+    {
+     "startsAtSceneIndex": 5,
+     "title": "The rule of 72"
+    },
+    {
+     "startsAtSceneIndex": 6,
+     "title": "Meet Ava and Ben"
+    },
+    {
+     "startsAtSceneIndex": 7,
+     "title": "The result"
+    },
+    {
+     "startsAtSceneIndex": 8,
+     "title": "Why early dollars are worth more"
+    },
+    {
+     "startsAtSceneIndex": 9,
+     "title": "Where returns actually come from"
+    },
+    {
+     "startsAtSceneIndex": 10,
+     "title": "What works against you"
+    },
+    {
+     "startsAtSceneIndex": 11,
+     "title": "What to do if you are starting now"
+    },
+    {
+     "startsAtSceneIndex": 12,
+     "title": "The real lesson"
+    }
+   ],
+   "chapters": [
+    {
+     "timestamp": "00:00",
+     "title": "The investor who quit early and won"
+    },
+    {
+     "timestamp": "00:12",
+     "title": "What interest really is"
+    },
+    {
+     "timestamp": "01:06",
+     "title": "Simple versus compound interest"
+    },
+    {
+     "timestamp": "02:02",
+     "title": "The snowball effect"
+    },
+    {
+     "timestamp": "03:00",
+     "title": "The rule of 72"
+    },
+    {
+     "timestamp": "04:02",
+     "title": "Meet Ava and Ben"
+    },
+    {
+     "timestamp": "05:00",
+     "title": "The result"
+    },
+    {
+     "timestamp": "05:53",
+     "title": "Why early dollars are worth more"
+    },
+    {
+     "timestamp": "06:56",
+     "title": "Where returns actually come from"
+    },
+    {
+     "timestamp": "08:00",
+     "title": "What works against you"
+    },
+    {
+     "timestamp": "08:58",
+     "title": "What to do if you are starting now"
+    },
+    {
+     "timestamp": "10:00",
+     "title": "The real lesson"
+    }
+   ]
+  },
+  "voiceover": {
+   "globalVoice": {
+    "gender": "neutral",
+    "age": "30-40",
+    "accent": "American",
+    "baseStyle": "Warm, clear, conversational money educator. Calm confidence, friendly and patient, never salesy or alarmist."
+   },
+   "segments": [
+    {
+     "sceneIndex": 1,
+     "text": "Two people invest the same amount every month. One stops after ten years and never adds another cent. [pause:600ms] Decades later, that person has more money than the one who kept going. How?",
+     "pace": "medium",
+     "emotion": "curious, playful intrigue",
+     "emphasisWords": [
+      "same",
+      "never",
+      "more",
+      "How"
+     ],
+     "pauseAfterMs": 800,
+     "pronunciationHints": [],
+     "providerPrompt": "Open with a hook voice, slightly lowered and intriguing. Lean into the contrast between stopping and continuing. Pause before the final question, then ask it with a light lift. Relaxed breathing, no rush."
+    },
+    {
+     "sceneIndex": 2,
+     "text": "Let's start with a word everyone uses and few people explain. Interest is simply a payment for letting your money work. When you put money in a savings account, the bank borrows it and pays you a little for the privilege. When you invest, you own a slice of businesses, and those businesses can grow and pay you back. Either way, your money earns more money. That part is easy. [pause:400ms] The magic comes from what happens next. Because the money you earn does not have to leave. It can stay right where it is and join the original pile. From that moment, you are no longer earning on just the amount you put in. You are earning on everything, including your earlier earnings. [pause:500ms] That single change, earnings that earn their own earnings, is the entire secret of compound interest.",
+     "pace": "medium",
+     "emotion": "friendly, clear, explanatory",
+     "emphasisWords": [
+      "word",
+      "magic",
+      "earnings that earn their own earnings",
+      "secret"
+     ],
+     "pauseAfterMs": 500,
+     "pronunciationHints": [],
+     "providerPrompt": "Conversational teacher tone, as if explaining to a friend over coffee. Slightly slower on the key definition. Land the final line with warmth and emphasis on the secret. Natural breaths between sentences."
+    },
+    {
+     "sceneIndex": 3,
+     "text": "Here is the difference in plain numbers. Imagine you put ten thousand dollars into something that pays seven percent a year. With simple interest, you get seven hundred dollars every year, always calculated on the original ten thousand. After forty years, you would have collected twenty-eight thousand dollars in interest, for a total of thirty-eight thousand. [pause:500ms] Now switch to compound interest. In year one, you earn the same seven hundred. But in year two, you earn seven percent on ten thousand seven hundred, not ten thousand. It is a small difference, just forty-nine dollars extra. Easy to ignore. [pause:400ms] But that extra grows every year, and it brings its own extras. After forty years, the same ten thousand dollars would be worth about one hundred fifty thousand. Same money, same rate, same time. [pause:500ms] Nearly four times the result, just because earnings were allowed to stay.",
+     "pace": "medium",
+     "emotion": "clear, building revelation",
+     "emphasisWords": [
+      "thirty-eight thousand",
+      "forty-nine dollars",
+      "one hundred fifty thousand",
+      "Nearly four times"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [],
+     "providerPrompt": "Measured, numbers-focused delivery. Make each figure distinct and clear. Let the small forty-nine dollar detail sound almost casual, then build energy toward the one hundred fifty thousand reveal and the final line."
+    },
+    {
+     "sceneIndex": 4,
+     "text": "Think of a snowball rolling down a hill. At the top, it picks up a few flakes. Barely anything. But as it grows, each rotation collects more snow, because there is more surface touching the ground. Money behaves the same way. Look at that ten thousand dollars again at seven percent. After ten years, it is about nineteen thousand seven hundred. After twenty years, about thirty-eight thousand seven hundred. After thirty, about seventy-six thousand. After forty, about one hundred fifty thousand. [pause:500ms] Notice something strange. The first ten years added less than ten thousand dollars. The last ten years added more than seventy thousand. The pace of growth is not steady. It accelerates. [pause:400ms] This is called exponential growth, and our brains are terrible at feeling it. We expect straight lines. Compounding gives us a curve that starts flat and then bends sharply upward. Most of the reward is hiding at the end.",
+     "pace": "medium",
+     "emotion": "vivid, curious, slightly awed",
+     "emphasisWords": [
+      "Barely anything",
+      "Notice something strange",
+      "accelerates",
+      "Most of the reward"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [
+      {
+       "word": "exponential",
+       "phonetic": "ek-spo-NEN-shul"
+      }
+     ],
+     "providerPrompt": "Paint the snowball picture with a light, rolling cadence. Speed up slightly through the milestone list, then slow sharply for the strange observation. Final line delivered slowly with weight on the hiding at the end."
+    },
+    {
+     "sceneIndex": 5,
+     "text": "There is a quick shortcut worth remembering. It is called the rule of seventy-two. Divide seventy-two by the annual return, and you get a rough estimate of how many years it takes your money to double. At seven percent, seventy-two divided by seven is about ten. So your money doubles roughly every decade. At four percent, it takes about eighteen years. At ten percent, a little over seven. [pause:400ms] Now apply that to a young person. Start at twenty-five and leave money alone until sixty-five, and that is forty years. Four doublings. One dollar becomes about sixteen. Start at thirty-five, and you get only three doublings. One dollar becomes about eight. [pause:500ms] One extra decade does not add ten or twenty percent. It cuts the final result in half. That is the real cost of waiting, and it is bigger than almost anyone expects. It is a rough tool, not an exact answer, but it makes the pattern easy to see.",
+     "pace": "medium",
+     "emotion": "instructive, crisp, a little dramatic",
+     "emphasisWords": [
+      "rule of seventy-two",
+      "cuts the final result in half",
+      "real cost of waiting"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [],
+     "providerPrompt": "Clear teaching voice with a crisp rhythm for the arithmetic. Keep the doubling counts punchy. Deliver cuts the final result in half with a deliberate pause before and after for impact. Close softly on the rough tool caveat."
+    },
+    {
+     "sceneIndex": 6,
+     "text": "Now let's go back to our two investors. Meet Ava and Ben. Both invest three hundred dollars a month, and both earn an average of seven percent a year. Let's assume that return stays steady, which real markets never do, but it keeps the math clean. [pause:400ms] Ava starts at age twenty-five. She invests for exactly ten years, until she is thirty-five, and then she stops. She never adds another dollar. Her money simply sits there, growing. [pause:400ms] Ben is more cautious. He decides to wait. He starts at thirty-five, right when Ava stops, and he keeps investing three hundred dollars every month for thirty years, all the way until he is sixty-five. So Ben invests for three times longer than Ava. He puts in three times as much money. Ava contributes thirty-six thousand dollars in total. Ben contributes one hundred eight thousand. [pause:600ms] Before we reveal the results, make a guess. Who wins?",
+     "pace": "medium",
+     "emotion": "engaging, playful suspense",
+     "emphasisWords": [
+      "Ava",
+      "Ben",
+      "never adds another dollar",
+      "Who wins?"
+     ],
+     "pauseAfterMs": 700,
+     "pronunciationHints": [
+      {
+       "word": "Ava",
+       "phonetic": "AH-vuh"
+      }
+     ],
+     "providerPrompt": "Storytelling voice introducing two characters with distinct tones: Ava calm and decisive, Ben cautious and hesitant. Build suspense through the contribution numbers. Pause, then ask Who wins with an inviting, game-show-light tone."
+    },
+    {
+     "sceneIndex": 7,
+     "text": "At sixty-five, here is what the math says. Ben, who invested every month for thirty years, ends up with roughly three hundred sixty-six thousand dollars. Not bad at all. [pause:500ms] But Ava, who invested for only ten years and then walked away, ends up with roughly four hundred twenty thousand dollars. She wins. She put in only a third of the money, and still finished about fifty thousand dollars ahead. [pause:500ms] Think about what that means. Ava's thirty-six thousand dollars did more work than Ben's one hundred eight thousand. Her early dollars had thirty to forty years to compound. Ben's later dollars had far less time, and the ones he invested in his sixties barely had time to grow at all. Time was not just helping. Time was doing most of the heavy lifting. [pause:400ms] Money can be replaced. Years cannot.",
+     "pace": "slow",
+     "emotion": "surprised, reflective, weighty",
+     "emphasisWords": [
+      "She wins",
+      "fifty thousand dollars ahead",
+      "Time was doing most of the heavy lifting",
+      "Years cannot"
+     ],
+     "pauseAfterMs": 800,
+     "pronunciationHints": [
+      {
+       "word": "Ava",
+       "phonetic": "AH-vuh"
+      }
+     ],
+     "providerPrompt": "Reveal voice: Ben's result sounds modest, then Ava's win lands with a note of surprise. Slow down for the reflection section. Let the final two short sentences land heavily with a long quiet ending."
+    },
+    {
+     "sceneIndex": 8,
+     "text": "Why does this happen? Because compounding rewards the earliest dollars the most. Each dollar you invest starts its own little snowball. A dollar invested at twenty-five has forty years to roll. A dollar invested at fifty-five has ten. Those are not the same dollar, even though they look identical on your bank statement. [pause:400ms] Another way to see it: by the time you are in your late fifties, a large portfolio is mostly made of growth, not of your contributions. In Ava's case, the majority of her final balance is earnings on top of earnings, not money she deposited. [pause:400ms] That is why people who understand this often say the hardest part is the beginning. In the early years, the numbers look tiny and progress feels invisible. You might invest for two years and see only a few hundred dollars of growth. That is when most people quit. [pause:500ms] But the early years are not wasted. They are building the base that all future growth stands on.",
+     "pace": "medium",
+     "emotion": "empathetic, thoughtful, encouraging",
+     "emphasisWords": [
+      "earliest dollars",
+      "not the same dollar",
+      "mostly made of growth",
+      "not wasted"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [
+      {
+       "word": "Ava",
+       "phonetic": "AH-vuh"
+      }
+     ],
+     "providerPrompt": "Thoughtful explanatory tone with empathy for the struggle of early years. Slightly slower on the numbers that look tiny. Warm and reassuring for the closing line, as if encouraging a friend who is discouraged."
+    },
+    {
+     "sceneIndex": 9,
+     "text": "So where does a seven percent return come from? Not from a typical savings account. Most savings accounts pay far less, and the rate changes over time. The long-term average many people quote comes from stock markets, where you buy small pieces of many companies at once. A common way beginners do this is through a broad index fund, which holds hundreds or thousands of companies in a single purchase. [pause:400ms] Over very long periods, stock markets have tended to rise, but that is a pattern, not a promise. Some years they fall sharply. Some decades disappoint. The seven percent we used is an illustration, not a forecast, and real returns bounce around unpredictably. [pause:500ms] This is why time matters twice. It gives compounding room to work, and it gives you room to recover from the bad years. Money you need within a few years usually does not belong in the stock market. Money you will not touch for decades has a lot more patience to spend.",
+     "pace": "medium",
+     "emotion": "measured, cautionary, honest",
+     "emphasisWords": [
+      "a pattern, not a promise",
+      "an illustration, not a forecast",
+      "time matters twice"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [
+      {
+       "word": "index fund",
+       "phonetic": "IN-deks fund"
+      }
+     ],
+     "providerPrompt": "Calm, honest, careful tone. Avoid any sense of guaranteed returns. Emphasize the pattern-not-promise lines with clear separation. Keep a steady, grounded pace with reassuring final sentences."
+    },
+    {
+     "sceneIndex": 10,
+     "text": "Compounding works in both directions, so let's talk about what quietly works against you. First, fees. Suppose an investment charges one percent a year. That sounds tiny. But over forty years, that one percent is taken from a balance that is growing, and it can swallow a large share of your final result. Always check the cost of any fund you buy. [pause:400ms] Second, inflation. Prices rise over time, so a dollar in forty years will buy less than a dollar today. Your returns need to outrun that. [pause:400ms] Third, and most dangerous, is debt. Credit card interest compounds too, often at rates above twenty percent. That means the same snowball effect rolls against you, growing what you owe. [pause:500ms] Paying off high-interest debt is often a guaranteed return that investing cannot match. The same force that builds wealth slowly can drain it quickly, depending on which side of the equation you stand on.",
+     "pace": "medium",
+     "emotion": "serious, cautionary, clear",
+     "emphasisWords": [
+      "works against you",
+      "most dangerous",
+      "often at rates above twenty percent",
+      "drain it quickly"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [],
+     "providerPrompt": "Serious but not alarmist. Count the three threats clearly with slight emphasis on each ordinal. Make most dangerous land with weight. Close with a steady, thoughtful tone that leaves the listener considering their own side of the equation."
+    },
+    {
+     "sceneIndex": 11,
+     "text": "Now, if you are in your twenties and have never invested, this video is not meant to make you feel behind. It is meant to show you how powerful a small start can be. You do not need thousands of dollars. Many platforms let you begin with very small amounts. The habit matters more than the size. [pause:400ms] Here is a simple order to think about. First, build a small emergency fund, so you are not forced to sell investments in a crisis. Second, clear any high-interest debt. Third, if your employer offers a retirement plan with matching contributions, learn how that match works, because it is effectively free money. [pause:400ms] Then automate a fixed amount every month, and leave it alone. Increase it when your income grows. And if you are already older than twenty-five, the message is the same. The best time to start was years ago. The second best time is today. [pause:500ms] This is general education, not personal financial advice.",
+     "pace": "medium",
+     "emotion": "supportive, encouraging, practical",
+     "emphasisWords": [
+      "not meant to make you feel behind",
+      "free money",
+      "leave it alone",
+      "The second best time is today"
+     ],
+     "pauseAfterMs": 600,
+     "pronunciationHints": [],
+     "providerPrompt": "Supportive, big-sibling tone. Reassure without pressure. Walk through the ordered steps with a clear, practical rhythm. Slow slightly on the closing line and end on a warm, sincere note before the disclaimer, delivered plainly."
+    },
+    {
+     "sceneIndex": 12,
+     "text": "Let's return to where we began. How can someone who stops investing after ten years beat someone who keeps going for thirty? Because compound interest is not really about money. It is about time. [pause:400ms] Every year you wait is not just one year of lost growth. It is the loss of that year's growth, and of everything that growth would have grown into. The numbers feel small at the start and enormous at the end. And the people who benefit most are usually not the smartest or the richest. They are simply the ones who began early and stayed patient. [pause:500ms] So your task is small. Pick an amount you will not miss. Set it to happen automatically. Then let the snowball roll. If this made compounding finally click, subscribe for more plain-English money lessons, and send this to a friend who has not started yet.",
+     "pace": "slow",
+     "emotion": "reflective, warm, uplifting",
+     "emphasisWords": [
+      "It is about time",
+      "your task is small",
+      "let the snowball roll",
+      "send this to a friend"
+     ],
+     "pauseAfterMs": 0,
+     "pronunciationHints": [],
+     "providerPrompt": "Closing reflective tone, unhurried and sincere. Slow the opening question, then deliver the core message about time with quiet conviction. Brighten slightly for the simple action steps and end with an inviting, friendly call to subscribe and share."
+    }
+   ]
+  },
+  "thumbnails": {
+   "concepts": [
+    {
+     "pairedTitleIndex": 0,
+     "imagePrompt": "Cinematic close-up of a young adult in their twenties, seen from behind in a sunlit modern apartment, looking at a glowing tablet showing a rising curve, shallow depth of field, warm golden side lighting, 35mm lens, eye-level camera, clean minimal set with generous empty negative space on the left side for text, moody yet hopeful, editorial photography style",
+     "negativePrompt": "text, watermark, logo, blur, extra fingers, distorted hands, readable letters, numbers, cluttered background, low resolution, identifiable real person face",
+     "composition": "Subject occupies right two-thirds; left third kept empty for overlay text. Curve on tablet is a visual hint, not readable.",
+     "focalEmotion": "Curious suspense",
+     "textOverlay": {
+      "text": "THE QUIET WINNER",
+      "placement": "top-left",
+      "colorHex": "#FFD000",
+      "strokeHex": "#000000",
+      "fontStyle": "bold-sans"
+     },
+     "aspectRatio": "16:9"
+    },
+    {
+     "pairedTitleIndex": 3,
+     "imagePrompt": "Two pairs of hands holding glass jars of coins on a wooden table, one jar filled high and one jar with a small stack, dramatic warm lighting with a dark teal background, macro-to-medium lens, 50mm, slightly high angle, strong contrast, clean space at the top center for text, stylized finance illustration feel",
+     "negativePrompt": "text, watermark, logo, blur, extra fingers, distorted hands, faces, dollar sign symbols, cluttered scene, low resolution",
+     "composition": "Two jars side by side with clear size contrast in lower half; upper center empty for text.",
+     "focalEmotion": "Doubtful surprise",
+     "textOverlay": {
+      "text": "3 TIMES LONGER?",
+      "placement": "top-right",
+      "colorHex": "#FFFFFF",
+      "strokeHex": "#0B3D91",
+      "fontStyle": "condensed"
+     },
+     "aspectRatio": "16:9"
+    },
+    {
+     "pairedTitleIndex": 6,
+     "imagePrompt": "Simple illustrated hourglass with golden sand on a clean pale background, a small snowball beginning to grow at its base, bold flat vector style, soft studio lighting, centered composition with open space on the right side for text, bright and energetic color palette",
+     "negativePrompt": "text, watermark, logo, blur, realistic faces, extra fingers, clutter, busy background, low resolution",
+     "composition": "Hourglass on left half, empty right half reserved for text overlay.",
+     "focalEmotion": "Playful intrigue",
+     "textOverlay": {
+      "text": "STOP AT 35",
+      "placement": "bottom-right",
+      "colorHex": "#FFFFFF",
+      "strokeHex": "#D7261E",
+      "fontStyle": "serif-impact"
+     },
+     "aspectRatio": "16:9"
+    },
+    {
+     "pairedTitleIndex": 5,
+     "imagePrompt": "Dramatic photo of a large hourglass with sand running out on a dark slate surface, a single gold coin resting at the bottom, low-key lighting with a red accent glow, macro lens 85mm, low angle, high contrast, moody editorial style, upper area left empty for text",
+     "negativePrompt": "text, watermark, logo, blur, extra fingers, faces, clutter, low resolution, bright cheerful colors",
+     "composition": "Hourglass placed right of center; upper-left and bottom-left kept dark and empty for overlay.",
+     "focalEmotion": "Urgent concern",
+     "textOverlay": {
+      "text": "WAITING COSTS",
+      "placement": "top-left",
+      "colorHex": "#FFFFFF",
+      "strokeHex": "#B00000",
+      "fontStyle": "bold-sans"
+     },
+     "aspectRatio": "16:9"
+    }
+   ]
+  }
+ }
+}
