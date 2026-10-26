@@ -1,5 +1,6 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
+import { isNewAccount, track } from "@/lib/analytics/posthog";
 import { takeNext } from "@/lib/auth/next-cookie";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,8 +15,12 @@ export async function GET(request: NextRequest) {
 
   if (tokenHash && type && TYPES.has(type)) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
-    if (!error) return NextResponse.redirect(new URL(await takeNext(), request.url));
+    const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+    if (!error) {
+      const user = data.user;
+      if (user && isNewAccount(user.created_at)) after(() => track(user.id, { name: "signed_up", properties: { method: "email" } }, user.id));
+      return NextResponse.redirect(new URL(await takeNext(), request.url));
+    }
   }
   return NextResponse.redirect(new URL("/login?error=lien", request.url));
 }

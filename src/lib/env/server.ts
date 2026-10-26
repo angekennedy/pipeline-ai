@@ -22,6 +22,9 @@ const ServerEnvSchema = z
     // génération (globale, ou du workspace) jusqu'au lendemain. Valeurs par défaut à ajuster en production.
     SPEND_DAILY_LIMIT_USD: z.coerce.number().positive().default(200),
     SPEND_DAILY_WORKSPACE_LIMIT_USD: z.coerce.number().positive().default(25),
+    // Funnel PostHog (tâche 5.3), envoyé côté serveur. Absente : rien n'est envoyé. Région UE par défaut.
+    POSTHOG_KEY: z.string().startsWith("phc_").optional(),
+    POSTHOG_HOST: z.url().default("https://eu.i.posthog.com"),
     // Marge par pipeline (tâche 4.6) : les coûts LLM sont en dollars, les prix en euros.
     USD_TO_EUR: z.coerce.number().positive().default(0.92),
     VERCEL_ENV: z.enum(["production", "preview", "development"]).optional(), // variable système de Vercel

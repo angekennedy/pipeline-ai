@@ -56,6 +56,11 @@ vi.mock("@/lib/security/moderation", async (original) => ({
   moderateBrief: (...args: unknown[]) => moderate(...args),
 }));
 
+// Funnel (tâche 5.3) : after() s'exécute tout de suite, l'envoi est simulé.
+vi.mock("next/server", async (original) => ({ ...(await original<typeof import("next/server")>()), after: (callback: () => unknown) => callback() }));
+const track = vi.fn();
+vi.mock("@/lib/analytics/posthog", () => ({ track: (...args: unknown[]) => track(...args) }));
+
 const { createPipeline } = await import("@/app/(app)/w/[workspaceSlug]/pipelines/new/actions");
 
 const KEY = "8b0b2e2a-6f3e-4e0e-9a51-2a8f4c1d9e70";
@@ -94,6 +99,13 @@ describe("Server Action createPipeline", () => {
       expect.objectContaining({ name: "pipeline/requested", data: { pipelineId: PIPELINE, workspaceId: WS }, id: `pipeline-requested:${PIPELINE}` }),
     );
     expect(refresh).toHaveBeenCalledOnce(); // solde de l'en-tête relu
+    expect(track).toHaveBeenCalledWith("user-1", { name: "pipeline_created", properties: { tier: "standard", minutes: 8 } }, PIPELINE);
+  });
+
+  it("ne compte pas une seconde fois un pipeline déjà créé par la même soumission", async () => {
+    reserve.mockResolvedValueOnce({ pipelineId: PIPELINE, created: false, credits: 18 });
+    await expect(createPipeline(initial, form())).rejects.toThrow("NEXT_REDIRECT");
+    expect(track).not.toHaveBeenCalled();
   });
 
   it("fige le preset choisi dans le pipeline, relu dans ce workspace", async () => {

@@ -70,6 +70,12 @@ describe("createCheckoutSession", () => {
     );
   });
 
+  it("rattache le paiement à la personne qui le lance, pour le funnel", async () => {
+    await createCheckoutSession(client, admin, { workspace, email: null, item: itemForLookupKey("pack_200")!, origin, userId: "user-1" });
+    const metadata = { workspace_id: "ws-1", lookup_key: "pack_200", user_id: "user-1" };
+    expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(expect.objectContaining({ metadata, payment_intent_data: { metadata } }));
+  });
+
   it("pack : paiement unique, client existant réutilisé", async () => {
     customerId = "cus_existing";
     await createCheckoutSession(client, admin, { workspace, email: null, item: itemForLookupKey("pack_200")!, origin });

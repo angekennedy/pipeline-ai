@@ -884,11 +884,11 @@
         },
         "data": {
           "title": "Données traitées",
-          "body": "- Compte : adresse e-mail, nom affiché, langue de l'interface.\n- Workspaces : nom, membres et rôles, presets de chaîne.\n- Contenus : vos briefs, consignes de régénération et les contenus générés, avec leur historique de versions.\n- Facturation : identifiant client et abonnements Stripe, mouvements de crédits. Vos données de carte sont traitées par Stripe et ne nous sont jamais transmises.\n- Sécurité : empreintes non réversibles de votre adresse e-mail et de votre adresse IP, pour limiter le nombre de demandes, effacées au plus tard après 24 heures.\n- Erreurs techniques : rapports d'erreur sans adresse IP, sans cookies et sans contenu de requête."
+          "body": "- Compte : adresse e-mail, nom affiché, langue de l'interface.\n- Workspaces : nom, membres et rôles, presets de chaîne.\n- Contenus : vos briefs, consignes de régénération et les contenus générés, avec leur historique de versions.\n- Facturation : identifiant client et abonnements Stripe, mouvements de crédits. Vos données de carte sont traitées par Stripe et ne nous sont jamais transmises.\n- Sécurité : empreintes non réversibles de votre adresse e-mail et de votre adresse IP, pour limiter le nombre de demandes, effacées au plus tard après 24 heures.\n- Erreurs techniques : rapports d'erreur sans adresse IP, sans cookies et sans contenu de requête.\n- Mesure d'audience : trois étapes (inscription, création d'un pipeline, paiement), rattachées à un identifiant pseudonyme non réversible, avec la formule et la durée de la vidéo ou l'offre achetée. Ni e-mail, ni adresse IP, ni contenu, ni cookie."
         },
         "purposes": {
           "title": "Finalités et bases légales",
-          "body": "- Fournir le service et facturer : exécution du contrat.\n- Conserver les pièces comptables : obligation légale.\n- Prévenir les abus et sécuriser le service (limites de fréquence, modération des briefs, alertes de dépense) : intérêt légitime.\n\nAucune donnée n'est vendue ni utilisée à des fins publicitaires."
+          "body": "- Fournir le service et facturer : exécution du contrat.\n- Conserver les pièces comptables : obligation légale.\n- Prévenir les abus et sécuriser le service (limites de fréquence, modération des briefs, alertes de dépense) : intérêt légitime.\n- Mesurer l'usage du service pour l'améliorer, sans profilage : intérêt légitime.\n\nAucune donnée n'est vendue ni utilisée à des fins publicitaires."
         },
         "ai": {
           "title": "Génération par l'IA",
@@ -896,11 +896,11 @@
         },
         "processors": {
           "title": "Sous-traitants",
-          "body": "- Supabase : base de données et authentification, hébergées dans la région {databaseRegion}.\n- Anthropic : génération des contenus (États-Unis).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application.\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques.\n\nLes transferts hors de l'Union européenne sont encadrés par les clauses contractuelles types de la Commission européenne ou par le cadre de protection des données UE–États-Unis."
+          "body": "- Supabase : base de données et authentification, hébergées dans la région {databaseRegion}.\n- Anthropic : génération des contenus (États-Unis).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application.\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques.\n- PostHog : mesure d'audience (Union européenne).\n\nLes transferts hors de l'Union européenne sont encadrés par les clauses contractuelles types de la Commission européenne ou par le cadre de protection des données UE–États-Unis."
         },
         "retention": {
           "title": "Durées de conservation",
-          "body": "- Compte, workspaces et contenus : jusqu'à la suppression du compte, effacés à ce moment-là.\n- Pièces comptables : 10 ans, comme l'exige la loi.\n- Empreintes de sécurité : 24 heures au plus.\n- Rapports d'erreur : {errorRetention}."
+          "body": "- Compte, workspaces et contenus : jusqu'à la suppression du compte, effacés à ce moment-là.\n- Pièces comptables : 10 ans, comme l'exige la loi.\n- Empreintes de sécurité : 24 heures au plus.\n- Mesure d'audience : selon la durée de conservation de PostHog, sans lien possible avec votre identité.\n- Rapports d'erreur : {errorRetention}."
         },
         "rights": {
           "title": "Vos droits",

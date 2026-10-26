@@ -884,11 +884,11 @@
         },
         "data": {
           "title": "Data we process",
-          "body": "- Account: email address, display name, interface language.\n- Workspaces: name, members and roles, channel presets.\n- Content: your briefs, regeneration instructions and the generated content, with its version history.\n- Billing: Stripe customer ID and subscriptions, credit movements. Your card details are processed by Stripe and never reach us.\n- Security: non-reversible fingerprints of your email address and IP address, used to limit the number of requests, erased after 24 hours at most.\n- Technical errors: error reports without IP address, cookies or request content."
+          "body": "- Account: email address, display name, interface language.\n- Workspaces: name, members and roles, channel presets.\n- Content: your briefs, regeneration instructions and the generated content, with its version history.\n- Billing: Stripe customer ID and subscriptions, credit movements. Your card details are processed by Stripe and never reach us.\n- Security: non-reversible fingerprints of your email address and IP address, used to limit the number of requests, erased after 24 hours at most.\n- Technical errors: error reports without IP address, cookies or request content.\n- Usage analytics: three steps (sign-up, pipeline creation, payment), tied to a non-reversible pseudonymous identifier, with the video's tier and length or the offer purchased. No email, IP address, content or cookie."
         },
         "purposes": {
           "title": "Purposes and legal bases",
-          "body": "- Providing the service and billing: performance of the contract.\n- Keeping accounting records: legal obligation.\n- Preventing abuse and securing the service (rate limits, brief moderation, spending alerts): legitimate interest.\n\nNo data is sold or used for advertising."
+          "body": "- Providing the service and billing: performance of the contract.\n- Keeping accounting records: legal obligation.\n- Preventing abuse and securing the service (rate limits, brief moderation, spending alerts): legitimate interest.\n- Measuring use of the service to improve it, without profiling: legitimate interest.\n\nNo data is sold or used for advertising."
         },
         "ai": {
           "title": "AI generation",
@@ -896,11 +896,11 @@
         },
         "processors": {
           "title": "Processors",
-          "body": "- Supabase: database and authentication, hosted in the {databaseRegion} region.\n- Anthropic: content generation (United States).\n- Stripe: payment and billing.\n- Vercel: application hosting.\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking.\n\nTransfers outside the European Union are covered by the European Commission's standard contractual clauses or by the EU–US Data Privacy Framework."
+          "body": "- Supabase: database and authentication, hosted in the {databaseRegion} region.\n- Anthropic: content generation (United States).\n- Stripe: payment and billing.\n- Vercel: application hosting.\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking.\n- PostHog: usage analytics (European Union).\n\nTransfers outside the European Union are covered by the European Commission's standard contractual clauses or by the EU–US Data Privacy Framework."
         },
         "retention": {
           "title": "Retention",
-          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 10 years, as required by law.\n- Security fingerprints: 24 hours at most.\n- Error reports: {errorRetention}."
+          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 10 years, as required by law.\n- Security fingerprints: 24 hours at most.\n- Usage analytics: according to PostHog's retention period, with no possible link to your identity.\n- Error reports: {errorRetention}."
         },
         "rights": {
           "title": "Your rights",
