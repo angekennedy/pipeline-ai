@@ -100,3 +100,39 @@ describe("AssetTabs", () => {
     expect(within(await openTab(/Miniatures/)).getByRole("status")).toHaveTextContent("le script ou les titres ont changé depuis");
   });
 });
+
+describe("raccourcis, compteurs et aperçus", () => {
+  it("change d'onglet au clavier, sauf pendant une saisie, et affiche l'aide", async () => {
+    const user = userEvent.setup();
+    render(<AssetTabs view={view("demo-completed")} scenes={[]} />);
+    await user.keyboard("3");
+    expect(screen.getByRole("tab", { name: /SEO/ })).toHaveAttribute("aria-selected", "true");
+
+    await user.keyboard("?");
+    const dialog = await screen.findByRole("dialog", { name: "Raccourcis clavier" });
+    expect(within(dialog).getByText("Copier le contenu principal de l'onglet")).toBeInTheDocument();
+    // Désactivés : les chiffres ne changent plus d'onglet.
+    await user.click(within(dialog).getByRole("checkbox", { name: "Activer les raccourcis à une touche" }));
+    await user.keyboard("{Escape}");
+    await user.keyboard("1");
+    expect(screen.getByRole("tab", { name: /SEO/ })).toHaveAttribute("aria-selected", "true");
+    localStorage.clear();
+  });
+
+  it("compte les caractères de la description et des tags, avec le début visible en recherche", async () => {
+    render(<AssetTabs view={view("demo-completed")} scenes={[]} />);
+    const panel = await openTab(/SEO/);
+    expect(within(panel).getByText(/Description : \d+ caractères sur 5 000/)).toBeInTheDocument();
+    expect(within(panel).getByText(/Tags : \d+ caractères sur 500/)).toBeInTheDocument();
+    expect(within(panel).getByText(/150 premiers caractères/)).toBeInTheDocument();
+  });
+
+  it("affiche chaque miniature dans le fil mobile et les suggestions, avec le badge de durée", async () => {
+    const pipeline = view("demo-completed");
+    render(<AssetTabs view={pipeline} scenes={[]} />);
+    const panel = await openTab(/Miniatures/);
+    const previews = within(panel).getAllByRole("group", { name: /Aperçu mobile du concept/ });
+    expect(previews.length).toBe(pipeline.assets.thumbnails.content!.concepts.length);
+    expect(within(previews[0]!).getAllByText(`${pipeline.brief.durationMinutes}:00`)).toHaveLength(2);
+  });
+});

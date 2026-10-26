@@ -212,6 +212,15 @@ pipeline-ai/
 > - **Facturation** (migration 0012) : `reserve_regeneration` (rôle, plan, solde, idempotente par clé) ; capture dans `commit_asset_version`, plafonnée au reliquat ; `release_regeneration` à l'échec définitif (`onFailure`, une tentative ratée pouvant être relancée) ; `sweep_stale_reservations` libère aussi une régénération restée sans activité 30 min.
 > - **Affichage** : une régénération en attente ou en cours affiche l'asset « en cours », et la page se relit toutes les 4 s jusqu'à la fin (`AutoRefresh`). Sur les démonstrations ou pour un lecteur, les boutons restent désactivés.
 > - **Tests** : intégration sur la vraie base (édition versionnée, dérivés régénérés à partir du script édité, prompt vérifié, capture, libération, balayage) ; la suppression de la capture des régénérations a été testée par mutation. E2E : édition, « Régénérer les dérivés » (6 crédits réservés, une exécution chaînée), restauration, exports, sur un pipeline terminé préparé par les vraies RPC (`tests/e2e/pipelines.ts`).
+>
+> **Révision (octobre 2026, tâche 4.3).** UX de la page d'un pipeline.
+> - **Compteurs** (`src/lib/pipeline/youtube-limits.ts`, `CharCounter`) : limites de YouTube Studio comptées en caractères (un emoji vaut un caractère). Titre 100, recommandé 70 (tronqué dans le fil mobile) ; description 5 000, avec les 150 premiers caractères visibles en recherche ; tags 500, comptés comme YouTube (guillemets d'un tag à espace, virgules) ; 3 hashtags affichés au-dessus du titre.
+> - **Aperçu mobile des miniatures** (`ThumbnailPreview`), en CSS seulement : fil d'accueil et colonne des suggestions, texte incrusté placé, coloré et contouré comme le concept, badge de durée en bas à droite. Un texte placé dans ce coin est signalé.
+> - **Raccourcis** (`src/lib/pipeline/shortcuts.ts`) : `1` à `5` (onglets), `c` (copie principale de l'onglet, `data-shortcut-copy`), `e` (éditeur du script), `?` (aide). Ignorés pendant une saisie et avec Ctrl, ⌘ ou Alt ; désactivables dans l'aide (WCAG 2.1.4), préférence conservée dans le navigateur.
+> - **Lighthouse** (Chrome DevTools, mobile, build de production) : accessibilité, bonnes pratiques et SEO à 100 sur l'accueil, les tarifs et la page d'un pipeline de démonstration, onglets SEO et Miniatures compris ; CLS 0, LCP 0,65 à 1 s avec un processeur ralenti 4 fois et une connexion « Slow 4G ». `/login` reste à 60 en SEO par choix (`noindex`). Correctifs :
+>   - les métadonnées des démonstrations sont prérendues (`generateStaticParams`) : avec Cache Components, un `generateMetadata` qui lit `params` à la requête est diffusé dans le `<body>`, où Lighthouse ne trouve pas la description ;
+>   - le menu du compte, chargé après la session, réserve la place du lien de connexion (CLS de 0,13 à 0) ;
+>   - les intertitres des onglets passent en `h2`, sous le `h1` de la page.
 
 ---
 

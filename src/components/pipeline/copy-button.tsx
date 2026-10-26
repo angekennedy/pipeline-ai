@@ -8,8 +8,9 @@ type CopyState = "idle" | "copied" | "failed";
 
 const FEEDBACK_MS = 2000;
 
-// Copie en un clic d'un texte brut. Le retour visuel est annoncé aux lecteurs d'écran.
-export function CopyButton({ text, label }: { text: string; label: string }) {
+// Copie en un clic d'un texte brut. Le retour visuel est annoncé aux lecteurs d'écran. `primary` : la
+// copie principale de l'onglet, déclenchée aussi par le raccourci « c ».
+export function CopyButton({ text, label, primary = false }: { text: string; label: string; primary?: boolean }) {
   const [state, setState] = useState<CopyState>("idle");
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
 
   const Icon = state === "copied" ? Check : state === "failed" ? TriangleAlert : Copy;
   return (
-    <Button type="button" variant="outline" size="sm" onClick={copy}>
+    <Button type="button" variant="outline" size="sm" onClick={copy} data-shortcut-copy={primary || undefined}>
       <Icon aria-hidden="true" />
       <span>{label}</span>
       <span className="sr-only" aria-live="polite">

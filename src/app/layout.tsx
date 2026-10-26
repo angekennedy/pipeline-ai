@@ -42,7 +42,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/pipelines/new" className="text-sm text-muted-foreground hover:text-foreground">
                 Nouveau pipeline
               </Link>
-              <Suspense>
+              {/* Le menu dépend de la session : en attendant, un emplacement de la taille du lien de
+                  connexion, pour que les liens voisins ne se décalent pas (CLS). */}
+              <Suspense
+                fallback={
+                  <span aria-hidden="true" className="invisible text-sm font-medium">
+                    Se connecter
+                  </span>
+                }
+              >
                 <AccountMenu />
               </Suspense>
             </div>

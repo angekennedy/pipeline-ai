@@ -110,3 +110,15 @@ test.describe("sur mobile", () => {
     });
   }
 });
+
+test("raccourcis clavier, compteurs SEO et aperçu mobile des miniatures (démonstration)", async ({ page }) => {
+  await page.goto("/pipelines/demo-completed");
+  await expect(page.getByRole("tab", { name: /Script/ })).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("3");
+  await expect(page.getByRole("tab", { name: /SEO/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByText(/150 premiers caractères/)).toBeVisible();
+  await page.keyboard.press("5");
+  await expect(page.getByRole("group", { name: "Aperçu mobile du concept 1" })).toBeVisible();
+  await page.keyboard.press("Shift+?");
+  await expect(page.getByRole("dialog", { name: "Raccourcis clavier" })).toBeVisible();
+});
