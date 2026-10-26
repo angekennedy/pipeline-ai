@@ -49,7 +49,7 @@ describe("createPipelineWithReservation", () => {
     expect(error).toMatchObject({ code: "INSUFFICIENT_CREDITS", required: 21, available: 5 });
   });
 
-  it("traduit un refus du plan en PlanRestrictionError (403) avec un message explicite", async () => {
+  it("traduit un refus du plan en PlanRestrictionError (403) avec la restriction, traduite à l'affichage", async () => {
     const { db } = fakeDb({
       data: null,
       error: { message: "PLAN_RESTRICTED", code: "42501", details: '{"reason" : "duration", "plan" : "free", "limit" : 10}' },
@@ -57,7 +57,7 @@ describe("createPipelineWithReservation", () => {
     const error = await createPipelineWithReservation(db, input).catch((e) => e);
     expect(error).toBeInstanceOf(PlanRestrictionError);
     expect(error).toMatchObject({ code: "PLAN_RESTRICTED", status: 403, restriction: { reason: "duration", plan: "free", limit: 10 } });
-    expect(error.message).toBe("Le plan Free limite les vidéos à 10 min. Réduisez la durée, ou passez au plan Creator pour aller jusqu'à 60 min.");
+    expect(error.message).toBe("Restriction du plan free : duration");
   });
 
   it("applique les messages de Free à un plan inconnu renvoyé par la base", async () => {

@@ -222,6 +222,13 @@ pipeline-ai/
 >   - le menu du compte, chargé après la session, réserve la place du lien de connexion (CLS de 0,13 à 0) ;
 >   - les intertitres des onglets passent en `h2`, sous le `h1` de la page.
 
+> **Révision (octobre 2026, tâche 4.4).** Interface en français et en anglais (`next-intl`, sans préfixe d'URL).
+> - **Langue** (`src/i18n/locales.ts`, `request.ts`) : cookie `locale` posé par le sélecteur de l'en-tête (`changeLocale`, `src/i18n/actions.ts`, qui la garde aussi dans `profiles.locale`), sinon `Accept-Language`, sinon le français. Elle ne change pas la langue des contenus générés, choisie dans chaque brief.
+> - **Rendu** : le layout racine lit la langue à la requête, donc `instant = false` à la racine : toutes les pages sont rendues à la requête (LCP de l'accueil 0,65 → 0,67 s). Les métadonnées passent par `generateMetadata` + `getTranslations("Meta")`, et restent dans le `<head>` (vérifié en FR et EN).
+> - **Messages** : `messages/fr.json` et `messages/en.json`, typés (`src/i18n/global.d.ts`). Les modules serveur ne renvoient plus de phrases mais des clés : codes d'échec des assets (`Failures`), champs en erreur des formulaires, états des Server Actions (`busy`, `restriction`, `insufficient`…), refus de suppression du compte. Les erreurs levées (`PlanRestrictionError`, `AccountDeletionBlockedError`) gardent un message technique. Les exports (MD, JSON, TXT, ZIP) prennent un traducteur et sortent dans la langue de l'interface. Prix et crédits : `PRICE` (`src/i18n/format.ts`) et le pluriel ICU `Common.credits`.
+> - **« 100 % des chaînes traduites »** (`tests/unit/i18n/coverage.test.ts`) : mêmes clés et mêmes variables ICU dans les deux langues, aucune traduction vide, et aucun texte d'interface en dur, cherché dans l'AST des pages, composants et modules affichés. Exceptions explicites : `global-error.tsx` (hors fournisseur, porte ses deux langues) et les lignes marquées `i18n-ignore` (messages adressés au modèle).
+> - **Tests** : unitaires et composants avec les vrais messages français (`tests/setup.ts`), traducteurs FR/EN pour les modules (`tests/fixtures/i18n.ts`) ; E2E en `fr-FR`, plus `tests/e2e/i18n.spec.ts` (bascule et navigateur anglais). Lighthouse sur les tarifs : accessibilité, bonnes pratiques et SEO à 100.
+
 ---
 
 ## 3. Modèle de données

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { briefPrefill, CHANNEL_FIELD_MESSAGES, channelOption, parseChannelForm, presetToFormValues } from "@/lib/channels/form";
+import { briefPrefill, channelOption, parseChannelForm, presetToFormValues } from "@/lib/channels/form";
 import { validChannel } from "../../fixtures/assets";
 
 const form = (fields: Record<string, string>) => {
@@ -51,7 +51,7 @@ describe("parseChannelForm", () => {
     ["couleur invalide", { thumbnailPalette: "rouge" }, "thumbnailPalette"],
   ])("rejette : %s, sur le bon champ", (_, overrides, field) => {
     const result = parseChannelForm(form({ ...full, ...overrides }));
-    expect(result).toMatchObject({ ok: false, fieldErrors: { [field]: CHANNEL_FIELD_MESSAGES[field as keyof typeof CHANNEL_FIELD_MESSAGES] } });
+    expect(result).toMatchObject({ ok: false, fieldErrors: { [field]: true } });
     expect(result.ok === false && Object.keys(result.fieldErrors)).toEqual([field]);
   });
 });

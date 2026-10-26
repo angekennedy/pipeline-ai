@@ -88,7 +88,7 @@ describe("Server Action createPipeline", () => {
   it("signale un preset supprimé ou d'un autre workspace, sans rien réserver", async () => {
     getChannel.mockResolvedValue(null);
     const state = await createPipeline(initial, form({ channelId: "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f" }));
-    expect(state.fieldErrors).toEqual({ channelId: expect.stringMatching(/n'existe plus/) });
+    expect(state.fieldErrors).toEqual({ channelId: true });
     expect(reserve).not.toHaveBeenCalled();
   });
 
@@ -124,7 +124,7 @@ describe("Server Action createPipeline", () => {
   it("libère la réservation si l'événement ne part pas", async () => {
     send.mockRejectedValueOnce(new Error("Inngest injoignable"));
     const state = await createPipeline(initial, form());
-    expect(state.launchError).toMatch(/aucun crédit n'a été débité/);
+    expect(state.launchError).toBe(true);
     expect(rpc).toHaveBeenCalledWith("finalize_pipeline", { p_pipeline: PIPELINE, p_status: "failed" });
     expect(redirect).not.toHaveBeenCalled();
   });

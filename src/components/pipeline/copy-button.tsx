@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy, TriangleAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,7 @@ const FEEDBACK_MS = 2000;
 // Copie en un clic d'un texte brut. Le retour visuel est annoncé aux lecteurs d'écran. `primary` : la
 // copie principale de l'onglet, déclenchée aussi par le raccourci « c ».
 export function CopyButton({ text, label, primary = false }: { text: string; label: string; primary?: boolean }) {
+  const t = useTranslations("CopyButton");
   const [state, setState] = useState<CopyState>("idle");
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function CopyButton({ text, label, primary = false }: { text: string; lab
       <Icon aria-hidden="true" />
       <span>{label}</span>
       <span className="sr-only" aria-live="polite">
-        {state === "copied" ? "Copié dans le presse-papiers" : state === "failed" ? "La copie a échoué" : ""}
+        {state === "copied" ? t("copied") : state === "failed" ? t("failed") : ""}
       </span>
     </Button>
   );

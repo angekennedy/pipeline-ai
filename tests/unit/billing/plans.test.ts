@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { CREDIT_PACKS, PLANS, formatCredits, formatEuros, isPlanKey } from "@/lib/billing/plans";
+import { createFormatter } from "next-intl";
+import { PRICE } from "@/i18n/format";
+import { CREDIT_PACKS, PLANS, isPlanKey } from "@/lib/billing/plans";
+import { tEn, tFr } from "../../fixtures/i18n";
 
 describe("catalogue des plans", () => {
   it("reprend les allocations d'ARCHITECTURE §5.1", () => {
@@ -23,12 +26,17 @@ describe("catalogue des plans", () => {
     expect(isPlanKey("enterprise")).toBe(false);
   });
 
-  it("formate les crédits et les prix en français", () => {
-    expect(formatCredits(1)).toBe("1 crédit");
-    expect(formatCredits(0)).toBe("0 crédit");
-    expect(formatCredits(1500)).toBe("1 500 crédits");
-    expect(formatEuros(1900)).toBe("19 €");
-    expect(formatEuros(0)).toBe("0 €");
+  it("formate les crédits et les prix dans la langue de l'interface", () => {
+    const credits = (t: typeof tFr, count: number) => t("Common.credits", { count }).replace(/\s/g, " ");
+    expect(credits(tFr, 1)).toBe("1 crédit");
+    expect(credits(tFr, 0)).toBe("0 crédit");
+    expect(credits(tFr, 1500)).toBe("1 500 crédits");
+    expect(credits(tEn, 1)).toBe("1 credit");
+    expect(credits(tEn, 1500)).toBe("1,500 credits");
+    const price = (locale: "fr" | "en", cents: number) => createFormatter({ locale }).number(cents / 100, PRICE).replace(/\s/g, " ");
+    expect(price("fr", 1900)).toBe("19 €");
+    expect(price("fr", 0)).toBe("0 €");
+    expect(price("en", 1900)).toBe("€19");
   });
 });
 

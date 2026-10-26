@@ -11,15 +11,8 @@ export const SCRIPT_FIELDS = ["workingTitle", "hookSummary", "callToAction"] as 
 
 export const sceneFieldName = (index: number, field: SceneField) => `scene-${index}-${field}`;
 
-export const SCRIPT_FIELD_MESSAGES: Record<(typeof SCRIPT_FIELDS)[number] | SceneField, string> = {
-  workingTitle: "Le titre de travail tient en 100 caractères au plus.",
-  hookSummary: "Le résumé de l'accroche tient en 300 caractères au plus.",
-  callToAction: "L'appel à l'action tient en 300 caractères au plus.",
-  title: "Le titre de la scène tient en 80 caractères au plus.",
-  narration: "La narration fait au moins 20 caractères.",
-  visualDirection: "La direction visuelle tient en 400 caractères au plus.",
-  onScreenText: "Le texte à l'écran tient en 60 caractères au plus.",
-};
+// Champ du formulaire → champ du script en erreur, dont l'éditeur affiche le message (ScriptEditor.errors).
+export type ScriptErrorField = (typeof SCRIPT_FIELDS)[number] | SceneField;
 
 // Retours à la ligne normalisés : un texte retapé dans le navigateur arrive en CRLF.
 const text = (data: FormData, name: string, fallback: string) => {
@@ -46,15 +39,15 @@ export function applyScriptForm(current: Script, data: FormData): Script {
   };
 }
 
-// Erreurs de validation (editAsset) → champ du formulaire et message lisible.
-export function scriptFieldErrors(issues: SchemaIssue[]): Record<string, string> {
-  const errors: Record<string, string> = {};
+// Erreurs de validation (editAsset) → champ du formulaire et champ du script concerné.
+export function scriptFieldErrors(issues: SchemaIssue[]): Record<string, ScriptErrorField> {
+  const errors: Record<string, ScriptErrorField> = {};
   for (const { path } of issues) {
     const [head, i, field] = path;
     if (head === "scenes" && typeof i === "number" && SCENE_FIELDS.includes(field as SceneField)) {
-      errors[sceneFieldName(i + 1, field as SceneField)] = SCRIPT_FIELD_MESSAGES[field as SceneField];
+      errors[sceneFieldName(i + 1, field as SceneField)] = field as SceneField;
     } else if (SCRIPT_FIELDS.includes(head as (typeof SCRIPT_FIELDS)[number])) {
-      errors[head as string] = SCRIPT_FIELD_MESSAGES[head as (typeof SCRIPT_FIELDS)[number]];
+      errors[head as string] = head as (typeof SCRIPT_FIELDS)[number];
     }
   }
   return errors;

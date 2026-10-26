@@ -76,14 +76,14 @@ describe("saveScript", () => {
   it("renvoie les erreurs par champ d'un script invalide", async () => {
     editAsset.mockRejectedValue(new AssetValidationError([{ path: ["scenes", 0, "narration"], message: "Too small" }]));
     expect(await saveScript({ fieldErrors: {} }, form({}))).toEqual({
-      fieldErrors: { [sceneFieldName(1, "narration")]: "La narration fait au moins 20 caractères." },
-      error: "Corrigez les champs signalés.",
+      fieldErrors: { [sceneFieldName(1, "narration")]: "narration" },
+      error: "fix",
     });
   });
 
   it("refuse un pipeline encore en cours, un lecteur et un pipeline d'un autre workspace", async () => {
     pipeline = { status: "running" };
-    expect(await saveScript({ fieldErrors: {} }, form({}))).toMatchObject({ error: expect.stringMatching(/encore en cours/) });
+    expect(await saveScript({ fieldErrors: {} }, form({}))).toMatchObject({ error: "busy" });
     pipeline = { status: "completed" };
     role = "viewer";
     await expect(saveScript({ fieldErrors: {} }, form({}))).rejects.toThrow("rôle insuffisant");
@@ -121,9 +121,9 @@ describe("regenerateAssets", () => {
     requestRegeneration.mockRejectedValueOnce(new InsufficientCreditsError(6, 2));
     expect(await regenerateAssets({}, form({ assetType: "seo", nonce: NONCE }))).toEqual({ insufficient: { required: 6, available: 2 } });
     requestRegeneration.mockRejectedValueOnce(new PlanRestrictionError({ reason: "premium", plan: "free" }));
-    expect(await regenerateAssets({}, form({ assetType: "script", nonce: NONCE }))).toMatchObject({ error: expect.stringMatching(/Premium/) });
+    expect(await regenerateAssets({}, form({ assetType: "script", nonce: NONCE }))).toEqual({ restriction: { reason: "premium", plan: "free" } });
     requestRegeneration.mockRejectedValueOnce(new PipelineBusyError());
-    expect(await regenerateAssets({}, form({ assetType: "seo", nonce: NONCE }))).toMatchObject({ error: expect.stringMatching(/encore en cours/) });
+    expect(await regenerateAssets({}, form({ assetType: "seo", nonce: NONCE }))).toEqual({ busy: true });
   });
 
   it("refuse un asset inconnu ou une clé invalide", async () => {

@@ -21,25 +21,12 @@ export const CHANNEL_FORM_FIELDS = [
 export type ChannelFormField = (typeof CHANNEL_FORM_FIELDS)[number];
 export type ChannelFormValues = Partial<Record<ChannelFormField, string>>;
 
-export const CHANNEL_FIELD_MESSAGES: Record<ChannelFormField, string> = {
-  name: "Donnez un nom au preset, en 80 caractères au plus.",
-  niche: "Indiquez la niche de la chaîne, en 2 à 80 caractères.",
-  defaultLanguage: "Choisissez une langue dans la liste.",
-  tone: "Choisissez un ton dans la liste.",
-  style: "Choisissez un style dans la liste.",
-  audience: "Décrivez le public en 200 caractères au plus.",
-  voiceGender: "Choisissez une voix dans la liste.",
-  voiceAge: "L'âge de la voix tient en 20 caractères au plus, par exemple 35-45.",
-  voiceAccent: "L'accent tient en 60 caractères au plus.",
-  voicePace: "Choisissez un rythme dans la liste.",
-  bannedWords: "50 mots interdits au plus, de 40 caractères chacun au plus, séparés par des virgules.",
-  ctaTemplate: "L'appel à l'action tient en 300 caractères au plus.",
-  thumbnailPalette: "6 couleurs au plus, au format #RRGGBB, séparées par des virgules.",
-};
+// Champs en erreur ; le formulaire affiche le message de chacun (ChannelForm.errors).
+export type ChannelFieldErrors = Partial<Record<ChannelFormField, true>>;
 
 export type ChannelFormResult =
   | { ok: true; preset: ChannelPreset; values: ChannelFormValues }
-  | { ok: false; fieldErrors: Partial<Record<ChannelFormField, string>>; values: ChannelFormValues };
+  | { ok: false; fieldErrors: ChannelFieldErrors; values: ChannelFormValues };
 
 // Une liste saisie en texte : séparée par des virgules ou des retours à la ligne, sans doublon.
 const list = (value: string | undefined) => [...new Set((value ?? "").split(/[,\n]/).map((item) => item.trim()).filter(Boolean))];
@@ -82,10 +69,10 @@ export function parseChannelForm(data: FormData): ChannelFormResult {
   });
   if (result.success) return { ok: true, preset: result.data, values };
 
-  const fieldErrors: Partial<Record<ChannelFormField, string>> = {};
+  const fieldErrors: ChannelFieldErrors = {};
   for (const issue of result.error.issues) {
     const field = fieldOf(issue.path);
-    fieldErrors[field] = CHANNEL_FIELD_MESSAGES[field];
+    fieldErrors[field] = true;
   }
   return { ok: false, fieldErrors, values };
 }

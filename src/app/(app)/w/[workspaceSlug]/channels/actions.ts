@@ -4,13 +4,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
 import { PlanRestrictionError, type PlanRestriction } from "@/lib/billing/entitlements";
-import { parseChannelForm, type ChannelFormField, type ChannelFormValues } from "@/lib/channels/form";
+import { parseChannelForm, type ChannelFieldErrors, type ChannelFormValues } from "@/lib/channels/form";
 import { createChannel, deleteChannel, updateChannel } from "@/lib/channels/store";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
 
 export type ChannelFormState = {
-  fieldErrors: Partial<Record<ChannelFormField, string>>;
+  fieldErrors: ChannelFieldErrors; // messages affichés par le formulaire (ChannelForm.errors)
   values: ChannelFormValues; // saisie renvoyée pour réafficher le formulaire
   restriction?: PlanRestriction; // limite de presets du plan atteinte (403)
 };

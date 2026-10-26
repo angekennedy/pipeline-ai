@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { AccountMenu } from "@/components/auth/account-menu";
 import "./globals.css";
 
@@ -15,48 +18,55 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Pipeline AI",
-  description: "Du brief à la vidéo faceless prête à produire : script, titres, SEO, voix off et miniatures.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: "Pipeline AI", description: (await getTranslations("Home"))("tagline") };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+// La langue de l'interface vient de la requête (cookie, Accept-Language) : chaque page est rendue à la
+// requête, dans la langue de l'utilisateur (src/i18n/request.ts).
+export const instant = false;
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const [locale, t, account] = await Promise.all([getLocale(), getTranslations("Header"), getTranslations("Account")]);
   return (
     <html
-      lang="fr"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <NextIntlClientProvider>
         <header className="border-b">
-          <nav className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3" aria-label="Navigation principale">
+          <nav className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3" aria-label={t("nav")}>
             <Link href="/" className="font-semibold">
               Pipeline AI
             </Link>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground">
-                Tarifs
+                {t("pricing")}
               </Link>
               <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
-                Mes pipelines
+                {t("dashboard")}
               </Link>
               <Link href="/pipelines/new" className="text-sm text-muted-foreground hover:text-foreground">
-                Nouveau pipeline
+                {t("newPipeline")}
               </Link>
               {/* Le menu dépend de la session : en attendant, un emplacement de la taille du lien de
                   connexion, pour que les liens voisins ne se décalent pas (CLS). */}
               <Suspense
                 fallback={
                   <span aria-hidden="true" className="invisible text-sm font-medium">
-                    Se connecter
+                    {account("signIn")}
                   </span>
                 }
               >
                 <AccountMenu />
               </Suspense>
+              <LocaleSwitcher />
             </div>
           </nav>
         </header>
         {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   );

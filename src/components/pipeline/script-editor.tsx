@@ -1,9 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { saveScript, type ScriptEditState } from "@/app/(app)/w/[workspaceSlug]/pipelines/[pipelineId]/actions";
 import type { Script } from "@/lib/ai/schemas";
-import { SCENE_PURPOSE_LABELS } from "@/lib/pipeline/labels";
 import { sceneFieldName } from "@/lib/pipeline/script-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,18 +34,20 @@ export function ScriptEditor({ script, actions, onDone }: { script: Script; acti
     setAnswered(state);
     if (state.saved) onDone();
   }
-  const errors = state.fieldErrors;
+  const t = useTranslations("ScriptEditor");
+  const labels = useTranslations("Labels");
+  const errors = Object.fromEntries(Object.entries(state.fieldErrors).map(([name, field]) => [name, t(`errors.${field}`)]));
 
   return (
-    <form action={action} className="grid gap-6" aria-label="Modifier le script">
+    <form action={action} className="grid gap-6" aria-label={t("form")}>
       <input type="hidden" name="workspaceSlug" value={actions.workspaceSlug} />
       <input type="hidden" name="pipelineId" value={actions.pipelineId} />
 
       <div className="grid gap-4">
-        <Field name="workingTitle" label="Titre de travail" error={errors.workingTitle}>
+        <Field name="workingTitle" label={t("workingTitle")} error={errors.workingTitle}>
           {(props) => <Input {...props} defaultValue={script.workingTitle} maxLength={100} />}
         </Field>
-        <Field name="hookSummary" label="Résumé de l'accroche" error={errors.hookSummary}>
+        <Field name="hookSummary" label={t("hookSummary")} error={errors.hookSummary}>
           {(props) => <Textarea {...props} defaultValue={script.hookSummary} maxLength={300} rows={2} />}
         </Field>
       </div>
@@ -55,24 +57,24 @@ export function ScriptEditor({ script, actions, onDone }: { script: Script; acti
           <li key={scene.index}>
             <fieldset className="grid gap-3 rounded-xl border p-4">
               <legend className="px-1 text-sm font-medium">
-                Scène {scene.index} · {SCENE_PURPOSE_LABELS[scene.purpose]}
+                {t("scene", { index: scene.index, purpose: labels(`scenePurpose.${scene.purpose}`) })}
               </legend>
-              <Field name={sceneFieldName(scene.index, "title")} label="Titre" error={errors[sceneFieldName(scene.index, "title")]}>
+              <Field name={sceneFieldName(scene.index, "title")} label={t("title")} error={errors[sceneFieldName(scene.index, "title")]}>
                 {(props) => <Input {...props} defaultValue={scene.title} maxLength={80} />}
               </Field>
-              <Field name={sceneFieldName(scene.index, "narration")} label="Narration" error={errors[sceneFieldName(scene.index, "narration")]}>
+              <Field name={sceneFieldName(scene.index, "narration")} label={t("narration")} error={errors[sceneFieldName(scene.index, "narration")]}>
                 {(props) => <Textarea {...props} defaultValue={scene.narration} rows={4} />}
               </Field>
               <Field
                 name={sceneFieldName(scene.index, "visualDirection")}
-                label="Direction visuelle"
+                label={t("visualDirection")}
                 error={errors[sceneFieldName(scene.index, "visualDirection")]}
               >
                 {(props) => <Textarea {...props} defaultValue={scene.visualDirection} maxLength={400} rows={2} />}
               </Field>
               <Field
                 name={sceneFieldName(scene.index, "onScreenText")}
-                label="Texte à l'écran (facultatif)"
+                label={t("onScreenText")}
                 error={errors[sceneFieldName(scene.index, "onScreenText")]}
               >
                 {(props) => <Input {...props} defaultValue={scene.onScreenText ?? ""} maxLength={60} />}
@@ -82,23 +84,23 @@ export function ScriptEditor({ script, actions, onDone }: { script: Script; acti
         ))}
       </ol>
 
-      <Field name="callToAction" label="Appel à l'action" error={errors.callToAction}>
+      <Field name="callToAction" label={t("callToAction")} error={errors.callToAction}>
         {(props) => <Textarea {...props} defaultValue={script.callToAction} maxLength={300} rows={2} />}
       </Field>
 
       {state.error && (
         <p role="alert" className="text-sm text-destructive">
-          {state.error}
+          {t(`errors.${state.error}`)}
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Enregistrement…" : "Enregistrer une nouvelle version"}
+          {pending ? t("saving") : t("save")}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>
-          Annuler
+          {t("cancel")}
         </Button>
-        <p className="text-sm text-muted-foreground">Gratuit. Les titres, le SEO, la voix off et les miniatures deviendront obsolètes.</p>
+        <p className="text-sm text-muted-foreground">{t("note")}</p>
       </div>
     </form>
   );

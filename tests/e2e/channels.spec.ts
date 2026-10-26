@@ -11,7 +11,7 @@ test("preset de chaîne : création, brief prérempli, copie gardée par le pipe
   await page.getByRole("link", { name: "Créer mon premier preset" }).click();
   await page.getByLabel("Nom du preset").fill("Mystères d'Égypte");
   await page.getByLabel("Niche").fill("Histoire ancienne");
-  await page.getByLabel("Langue").selectOption("en");
+  await page.getByLabel("Langue", { exact: true }).selectOption("en");
   await page.getByLabel("Ton").selectOption("mysterious");
   await page.getByLabel("Public visé (facultatif)").fill("Passionnés d'histoire");
   await page.getByLabel("Mots interdits").fill("aliens, secret");
@@ -33,7 +33,7 @@ test("preset de chaîne : création, brief prérempli, copie gardée par le pipe
   await page.getByLabel("Style").selectOption("listicle");
   await page.getByLabel("Preset de chaîne").selectOption("Mystères d'Égypte");
   await expect(page.getByLabel("Niche")).toHaveValue("Histoire ancienne");
-  await expect(page.getByLabel("Langue")).toHaveValue("en");
+  await expect(page.getByLabel("Langue", { exact: true })).toHaveValue("en");
   await expect(page.getByLabel("Ton")).toHaveValue("mysterious");
   await expect(page.getByLabel("Style")).toHaveValue("listicle");
   await expect(page.getByLabel("Public visé (facultatif)")).toHaveValue("Passionnés d'histoire");

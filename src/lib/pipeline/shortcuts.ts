@@ -6,12 +6,8 @@ import { ASSET_TYPES, type AssetType } from "@/lib/ai/schemas";
 
 export type ShortcutAction = { type: "tab"; asset: AssetType } | { type: "copy" } | { type: "edit" } | { type: "help" };
 
-export const SHORTCUTS: Array<{ keys: string; label: string }> = [
-  { keys: "1 à 5", label: "Ouvrir l'onglet Script, Titres, SEO, Voix off ou Miniatures" },
-  { keys: "c", label: "Copier le contenu principal de l'onglet" },
-  { keys: "e", label: "Modifier le script" },
-  { keys: "?", label: "Afficher les raccourcis" },
-];
+// Raccourcis listés dans l'aide : touches et libellés traduits (Shortcuts.keys, Shortcuts.label).
+export const SHORTCUTS = ["tabs", "copy", "edit", "help"] as const;
 
 type KeyInput = {
   key: string;

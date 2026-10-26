@@ -40,7 +40,7 @@ describe("pipelines de démonstration", () => {
   it("partial : SEO en échec, les quatre autres assets prêts", () => {
     const { view } = demoPipeline("demo-partial")!;
     expect(view.status).toBe("partial");
-    expect(view.assets.seo).toMatchObject({ status: "failed", content: null, error: { code: "CONTENT_REFUSED", message: expect.any(String) } });
+    expect(view.assets.seo).toMatchObject({ status: "failed", content: null, error: { code: "CONTENT_REFUSED" } });
     expect(ASSET_TYPES.filter((t) => view.assets[t].status === "ready")).toEqual(["script", "titles", "voiceover", "thumbnails"]);
   });
 

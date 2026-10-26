@@ -2,10 +2,11 @@ import { strFromU8, unzipSync } from "fflate";
 import SrtParser from "srt-parser-2";
 import { describe, expect, it } from "vitest";
 import type { Brief, Script, Seo, Thumbnails, Titles, Voiceover } from "@/lib/ai/schemas";
-import { AI_DISCLOSURE, exportBaseName, exportBundle, pipelineToJson, pipelineToMarkdown, pipelineToSpeech, pipelineToSrt, pipelineToZip } from "@/lib/export/document";
+import { aiDisclosure, exportBaseName, exportBundle, pipelineToJson, pipelineToMarkdown, pipelineToSpeech, pipelineToSrt, pipelineToZip } from "@/lib/export/document";
 import { scriptSpokenText, spokenText, voiceoverSpokenText } from "@/lib/export/spoken";
 import { MAX_LINE, MAX_LINES, scriptCues, scriptToSrt, srtTimestamp } from "@/lib/export/srt";
 import { emptyPipelineView, type PipelineView } from "@/lib/pipeline/view";
+import { tEn, tFr } from "../../fixtures/i18n";
 import { validBrief, validScript, validSeo, validThumbnails, validTitles, validVoiceover } from "../../fixtures/assets";
 
 const script = validScript as Script;
@@ -120,29 +121,35 @@ describe("sous-titres SRT", () => {
 
 describe("document, données et archive", () => {
   it("Markdown : rappel de déclaration en tête, puis chaque asset prêt", () => {
-    const md = pipelineToMarkdown(view());
+    const md = pipelineToMarkdown(view(), tFr);
     expect(md.startsWith(`# ${validBrief.topic}\n`)).toBe(true);
     expect(md).toContain("> Contenu généré avec l'aide de l'IA");
     expect(md).toContain("« Contenu modifié ou synthétique »");
     expect(md.match(/^## .+$/gm)).toEqual(["## Titres", "## Script", "## Description YouTube", "## Tags", "## Voix off", "## Miniatures"]);
   });
 
+  it("en anglais : rappel et sections traduits", () => {
+    const md = pipelineToMarkdown(view(), tEn);
+    expect(md).toContain(`> ${tEn("Export.disclosure.title")}`);
+    expect(md.match(/^## .+$/gm)).toEqual(["## Titles", "## Script", "## YouTube description", "## Tags", "## Voiceover", "## Thumbnails"]);
+  });
+
   it("omet les assets en échec", () => {
-    const md = pipelineToMarkdown(view({ titles: null, thumbnails: null }));
+    const md = pipelineToMarkdown(view({ titles: null, thumbnails: null }), tFr);
     expect(md).not.toContain("## Titres");
     expect(md).not.toContain("## Miniatures");
-    expect(JSON.parse(pipelineToJson(view({ titles: null }))).assets.titles).toBeNull();
+    expect(JSON.parse(pipelineToJson(view({ titles: null }), tFr)).assets.titles).toBeNull();
   });
 
   it("JSON : brief, assets prêts et rappel, relisibles", () => {
-    const data = JSON.parse(pipelineToJson(view(), new Date("2026-10-26T09:00:00Z")));
-    expect(data).toMatchObject({ exportedAt: "2026-10-26T09:00:00.000Z", aiDisclosure: AI_DISCLOSURE, pipeline: { brief: validBrief, status: "completed" } });
+    const data = JSON.parse(pipelineToJson(view(), tFr, new Date("2026-10-26T09:00:00Z")));
+    expect(data).toMatchObject({ exportedAt: "2026-10-26T09:00:00.000Z", aiDisclosure: aiDisclosure(tFr), pipeline: { brief: validBrief, status: "completed" } });
     expect(data.assets.script).toEqual(script);
     expect(data.assets.voiceover).toEqual(voiceover);
   });
 
   it("ZIP : un fichier par usage et un LISEZ-MOI avec le rappel", () => {
-    const files = unzipSync(pipelineToZip(view()));
+    const files = unzipSync(pipelineToZip(view(), tFr));
     expect(Object.keys(files).sort()).toEqual(
       [
         "LISEZ-MOI.txt",
@@ -158,13 +165,13 @@ describe("document, données et archive", () => {
         "voix-off-indications.txt",
       ].sort(),
     );
-    expect(strFromU8(files["LISEZ-MOI.txt"]!)).toContain(AI_DISCLOSURE);
+    expect(strFromU8(files["LISEZ-MOI.txt"]!)).toContain(aiDisclosure(tFr));
     expect(strFromU8(files["voix-off-elevenlabs.txt"]!)).toBe(pipelineToSpeech(view()));
     expect(new SrtParser().fromSrt(strFromU8(files["sous-titres.srt"]!)).length).toBeGreaterThan(0);
   });
 
   it("ZIP partiel : seulement les fichiers des assets prêts", () => {
-    const names = exportBundle(view({ seo: null, voiceover: null })).map((file) => file.name);
+    const names = exportBundle(view({ seo: null, voiceover: null }), tFr).map((file) => file.name);
     expect(names).not.toContain("tags.txt");
     expect(names).not.toContain("voix-off-indications.txt");
     expect(names).toContain("voix-off-elevenlabs.txt"); // narration du script

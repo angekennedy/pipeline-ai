@@ -41,13 +41,13 @@ describe("sendMagicLink", () => {
   });
 
   it("refuse une adresse invalide sans appeler Supabase", async () => {
-    expect(await sendMagicLink(initial, form({ email: "pas-une-adresse" }))).toMatchObject({ status: "error", message: "Saisissez une adresse e-mail valide." });
+    expect(await sendMagicLink(initial, form({ email: "pas-une-adresse" }))).toMatchObject({ status: "error", error: "invalidEmail" });
     expect(signInWithOtp).not.toHaveBeenCalled();
   });
 
   it("explique une limite de fréquence", async () => {
     signInWithOtp.mockResolvedValue({ error: { status: 429, message: "rate limit" } });
-    expect(await sendMagicLink(initial, form({ email: "a@test.local" }))).toMatchObject({ status: "error", message: expect.stringMatching(/Trop de demandes/) });
+    expect(await sendMagicLink(initial, form({ email: "a@test.local" }))).toMatchObject({ status: "error", error: "rateLimited" });
   });
 });
 

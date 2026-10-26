@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ScriptSchema, type Script } from "@/lib/ai/schemas";
-import { SCRIPT_FIELD_MESSAGES, applyScriptForm, sceneFieldName, scriptFieldErrors } from "@/lib/pipeline/script-form";
+import { applyScriptForm, sceneFieldName, scriptFieldErrors } from "@/lib/pipeline/script-form";
 import { validScript } from "../../fixtures/assets";
 
 const script = validScript as Script;
@@ -41,8 +41,8 @@ describe("scriptFieldErrors", () => {
     expect(result.success).toBe(false);
     const errors = scriptFieldErrors(result.error!.issues.map(({ path, message }) => ({ path, message })));
     expect(errors).toEqual({
-      [sceneFieldName(3, "narration")]: SCRIPT_FIELD_MESSAGES.narration,
-      workingTitle: SCRIPT_FIELD_MESSAGES.workingTitle,
+      [sceneFieldName(3, "narration")]: "narration",
+      workingTitle: "workingTitle",
     });
   });
 

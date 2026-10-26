@@ -1,19 +1,24 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { deleteAccountAction, renameWorkspace, updateProfile, type SettingsState } from "@/app/(app)/settings/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+function ErrorMessage({ state }: { state: SettingsState }) {
+  const t = useTranslations("Settings.errors");
+  if (!state.error) return null;
+  return (
+    <p role="alert" className="text-sm text-destructive">
+      {t(state.error, { workspaces: state.workspaces ?? "" })}
+    </p>
+  );
+}
+
 function Feedback({ state, saved }: { state: SettingsState; saved: string }) {
-  if (state.error) {
-    return (
-      <p role="alert" className="text-sm text-destructive">
-        {state.error}
-      </p>
-    );
-  }
+  if (state.error) return <ErrorMessage state={state} />;
   return (
     <p role="status" className="text-sm text-muted-foreground">
       {state.saved ? saved : ""}
@@ -22,37 +27,39 @@ function Feedback({ state, saved }: { state: SettingsState; saved: string }) {
 }
 
 export function ProfileForm({ displayName }: { displayName: string }) {
+  const t = useTranslations("Settings");
   const [state, action, pending] = useActionState(updateProfile, {});
   return (
     <form action={action} className="grid gap-3">
       <div className="grid gap-1.5">
-        <Label htmlFor="displayName">Nom affiché</Label>
+        <Label htmlFor="displayName">{t("displayName")}</Label>
         <Input id="displayName" name="displayName" defaultValue={displayName} required maxLength={80} />
       </div>
       <div className="flex items-center gap-3">
         <Button type="submit" variant="outline" disabled={pending}>
-          Enregistrer
+          {t("save")}
         </Button>
-        <Feedback state={state} saved="Profil enregistré." />
+        <Feedback state={state} saved={t("profileSaved")} />
       </div>
     </form>
   );
 }
 
 export function WorkspaceNameForm({ slug, name }: { slug: string; name: string }) {
+  const t = useTranslations("Settings");
   const [state, action, pending] = useActionState(renameWorkspace, {});
   return (
     <form action={action} className="grid gap-3">
       <input type="hidden" name="workspaceSlug" value={slug} />
       <div className="grid gap-1.5">
-        <Label htmlFor="workspaceName">Nom du workspace</Label>
+        <Label htmlFor="workspaceName">{t("workspaceName")}</Label>
         <Input id="workspaceName" name="workspaceName" defaultValue={name} required maxLength={80} />
       </div>
       <div className="flex items-center gap-3">
         <Button type="submit" variant="outline" disabled={pending}>
-          Renommer
+          {t("rename")}
         </Button>
-        <Feedback state={state} saved="Workspace renommé." />
+        <Feedback state={state} saved={t("workspaceRenamed")} />
       </div>
     </form>
   );
@@ -60,13 +67,14 @@ export function WorkspaceNameForm({ slug, name }: { slug: string; name: string }
 
 // Le bouton ne s'active qu'une fois l'adresse e-mail retapée ; la Server Action la revérifie.
 export function DeleteAccountForm({ email }: { email: string }) {
+  const t = useTranslations("Settings");
   const [state, action, pending] = useActionState(deleteAccountAction, {});
   const [confirmation, setConfirmation] = useState("");
   const confirmed = confirmation.trim().toLowerCase() === email.toLowerCase();
   return (
     <form action={action} className="grid gap-3">
       <div className="grid gap-1.5">
-        <Label htmlFor="confirmation">Pour confirmer, saisissez votre adresse e-mail : {email}</Label>
+        <Label htmlFor="confirmation">{t("confirm", { email })}</Label>
         <Input
           id="confirmation"
           name="confirmation"
@@ -76,13 +84,9 @@ export function DeleteAccountForm({ email }: { email: string }) {
           onChange={(event) => setConfirmation(event.target.value)}
         />
       </div>
-      {state.error && (
-        <p role="alert" className="text-sm text-destructive">
-          {state.error}
-        </p>
-      )}
+      <ErrorMessage state={state} />
       <Button type="submit" variant="destructive" className="w-fit" disabled={!confirmed || pending}>
-        {pending ? "Suppression…" : "Supprimer définitivement mon compte"}
+        {pending ? t("deleting") : t("deleteAccount")}
       </Button>
     </form>
   );

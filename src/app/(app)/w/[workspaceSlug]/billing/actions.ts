@@ -9,7 +9,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
 
-export type BillingState = { error?: string };
+// `error` : clé du message affiché par le bouton (Billing.errors).
+export type BillingState = { error?: "alreadySubscribed" | "unavailable" };
 
 // La facturation d'un workspace est réservée à ses admins, revérifiés ici (action appelable
 // directement). L'origine des URL de retour vient de la requête, comme pour la connexion Google.
@@ -23,7 +24,8 @@ async function adminOf(slug: string) {
 }
 
 const failure = (error: unknown): BillingState => {
-  if (error instanceof AlreadySubscribedError || error instanceof BillingUnavailableError) return { error: error.message };
+  if (error instanceof AlreadySubscribedError) return { error: "alreadySubscribed" };
+  if (error instanceof BillingUnavailableError) return { error: "unavailable" };
   throw error;
 };
 
