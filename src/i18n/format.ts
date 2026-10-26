@@ -7,3 +7,7 @@ export const PRICE = { style: "currency", currency: "EUR", minimumFractionDigits
 export const DATE = { dateStyle: "medium", timeZone: "Europe/Paris" } as const;
 export const DATE_TIME = { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Paris" } as const;
 export const SHORT_DATE_TIME = { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Paris" } as const;
+
+// Coûts LLM d'un pipeline, souvent sous le centime : jusqu'à 4 décimales (0,0312 €).
+export const COST = { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 4 } as const;
+export const PERCENT = { style: "percent", maximumFractionDigits: 0 } as const;

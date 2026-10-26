@@ -425,7 +425,8 @@
     "demo": "{topic} · Pipeline AI",
     "demoDescription": "Pipeline AI demo: script, titles, SEO, voice-over and thumbnails for “{topic}”.",
     "settings": "Settings · Pipeline AI",
-    "login": "Sign in · Pipeline AI"
+    "login": "Sign in · Pipeline AI",
+    "admin": "Administration · Pipeline AI"
   },
   "Channels": {
     "allPipelines": "← All pipelines",
@@ -700,5 +701,43 @@
       "sexual": "sexual content",
       "extremism": "extremism"
     }
+  },
+  "Admin": {
+    "title": "Pipeline cost and margin",
+    "period": "Last {days} days, {count, plural, one {# pipeline} other {# pipelines}} (at most {limit}).",
+    "periods": "Period",
+    "days": "{days} d",
+    "estimate": "Revenue estimated at the credit price of the workspace's current plan (subscription ÷ credits); Free counts as 0. Costs converted at {rate} € per .",
+    "totals": {
+      "cost": "LLM cost",
+      "revenue": "Revenue",
+      "margin": "Gross margin",
+      "credits": "Credits charged"
+    },
+    "alerts": "Alerts (last 15 minutes)",
+    "noAlerts": "No alerts.",
+    "alert": {
+      "costOutlier": "Pipeline {pipeline} ({tier}): {cost} per minute, over 3 times the median ({median}).",
+      "failureRate": "Generation failure rate: {rate} ({failed} of {finished}).",
+      "staleReservations": "{count, plural, one {# reservation was not released} other {# reservations were not released}} by the sweep."
+    },
+    "table": "Pipelines",
+    "empty": "No pipelines in this period.",
+    "col": {
+      "date": "Date",
+      "pipeline": "Pipeline",
+      "plan": "Plan",
+      "tier": "Tier",
+      "minutes": "Length",
+      "status": "Status",
+      "credits": "Credits",
+      "cost": "Cost",
+      "revenue": "Revenue",
+      "margin": "Margin",
+      "cache": "Cache",
+      "failures": "Failures"
+    },
+    "minutes": "{minutes} min",
+    "none": "—"
   }
 }

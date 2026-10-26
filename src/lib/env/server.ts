@@ -22,6 +22,8 @@ const ServerEnvSchema = z
     // génération (globale, ou du workspace) jusqu'au lendemain. Valeurs par défaut à ajuster en production.
     SPEND_DAILY_LIMIT_USD: z.coerce.number().positive().default(200),
     SPEND_DAILY_WORKSPACE_LIMIT_USD: z.coerce.number().positive().default(25),
+    // Marge par pipeline (tâche 4.6) : les coûts LLM sont en dollars, les prix en euros.
+    USD_TO_EUR: z.coerce.number().positive().default(0.92),
     VERCEL_ENV: z.enum(["production", "preview", "development"]).optional(), // variable système de Vercel
   })
   // Déployé sur Vercel, sans ces clés, chaque appel d'Inngest ou de Stripe échouerait : on bloque le build.

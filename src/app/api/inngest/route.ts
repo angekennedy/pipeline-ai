@@ -1,8 +1,10 @@
 import { serve } from "inngest/next";
+import { checkAlerts, reportAlerts } from "@/lib/admin/economics";
 import { releaseRegeneration, sweepStaleReservations } from "@/lib/billing/reservation";
 import { getStripe } from "@/lib/billing/stripe";
 import { stripeReader, syncStripeEvent } from "@/lib/billing/stripe-sync";
 import { inngest } from "@/lib/jobs/client";
+import { createMonitorEconomicsFunction } from "@/lib/jobs/functions/monitor-economics";
 import { createRegenerateAssetFunction } from "@/lib/jobs/functions/regenerate-asset";
 import { createRunPipelineFunction } from "@/lib/jobs/functions/run-pipeline";
 import { createStripeSyncFunction } from "@/lib/jobs/functions/stripe-sync";
@@ -32,6 +34,7 @@ export const { GET, POST, PUT } = serve({
     createRunPipelineFunction(deps),
     createRegenerateAssetFunction(deps),
     createSweepReservationsFunction({ sweep: () => sweepStaleReservations(db()), purgeRateLimits: () => purgeRateLimits(db()) }),
+    createMonitorEconomicsFunction({ check: () => checkAlerts(db()), report: reportAlerts }),
     createStripeSyncFunction({ sync: (eventId) => syncStripeEvent(eventId, { stripe: stripeReader(getStripe()), db: db() }) }),
   ],
 });
