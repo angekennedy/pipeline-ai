@@ -76,6 +76,21 @@ describe("createCheckoutSession", () => {
     expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(expect.objectContaining({ metadata, payment_intent_data: { metadata } }));
   });
 
+  it("demande la case à cocher des CGU quand STRIPE_TERMS_CONSENT vaut « required »", async () => {
+    vi.resetModules();
+    vi.stubEnv("STRIPE_TERMS_CONSENT", "required");
+    try {
+      const { createCheckoutSession: withConsent } = await import("@/lib/billing/stripe");
+      await withConsent(client, admin, { workspace, email: null, item: itemForLookupKey("pack_200")!, origin });
+      expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(expect.objectContaining({ consent_collection: { terms_of_service: "required" } }));
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    // Sans la variable, aucune case : Stripe refuserait la session sans URL des CGU dans le Dashboard.
+    await createCheckoutSession(client, admin, { workspace, email: null, item: itemForLookupKey("pack_200")!, origin });
+    expect(stripe.checkout.sessions.create).toHaveBeenLastCalledWith(expect.not.objectContaining({ consent_collection: expect.anything() }));
+  });
+
   it("pack : paiement unique, client existant réutilisé", async () => {
     customerId = "cus_existing";
     await createCheckoutSession(client, admin, { workspace, email: null, item: itemForLookupKey("pack_200")!, origin });

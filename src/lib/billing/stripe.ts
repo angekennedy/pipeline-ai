@@ -98,9 +98,10 @@ export async function createCheckoutSession(
     success_url: billingUrl(origin, workspace.slug, "success=1"),
     cancel_url: billingUrl(origin, workspace.slug, "canceled=1"),
     locale: "fr",
-    // Rappel des CGU sous le bouton de paiement (tâche 5.2). La case à cocher de Stripe
-    // (consent_collection) demande l'URL des CGU dans le Dashboard : à activer à la mise en production.
+    // Rappel des CGU sous le bouton de paiement (tâche 5.2), et case à cocher de Stripe quand
+    // STRIPE_TERMS_CONSENT vaut « required » (tâche 5.5).
     ...(consentMessage && { custom_text: { submit: { message: consentMessage } } }),
+    ...(serverEnv.STRIPE_TERMS_CONSENT && { consent_collection: { terms_of_service: serverEnv.STRIPE_TERMS_CONSENT } }),
   });
   if (!session.url) throw new Error(`Session Checkout ${session.id} sans URL`);
   return session.url;
