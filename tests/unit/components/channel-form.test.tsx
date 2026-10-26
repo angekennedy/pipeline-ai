@@ -59,7 +59,8 @@ describe("ChannelForm", () => {
     render(<ChannelForm workspaceSlug="mon-espace" />);
     await user.click(screen.getByRole("button", { name: "Créer le preset" }));
 
-    const palette = await screen.findByLabelText("Palette des miniatures");
+    await screen.findByRole("alert"); // état renvoyé par l'action, appliqué
+    const palette = screen.getByLabelText("Palette des miniatures");
     expect(palette).toHaveAttribute("aria-invalid", "true");
     expect(palette).toHaveAccessibleDescription(expect.stringContaining("#RRGGBB"));
     expect(screen.getByLabelText("Nom du preset")).toHaveValue("Mystères");

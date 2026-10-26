@@ -5,10 +5,14 @@ import messages from "../messages/fr.json";
 import { server } from "./mocks/server";
 
 // Traductions : les composants et les pages sont rendus avec les vrais messages français (langue par
-// défaut), sans fournisseur next-intl ni configuration de requête.
+// défaut), sans fournisseur next-intl ni configuration de requête. Un message absent fait échouer le test
+// (sinon next-intl affiche la clé, qui peut contenir le texte attendu).
+const onError = (error: Error) => {
+  throw error;
+};
 vi.mock("next-intl", async (original) => {
   const actual = await original<typeof import("next-intl")>();
-  const translator = (namespace?: string) => actual.createTranslator({ locale: "fr", messages, namespace: namespace as never });
+  const translator = (namespace?: string) => actual.createTranslator({ locale: "fr", messages, namespace: namespace as never, onError });
   return {
     ...actual,
     useTranslations: translator,
@@ -20,7 +24,7 @@ vi.mock("next-intl", async (original) => {
 vi.mock("next-intl/server", async () => {
   const { createFormatter, createTranslator } = await vi.importActual<typeof import("next-intl")>("next-intl");
   const translator = (options?: string | { namespace?: string }) =>
-    createTranslator({ locale: "fr", messages, namespace: (typeof options === "string" ? options : options?.namespace) as never });
+    createTranslator({ locale: "fr", messages, namespace: (typeof options === "string" ? options : options?.namespace) as never, onError });
   return {
     getTranslations: async (options?: string | { namespace?: string }) => translator(options),
     getFormatter: async () => createFormatter({ locale: "fr", timeZone: "Europe/Paris" }),

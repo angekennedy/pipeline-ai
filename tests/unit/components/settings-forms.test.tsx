@@ -36,11 +36,11 @@ describe("DeleteAccountForm", () => {
 
   it("affiche le refus renvoyé par la Server Action", async () => {
     const user = userEvent.setup();
-    deleteAccountAction.mockResolvedValue({ error: "Vous êtes le seul propriétaire de Équipe." });
+    deleteAccountAction.mockResolvedValue({ error: "workspaceShared", workspaces: "Équipe" });
     render(<DeleteAccountForm email="ada@test.local" />);
     await user.type(screen.getByLabelText(/saisissez votre adresse e-mail/), "ADA@test.local");
     await user.click(screen.getByRole("button", { name: "Supprimer définitivement mon compte" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Vous êtes le seul propriétaire de Équipe.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Vous êtes le seul propriétaire de Équipe, qui a d'autres membres.");
   });
 });
 

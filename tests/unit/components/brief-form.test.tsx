@@ -114,7 +114,8 @@ describe("BriefForm", () => {
     render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
     await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
 
-    const niche = await screen.findByLabelText("Niche");
+    await screen.findByText("Corrigez les champs signalés."); // état renvoyé par l'action, appliqué
+    const niche = screen.getByLabelText("Niche");
     expect(niche).toHaveAttribute("aria-invalid", "true");
     expect(niche).toHaveAccessibleDescription(expect.stringContaining("Indiquez la niche de la chaîne"));
     expect(screen.getByLabelText("Sujet de la vidéo")).toHaveValue("Les pyramides de Gizeh");
