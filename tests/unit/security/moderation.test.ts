@@ -32,6 +32,24 @@ describe("flaggedCategories", () => {
     expect(flaggedCategories(brief({ topic: "Pornographie et néo-nazisme" }))).toEqual(["sexual", "extremism"]);
   });
 
+  it("couvre les variantes courantes de chaque catégorie", () => {
+    const cases: Record<string, string[]> = {
+      medical_misinformation: [
+        "Les vaccins causent l'autisme", "Soigner naturellement son cancer", "Le MMS contre toutes les maladies",
+        "Dioxyde de chlore : le remède caché", "Hydroxychloroquine, ce qu'on ne vous dit pas", "Jeûne sec de 7 jours",
+        "Homéopathie contre la grippe", "Anti vax", "Antivaccins : la vérité",
+      ],
+      sexual: ["Les meilleures sextapes", "Éducation sexuelle", "Nudes et réseaux sociaux", "Strip-tease à domicile", "Fétichisme et BDSM", "Prostitution de luxe", "Trouver un sugar daddy", "Cam girl"],
+      extremism: [
+        "Hitler avait raison", "Rejoindre Daech", "L'État islamique", "Al-Qaïda aujourd'hui", "Le Ku Klux Klan", "La remigration",
+        "1488", "Le négationnisme expliqué", "Holocaust hoax", "Antisémitisme", "La radicalisation en ligne", "Tuerie de masse", "Néonazis en Europe",
+      ],
+    };
+    for (const [category, topics] of Object.entries(cases)) {
+      for (const topic of topics) expect(flaggedCategories(brief({ topic })), topic).toEqual([category]);
+    }
+  });
+
   it("ne confond pas un mot-clé avec la fin d'un autre mot", () => {
     expect(flaggedCategories(brief({ topic: "Le parcours de Bonnaziz, chef cuisinier" }))).toEqual([]);
     expect(flaggedCategories(brief({ topic: "Les cheminots et le transport de minerai" }))).toEqual([]);
