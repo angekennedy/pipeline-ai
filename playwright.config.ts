@@ -34,8 +34,15 @@ export default defineConfig({
           url: baseURL,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
-          // Les événements Inngest partent vers le bouchon : aucune fonction ne s'exécute.
-          env: { ...process.env, INNGEST_DEV: "1", INNGEST_EVENT_API_BASE_URL: `${INNGEST_STUB}/` } as Record<string, string>,
+          // Les événements Inngest partent vers le bouchon : aucune fonction ne s'exécute. Stripe est
+          // désactivé (valeurs vides, prioritaires sur .env.local) : aucun test n'appelle son API.
+          env: {
+            ...process.env,
+            INNGEST_DEV: "1",
+            INNGEST_EVENT_API_BASE_URL: `${INNGEST_STUB}/`,
+            STRIPE_SECRET_KEY: "",
+            STRIPE_WEBHOOK_SECRET: "",
+          } as Record<string, string>,
         },
         { command: "node tests/e2e/inngest-stub.mjs", url: `${INNGEST_STUB}/health`, reuseExistingServer: !process.env.CI },
       ],

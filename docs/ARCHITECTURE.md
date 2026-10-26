@@ -197,6 +197,13 @@ pipeline-ai/
 > - **Refus, sans rien supprimer** : seul owner d'un workspace qui a d'autres membres (`WORKSPACE_SHARED`, à transférer d'abord) ; abonnement resté actif (`SUBSCRIPTION_ACTIVE`, vérifié en base même si l'application l'oublie).
 > - **Dans le workspace d'un autre**, les pipelines et versions de l'utilisateur restent, sans auteur (`created_by` passe à null).
 > - **Stripe n'est pas encore branché.** L'annulation par défaut (`stripeNotConfigured`) refuse la suppression s'il existe un abonnement à annuler : le compte resterait facturé. Aucun abonnement ne peut être créé avant la tâche 3.3. Depuis la tâche 3.4, la Server Action passe `stripeCanceler` (`stripe.subscriptions.cancel`) quand `STRIPE_SECRET_KEY` est configurée.
+>
+> **Révision (octobre 2026, tâche 4.1).** Exports : `GET /api/pipelines/[id]/export?format=md|json|txt|srt|zip`, lus avec le client de l'utilisateur (RLS : 404 hors de ses workspaces, 401 sans session, 409 pour la voix off ou les sous-titres sans script). Boutons sur la page d'un pipeline terminé dont le script est prêt. Seules les versions courantes des assets prêts sont exportées (`src/lib/export/document.ts`).
+> - **TXT voix off** (`spoken.ts`), à coller tel quel dans ElevenLabs : uniquement les mots prononcés, un paragraphe par segment. Les pauses `[pause:…ms]` deviennent des points de suspension, compris par tous les moteurs, plutôt qu'une balise (`<break>`) que certains liraient à voix haute. Sans voix off, la narration du script en tient lieu.
+> - **SRT** (`srt.ts`) : minutage des scènes (`applyTiming`), texte en sous-titres de 2 lignes de 42 caractères au plus, une phrase par sous-titre au moins, durée de la scène partagée au prorata de la longueur, fins de ligne CRLF. Estimation, à recaler sur l'audio final. Validé par le parseur `srt-parser-2` (tests) et un contrôle strict du format.
+> - **ZIP** (`fflate`) : Markdown, JSON, voix off, SRT, script, titres, description, tags, indications de voix et miniatures, plus un `LISEZ-MOI.txt`.
+> - **Rappel de déclaration du contenu IA** (`AI_DISCLOSURE`) dans le Markdown, le JSON, le LISEZ-MOI et sous les boutons : vérifier les faits signalés, déclarer dans YouTube Studio un contenu réaliste modifié ou synthétique, apporter sa valeur propre (contenus répétitifs non monétisés).
+> - **E2E** : Playwright démarre l'application avec `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET` vides, prioritaires sur `.env.local` ; l'environnement serveur traite une variable vide comme absente. Aucun test e2e n'appelle Stripe.
 
 ---
 
