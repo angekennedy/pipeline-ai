@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen, waitFor, within } from "@testing-library/react";
+import { pipelineCredits } from "@/lib/billing/costs";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BriefForm } from "@/components/pipeline/brief-form";
@@ -82,6 +83,32 @@ describe("BriefForm", () => {
     await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
     const data = createPipeline.mock.calls[0]![1] as FormData;
     expect(Object.fromEntries(data)).toMatchObject({ channelId: channels[0]!.id, niche: "Histoire", language: "en", tone: "mysterious" });
+  });
+
+  it("remplit le brief d'un exemple en un clic, coût compris, puis l'envoie tel quel", async () => {
+    const user = userEvent.setup();
+    createPipeline.mockResolvedValue({ fieldErrors: {}, values: {} });
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={studio} showSamples />);
+    const samples = screen.getByRole("region", { name: "Pas d'idée ? Partez d'un exemple" });
+    await user.type(screen.getByLabelText("Public visé (facultatif)"), "Saisie précédente");
+    await user.click(screen.getByLabelText(/Premium/));
+
+    await user.click(within(samples).getByRole("button", { name: "Les Vikings au Groenland" }));
+    expect(screen.getByLabelText("Niche")).toHaveValue("Histoire");
+    expect(screen.getByLabelText("Sujet de la vidéo")).toHaveValue("Pourquoi les Vikings ont-ils abandonné le Groenland ?");
+    expect(screen.getByLabelText("Durée cible (minutes)")).toHaveValue(3);
+    expect(screen.getByLabelText("Public visé (facultatif)")).toHaveValue("");
+    expect(screen.getByLabelText(/Standard/)).toBeChecked();
+    expect(screen.getByRole("region", { name: /Coût/ })).toHaveTextContent(`Coût : ${pipelineCredits({ durationMinutes: 3 }, "standard")} crédits`);
+
+    await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
+    const data = createPipeline.mock.calls[0]![1] as FormData;
+    expect(Object.fromEntries(data)).toMatchObject({ niche: "Histoire", language: "fr", tone: "mysterious", style: "documentary", durationMinutes: "3", tier: "standard" });
+  });
+
+  it("ne propose pas d'exemple sans showSamples (duplication d'un brief)", () => {
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} />);
+    expect(screen.queryByRole("region", { name: "Pas d'idée ? Partez d'un exemple" })).not.toBeInTheDocument();
   });
 
   it("propose de créer un preset quand le workspace n'en a aucun", () => {

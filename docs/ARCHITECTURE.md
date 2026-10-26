@@ -263,6 +263,11 @@ pipeline-ai/
 > - **Funnel dans PostHog** : un projet en région UE, `POSTHOG_KEY` sur Vercel, puis un insight Funnel `signed_up` → `pipeline_created` → `payment_completed`, agrégé par identifiant, sur une fenêtre de conversion de 30 jours.
 > - **Politique de confidentialité** : mesure d'audience (données, finalité, intérêt légitime, conservation) et PostHog ajouté aux sous-traitants.
 
+> **Révision (octobre 2026, tâche 5.4).** Onboarding : un brief d'exemple en un clic.
+> - **Exemples** (`src/lib/pipeline/sample-briefs.ts`) : trois briefs (Vikings au Groenland, bleu du ciel, camouflage des pieuvres), niche et sujet dans `Onboarding.samples`, dans la langue de l'interface (qui devient celle de la vidéo). Vidéos de 3 min en Standard : peu de crédits du plan Free, et une génération de moins d'une minute à l'évaluation (`es-ciencia-cielo`, 44 à 63 s). Aucun mot-clé de modération, donc aucun appel Haiku (test).
+> - **Deux entrées** : sur un formulaire vierge, des boutons qui remplissent le brief (`BriefForm`, `showSamples`, même remplissage que les presets, formule remise en Standard, champs facultatifs vidés) ; depuis l'état vide du tableau de bord, « Essayer avec un brief d'exemple » ouvre le formulaire déjà rempli (`?example=<clé>`). Il reste à lancer : la réservation, les limites et la modération sont celles d'un brief ordinaire.
+> - **Mesure** : l'e2e `tests/e2e/onboarding.spec.ts` va du tableau de bord vide à la page du pipeline sans saisie ; avec la génération mesurée à l'évaluation, le premier pipeline arrive en moins de 2 min après l'inscription. Le funnel PostHog (tâche 5.3) donne la mesure réelle.
+
 ---
 
 ## 3. Modèle de données

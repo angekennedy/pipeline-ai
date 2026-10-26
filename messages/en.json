@@ -466,7 +466,8 @@
     "pagination": "Pagination",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {page} of {count}"
+    "page": "Page {page} of {count}",
+    "emptySample": "Try an example brief"
   },
   "NewPipeline": {
     "title": "New pipeline",
@@ -952,6 +953,28 @@
           "title": "Host",
           "body": "{host}."
         }
+      }
+    }
+  },
+  "Onboarding": {
+    "title": "No idea yet? Start from an example",
+    "hint": "One click fills in the brief: a {minutes}-minute video in Standard, to review then launch.",
+    "filled": "Example brief loaded: launch it as is, or adjust it first.",
+    "samples": {
+      "vikings": {
+        "label": "Vikings in Greenland",
+        "niche": "History",
+        "topic": "Why did the Vikings abandon Greenland?"
+      },
+      "sky": {
+        "label": "The blue sky",
+        "niche": "Science",
+        "topic": "Why is the sky blue and the sunset red?"
+      },
+      "octopus": {
+        "label": "Octopus camouflage",
+        "niche": "Animals",
+        "topic": "How do octopuses change colour in an instant?"
       }
     }
   }
