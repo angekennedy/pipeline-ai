@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
+import SrtParser from "srt-parser-2";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Brief } from "@/lib/ai/schemas";
 import { createPipelineWithReservation } from "@/lib/billing/reservation";
 import { generateAsset } from "@/lib/pipeline/generate-asset";
+import { exportBundle, pipelineToSpeech, pipelineToSrt } from "@/lib/export/document";
 import { loadPipelineView } from "@/lib/pipeline/load-view";
 import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
@@ -75,6 +77,19 @@ describe("page d'un pipeline", () => {
     expect(view!.assets.script.content?.scenes.length).toBeGreaterThan(0);
     expect(view!.assets.script.versions).toEqual([{ id: expect.any(String), version: 1, source: "ai", createdAt: expect.any(String) }]);
     expect(view!.assets.titles.error).toEqual({ code: "CONTENT_REFUSED", message: expect.stringMatching(/^Le modèle a refusé/) });
+  });
+
+  it("exporte le pipeline relu : SRT valide calé sur le script, voix off sans balise, fichiers des assets prêts", async () => {
+    const view = (await loadPipelineView(a.client, wsA.id, pipelineA))!;
+    const cues = new SrtParser().fromSrt(pipelineToSrt(view)!);
+    const total = view.assets.script.content!.scenes.reduce((sum, scene) => sum + scene.estimatedSeconds, 0);
+    expect(cues.length).toBeGreaterThan(0);
+    expect(cues.at(-1)!.endSeconds).toBe(total);
+    expect(pipelineToSpeech(view)).not.toMatch(/\[pause|<|>/);
+    const names = exportBundle(view).map((file) => file.name);
+    expect(names).toContain("voix-off-elevenlabs.txt");
+    expect(names).not.toContain("titres.txt"); // titres refusés par le modèle
+    expect(names).not.toContain("miniatures.txt"); // sautées
   });
 
   it("donne null (404) à B, depuis son propre workspace comme depuis celui de A", async () => {

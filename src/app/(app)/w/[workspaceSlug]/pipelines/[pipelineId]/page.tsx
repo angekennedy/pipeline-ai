@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { ExportMenu } from "@/components/pipeline/export-menu";
 import { LivePipeline, StaticPipeline } from "@/components/pipeline/pipeline-screen";
 import { loadPipelineView } from "@/lib/pipeline/load-view";
 import { createClient } from "@/lib/supabase/server";
@@ -41,6 +42,11 @@ export default async function PipelinePage({ params }: PageProps<"/w/[workspaceS
           .join(" · ")}
       </p>
       {TERMINAL.has(view.status) ? <StaticPipeline view={view} /> : <LivePipeline view={view} />}
+      {TERMINAL.has(view.status) && view.assets.script.status === "ready" && (
+        <div className="mt-6">
+          <ExportMenu pipelineId={view.id} />
+        </div>
+      )}
     </main>
   );
 }

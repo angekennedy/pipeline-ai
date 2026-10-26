@@ -29,4 +29,5 @@ const ServerEnvSchema = z
     }
   });
 
-export const serverEnv = ServerEnvSchema.parse(process.env);
+// Une variable vide vaut une variable absente (désactivation explicite, comme pour Stripe en e2e).
+export const serverEnv = ServerEnvSchema.parse(Object.fromEntries(Object.entries(process.env).filter(([, value]) => value !== "")));

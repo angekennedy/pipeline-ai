@@ -51,3 +51,13 @@ describe("serverEnv", () => {
     await expect(loadServerEnv()).rejects.toThrow(/STRIPE_SECRET_KEY/);
   });
 });
+
+describe("variables vides", () => {
+  it("traite une clé Stripe vide comme absente", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "");
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "");
+    const env = await loadServerEnv();
+    expect(env.STRIPE_SECRET_KEY).toBeUndefined();
+    expect(env.STRIPE_WEBHOOK_SECRET).toBeUndefined();
+  });
+});
