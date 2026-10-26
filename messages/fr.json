@@ -466,7 +466,8 @@
     "pagination": "Pagination",
     "previous": "Précédent",
     "next": "Suivant",
-    "page": "Page {page} sur {count}"
+    "page": "Page {page} sur {count}",
+    "emptySample": "Essayer avec un brief d'exemple"
   },
   "NewPipeline": {
     "title": "Nouveau pipeline",
@@ -952,6 +953,28 @@
           "title": "Hébergeur",
           "body": "{host}."
         }
+      }
+    }
+  },
+  "Onboarding": {
+    "title": "Pas d'idée ? Partez d'un exemple",
+    "hint": "Un clic remplit le brief : une vidéo de {minutes} min en Standard, à relire puis lancer.",
+    "filled": "Brief d'exemple chargé : lancez-le tel quel, ou ajustez-le d'abord.",
+    "samples": {
+      "vikings": {
+        "label": "Les Vikings au Groenland",
+        "niche": "Histoire",
+        "topic": "Pourquoi les Vikings ont-ils abandonné le Groenland ?"
+      },
+      "sky": {
+        "label": "Le bleu du ciel",
+        "niche": "Sciences",
+        "topic": "Pourquoi le ciel est-il bleu, et le coucher de soleil rouge ?"
+      },
+      "octopus": {
+        "label": "Le camouflage des pieuvres",
+        "niche": "Animaux",
+        "topic": "Comment les pieuvres changent-elles de couleur en un instant ?"
       }
     }
   }

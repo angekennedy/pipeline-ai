@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useRef, useState } from "react";
 import { createPipeline, type CreatePipelineState } from "@/app/(app)/w/[workspaceSlug]/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
@@ -11,6 +11,8 @@ import { PLANS, PLAN_KEYS } from "@/lib/billing/plans";
 import { briefPrefill, type ChannelOption } from "@/lib/channels/form";
 import type { BriefFormField, BriefFormValues } from "@/lib/pipeline/brief-form";
 import type { ModelTier } from "@/lib/pipeline/registry";
+import { SAMPLE_BRIEF_KEYS, SAMPLE_DURATION_MINUTES, sampleBriefValues } from "@/lib/pipeline/sample-briefs";
+import type { Language } from "@/lib/ai/schemas";
 import { CostEstimate } from "@/components/billing/cost-estimate";
 import { InsufficientCreditsDialog } from "@/components/billing/insufficient-credits-dialog";
 import { Button } from "@/components/ui/button";
@@ -58,24 +60,29 @@ function Field({
 
 // `initialValues` préremplit le formulaire (duplication d'un brief depuis le tableau de bord).
 // `channels` : presets du workspace ; en choisir un préremplit le brief.
+// `showSamples` : briefs d'exemple en un clic (onboarding, tâche 5.4), pour un formulaire vierge.
 export function BriefForm({
   workspaceSlug,
   credits,
   idempotencyKey,
   initialValues = {},
   channels = [],
+  showSamples = false,
 }: {
   workspaceSlug: string;
   credits: CreditSummary;
   idempotencyKey: string;
   initialValues?: BriefFormValues;
   channels?: ChannelOption[];
+  showSamples?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<CreatePipelineState, FormData>(createPipeline, { fieldErrors: {}, values: initialValues });
   const t = useTranslations("BriefForm");
   const labels = useTranslations("Labels");
   const restriction = useTranslations("Restriction");
   const limits = useTranslations("Limits");
+  const onboarding = useTranslations("Onboarding");
+  const locale = useLocale() as Language;
   const { values } = state;
   const errors = Object.fromEntries(Object.keys(state.fieldErrors).map((field) => [field, t(`errors.${field as keyof typeof state.fieldErrors}`)])) as Partial<
     Record<keyof typeof state.fieldErrors, string>
@@ -92,16 +99,27 @@ export function BriefForm({
   const [dialogOpen, setDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Les champs gardent leur saisie (defaultValue) : le preset choisi les remplace directement.
+  // Les champs gardent leur saisie (defaultValue) : un preset ou un exemple les remplace directement.
+  // La formule (boutons radio) passe par RadioNodeList ; durée et formule suivies pour le coût.
+  function fill(input: BriefFormValues) {
+    const form = formRef.current;
+    if (!form) return;
+    for (const [field, value] of Object.entries(input)) {
+      const element = form.elements.namedItem(field);
+      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement || element instanceof RadioNodeList) element.value = value ?? "";
+    }
+    if (input.durationMinutes) setDuration(input.durationMinutes);
+    if (input.tier) setTier(tierOf(input));
+  }
   function applyPreset(channelId: string) {
     const option = channels.find((channel) => channel.id === channelId);
-    const form = formRef.current;
-    if (!option || !form) return;
-    for (const [field, value] of Object.entries(briefPrefill(option))) {
-      const element = form.elements.namedItem(field);
-      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) element.value = value;
-    }
+    if (option) fill(briefPrefill(option));
   }
+  const samples = SAMPLE_BRIEF_KEYS.map((key) => ({
+    key,
+    label: onboarding(`samples.${key}.label`),
+    values: sampleBriefValues(key, { niche: onboarding(`samples.${key}.niche`), topic: onboarding(`samples.${key}.topic`) }, locale),
+  }));
   const [answered, setAnswered] = useState(state);
   if (answered !== state) {
     setAnswered(state);
@@ -114,6 +132,21 @@ export function BriefForm({
     <form ref={formRef} action={formAction} className="grid gap-5" noValidate>
       <input type="hidden" name="workspaceSlug" value={workspaceSlug} />
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+      {showSamples && (
+        <section aria-labelledby="samples" className="grid gap-2 rounded-xl border border-dashed p-4">
+          <h2 id="samples" className="text-sm font-medium">
+            {onboarding("title")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{onboarding("hint", { minutes: SAMPLE_DURATION_MINUTES })}</p>
+          <div className="flex flex-wrap gap-2">
+            {samples.map((sample) => (
+              <Button key={sample.key} type="button" variant="outline" size="sm" onClick={() => fill(sample.values)}>
+                {sample.label}
+              </Button>
+            ))}
+          </div>
+        </section>
+      )}
       {channels.length > 0 ? (
         <Field
           name="channelId"

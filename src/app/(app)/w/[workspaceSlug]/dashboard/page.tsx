@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { listPipelines, parseListParams, SEARCH_MAX_LENGTH, type PipelineListItem } from "@/lib/pipeline/list";
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
+import { SAMPLE_BRIEF_KEYS } from "@/lib/pipeline/sample-briefs";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("Meta"))("dashboard") };
@@ -93,9 +94,15 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
             {t("emptyText")}
           </p>
           {canEdit ? (
-            <Link href={newPipelineHref} className={buttonVariants({ size: "lg" })}>
-              {t("emptyCta")}
-            </Link>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href={newPipelineHref} className={buttonVariants({ size: "lg" })}>
+                {t("emptyCta")}
+              </Link>
+              {/* Onboarding (tâche 5.4) : formulaire déjà rempli, il ne reste qu'à lancer. */}
+              <Link href={`${newPipelineHref}?example=${SAMPLE_BRIEF_KEYS[0]}`} className={buttonVariants({ size: "lg", variant: "outline" })}>
+                {t("emptySample")}
+              </Link>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">{t("emptyViewer")}</p>
           )}

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { randomUUID } from "node:crypto";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import type { Language } from "@/lib/ai/schemas";
 import { z } from "zod";
 import { BriefForm } from "@/components/pipeline/brief-form";
 import { channelOption } from "@/lib/channels/form";
 import { listChannels } from "@/lib/channels/store";
 import { loadBriefValues } from "@/lib/pipeline/list";
+import { isSampleBrief, sampleBriefValues } from "@/lib/pipeline/sample-briefs";
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
 
@@ -22,7 +24,7 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
 
   // `?from=<pipeline>` : duplication d'un brief du même workspace. Un id inconnu ou d'un autre
   // workspace (RLS et filtre) laisse simplement le formulaire vide.
-  const { from } = await searchParams;
+  const { from, example } = await searchParams;
   const db = await createClient();
   const [source, channels] = canEdit
     ? await Promise.all([
@@ -30,6 +32,11 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
         listChannels(db, workspace.id),
       ])
     : [null, []];
+  // `?example=<clé>` : brief d'exemple de l'onboarding (tâche 5.4), lien de l'état vide du tableau de bord.
+  const onboarding = await getTranslations("Onboarding");
+  const sample = !source && isSampleBrief(example)
+    ? sampleBriefValues(example, { niche: onboarding(`samples.${example}.niche`), topic: onboarding(`samples.${example}.topic`) }, (await getLocale()) as Language)
+    : null;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10">
@@ -44,13 +51,19 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
               {t("copied", { title: source.title })}
             </p>
           )}
+          {sample && (
+            <p role="status" className="mb-6 rounded-xl border bg-muted/50 p-4 text-sm">
+              {onboarding("filled")}
+            </p>
+          )}
           {/* Une clé par affichage du formulaire : un double envoi ne crée et ne débite qu'un pipeline. */}
           <BriefForm
             workspaceSlug={workspace.slug}
             credits={credits}
             idempotencyKey={randomUUID()}
-            initialValues={source?.values}
+            initialValues={source?.values ?? sample ?? undefined}
             channels={channels.map(channelOption)}
+            showSamples={!source && !sample}
           />
         </>
       ) : (
