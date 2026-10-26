@@ -540,7 +540,9 @@
     "errors": {
       "alreadySubscribed": "This workspace already has a subscription: change plans from the billing portal.",
       "unavailable": "Online payment is not available right now."
-    }
+    },
+    "consent": "By proceeding to payment, you accept the <terms>terms of use and sale</terms> and the <privacy>privacy policy</privacy>.",
+    "stripeConsent": "By paying, you accept Pipeline AI's terms: {url}"
   },
   "Plans": {
     "pitch": {
@@ -804,5 +806,153 @@
     },
     "minutes": "{minutes} min",
     "none": "—"
+  },
+  "Legal": {
+    "updated": "Last updated: {date}",
+    "draft": "Draft document: some details are still missing, and this text has yet to be reviewed by a lawyer.",
+    "toc": "Contents",
+    "missing": {
+      "publisher": "[to be completed: publisher's legal name]",
+      "legalForm": "[to be completed: legal form and share capital]",
+      "address": "[to be completed: registered address]",
+      "registration": "[to be completed: company and VAT numbers]",
+      "director": "[to be completed: publication director]",
+      "email": "[to be completed: contact email]",
+      "jurisdiction": "[to be completed: governing law and courts]",
+      "mediator": "[to be completed: consumer mediator]",
+      "databaseRegion": "[to be completed: database hosting region]",
+      "errorRetention": "[to be completed: retention period]"
+    },
+    "footer": {
+      "nav": "Legal information",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "usage": "Usage policy",
+      "notice": "Legal notice"
+    },
+    "terms": {
+      "title": "Terms of use and sale",
+      "sections": {
+        "object": {
+          "title": "Purpose",
+          "body": "Pipeline AI is a service published by {publisher}. From a brief, it uses artificial intelligence models to generate the script, titles, SEO elements, voiceover text and thumbnail concepts of a YouTube video.\n\nThese terms apply to any use of the service. By creating an account, you accept them, along with the usage policy and the privacy policy."
+        },
+        "account": {
+          "title": "Account",
+          "body": "You sign in with a link sent to your email address, or with Google. You are responsible for access to your mailbox and for what is done from your account.\n\nA workspace can have several members. Its administrators choose the roles and are responsible for how their members use it."
+        },
+        "credits": {
+          "title": "Credits, plans and payment",
+          "body": "Each deliverable costs a number of credits that depends on the video's length and tier, shown before every run. Credits are reserved at launch; only successfully generated deliverables are charged, the others are released automatically.\n\n- The Free plan grants credits once, at sign-up.\n- Paid plans are monthly subscriptions, renewed automatically until cancelled, which you can do at any time from the Billing page. Cancellation takes effect at the end of the paid period.\n- Credit packs are one-off purchases.\n- Prices and plan contents: Pricing page. Payment is processed by Stripe.\n\nCredits cannot be refunded in cash or transferred. Unused credits carry over to the next month, up to one monthly allocation; any excess expires at renewal."
+        },
+        "withdrawal": {
+          "title": "Right of withdrawal",
+          "body": "If you are a consumer, you have 14 days to withdraw from a purchase. As the service is supplied immediately, starting a generation during this period counts as a request for immediate performance: you lose your right of withdrawal for the credits used."
+        },
+        "content": {
+          "title": "Generated content",
+          "body": "Content is produced by AI models: it may contain errors, inaccuracies or wording close to existing content. You review it before publishing and remain responsible for what you publish, in particular under YouTube's rules and the law.\n\nTo the extent permitted by law, Pipeline AI claims no rights over the content generated for you. Similar content may be generated for other users."
+        },
+        "use": {
+          "title": "Acceptable use",
+          "body": "Use of the service is subject to the usage policy. A brief that falls in a refused category is rejected before any charge. Serious or repeated breaches may lead to suspension or closure of the account."
+        },
+        "liability": {
+          "title": "Availability and liability",
+          "body": "The service is provided as is, on a best-efforts basis. It may be interrupted for maintenance or if a provider fails. Pipeline AI guarantees neither audience, monetization nor compliance of content with any platform rule."
+        },
+        "termination": {
+          "title": "Closing your account",
+          "body": "You can delete your account at any time from the settings. Your subscriptions are then cancelled immediately, and your personal workspaces and their content are deleted."
+        },
+        "changes": {
+          "title": "Changes",
+          "body": "These terms may change. You are notified of any significant change before it takes effect; continuing to use the service counts as acceptance."
+        },
+        "law": {
+          "title": "Governing law and disputes",
+          "body": "Governing law and jurisdiction: {jurisdiction}.\n\nIn case of dispute, first write to {email}. If you are a consumer, you may also refer the matter to the consumer mediator free of charge: {mediator}."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "sections": {
+        "controller": {
+          "title": "Data controller",
+          "body": "The data controller is {publisher}, {address}. For any question about your data: {email}."
+        },
+        "data": {
+          "title": "Data we process",
+          "body": "- Account: email address, display name, interface language.\n- Workspaces: name, members and roles, channel presets.\n- Content: your briefs, regeneration instructions and the generated content, with its version history.\n- Billing: Stripe customer ID and subscriptions, credit movements. Your card details are processed by Stripe and never reach us.\n- Security: non-reversible fingerprints of your email address and IP address, used to limit the number of requests, erased after 24 hours at most.\n- Technical errors: error reports without IP address, cookies or request content."
+        },
+        "purposes": {
+          "title": "Purposes and legal bases",
+          "body": "- Providing the service and billing: performance of the contract.\n- Keeping accounting records: legal obligation.\n- Preventing abuse and securing the service (rate limits, brief moderation, spending alerts): legitimate interest.\n\nNo data is sold or used for advertising."
+        },
+        "ai": {
+          "title": "AI generation",
+          "body": "To generate your content, your brief, channel preset and instructions are sent to Anthropic's API (Claude models). Under Anthropic's commercial terms, this data is not used to train its models. Do not include sensitive personal data in a brief."
+        },
+        "processors": {
+          "title": "Processors",
+          "body": "- Supabase: database and authentication, hosted in the {databaseRegion} region.\n- Anthropic: content generation (United States).\n- Stripe: payment and billing.\n- Vercel: application hosting.\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking.\n\nTransfers outside the European Union are covered by the European Commission's standard contractual clauses or by the EU–US Data Privacy Framework."
+        },
+        "retention": {
+          "title": "Retention",
+          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 10 years, as required by law.\n- Security fingerprints: 24 hours at most.\n- Error reports: {errorRetention}."
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": "You can access, correct and erase your data, request its portability, object to processing or ask for it to be restricted. Your display name is changed in the settings, where the account can also be deleted, and every pipeline can be exported to Markdown, JSON or ZIP.\n\nFor any other request: {email}. You may also lodge a complaint with your data protection authority (in France, the CNIL: cnil.fr)."
+        },
+        "cookies": {
+          "title": "Cookies",
+          "body": "Pipeline AI only uses cookies required by the service, without prior consent:\n\n- Supabase session cookies, to keep you signed in;\n- the language cookie, kept for one year;\n- a cookie that remembers the requested page while you sign in, for one hour at most.\n\nNo advertising or audience measurement cookies."
+        },
+        "changes": {
+          "title": "Changes",
+          "body": "This policy may change, in particular when a provider is added. The update date is shown at the top of the page."
+        }
+      }
+    },
+    "usage": {
+      "title": "AI and YouTube usage policy",
+      "sections": {
+        "purpose": {
+          "title": "Why this policy",
+          "body": "Pipeline AI helps produce videos. It must not be used to mislead the public, spread dangerous content or flood YouTube with videos of no value. This policy is part of the terms of use."
+        },
+        "refused": {
+          "title": "Refused topics",
+          "body": "Briefs in these categories are refused, without charging credits:\n\n- medical misinformation: miracle cures, stopping treatment, anti-vaccine claims, denial of a disease;\n- sexual or pornographic content;\n- extremism: promoting, glorifying or recruiting for an extremist ideology, terrorism or hatred of a group.\n\nFactual, historical or critical treatment of these subjects remains possible. Illegal content, harassment and impersonating a real person are also forbidden. An automatic check runs before every generation."
+        },
+        "review": {
+          "title": "Before publishing",
+          "body": "- Check the claims flagged in the script, and any figures.\n- Add your own value: angle, editing, commentary. YouTube does not monetize repetitive or mass-produced content.\n- Disclose realistic altered or synthetic content in YouTube Studio, such as a synthetic voice imitating a person or generated images of real events.\n- Do not use a real person's voice or likeness without their consent.\n- Respect the rights to the footage, music and clips you add."
+        },
+        "transparency": {
+          "title": "What Pipeline AI does not promise",
+          "body": "The suggested titles and scores are decision aids, not predictions. Pipeline AI guarantees neither views, subscribers nor admission to the YouTube Partner Program."
+        },
+        "enforcement": {
+          "title": "Breaches",
+          "body": "A brief that breaches this policy is refused. Serious or repeated abuse may lead to suspension and closure of the account. To report abuse: {email}."
+        }
+      }
+    },
+    "notice": {
+      "title": "Legal notice",
+      "sections": {
+        "publisher": {
+          "title": "Publisher",
+          "body": "{publisher}, {legalForm}.\n\nRegistered office: {address}.\n\nCompany and VAT numbers: {registration}.\n\nPublication director: {director}.\n\nContact: {email}."
+        },
+        "host": {
+          "title": "Host",
+          "body": "{host}."
+        }
+      }
+    }
   }
 }

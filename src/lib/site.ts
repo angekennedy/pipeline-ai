@@ -9,7 +9,16 @@ export function siteUrl(env: Record<string, string | undefined> = process.env): 
 
 // Pages publiques indexables. Les pipelines d'exemple réels y figurent ; les autres démonstrations
 // (états d'erreur, génération rejouée) restent accessibles sans être proposées aux moteurs.
-export const PUBLIC_PAGES = ["/", "/pricing", "/pipelines/demo-rome", "/pipelines/demo-compound-interest"] as const;
+export const PUBLIC_PAGES = [
+  "/",
+  "/pricing",
+  "/pipelines/demo-rome",
+  "/pipelines/demo-compound-interest",
+  "/cgu",
+  "/confidentialite",
+  "/charte",
+  "/mentions-legales",
+] as const;
 
 // Jamais indexées : application connectée, administration, API, parcours de connexion.
 export const PRIVATE_PREFIXES = ["/admin", "/api/", "/auth/", "/billing", "/dashboard", "/login", "/settings", "/w/", "/compte-supprime"] as const;

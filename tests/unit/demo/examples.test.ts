@@ -45,13 +45,17 @@ describe("sitemap et robots", () => {
     expect(siteUrl({}).origin).toBe("http://localhost:3000");
   });
 
-  it("liste les pages publiques, exemples réels compris, en URL absolues", () => {
+  it("liste les pages publiques, exemples réels et documents légaux compris, en URL absolues", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls).toEqual([
       "http://localhost:3000/",
       "http://localhost:3000/pricing",
       "http://localhost:3000/pipelines/demo-rome",
       "http://localhost:3000/pipelines/demo-compound-interest",
+      "http://localhost:3000/cgu",
+      "http://localhost:3000/confidentialite",
+      "http://localhost:3000/charte",
+      "http://localhost:3000/mentions-legales",
     ]);
     expect(sitemap()[0]).toMatchObject({ priority: 1 });
   });

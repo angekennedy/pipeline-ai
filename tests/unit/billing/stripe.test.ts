@@ -63,6 +63,13 @@ describe("createCheckoutSession", () => {
     });
   });
 
+  it("rappelle les CGU sous le bouton de paiement quand un message est fourni", async () => {
+    await createCheckoutSession(client, admin, { workspace, email: null, item: itemForLookupKey("pack_200")!, origin, consentMessage: "En payant, vous acceptez les CGU : http://localhost:3000/cgu" });
+    expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({ custom_text: { submit: { message: "En payant, vous acceptez les CGU : http://localhost:3000/cgu" } } }),
+    );
+  });
+
   it("pack : paiement unique, client existant réutilisé", async () => {
     customerId = "cus_existing";
     await createCheckoutSession(client, admin, { workspace, email: null, item: itemForLookupKey("pack_200")!, origin });

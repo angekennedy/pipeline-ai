@@ -251,6 +251,12 @@ pipeline-ai/
 > - **Sélecteur de langue** : le rôle `group` passe du `<form>` à un `div` intérieur (il écrasait le rôle du formulaire, relevé par l'audit « agentic browsing »).
 > - **Lighthouse mobile** (build de production) : accueil, tarifs et exemple réel à 100 en SEO, accessibilité et bonnes pratiques.
 
+> **Révision (octobre 2026, tâche 5.2).** Documents légaux et liens au paiement.
+> - **Pages** `/cgu` (conditions d'utilisation et de vente), `/confidentialite`, `/charte` (usage de l'IA et de YouTube), `/mentions-legales`, rendues par `LegalDocument` (`src/components/legal/legal-document.tsx`) à partir de `messages/*.json` (namespace `Legal`, FR et EN) : paragraphes et listes en texte seul, sommaire, date de mise à jour (`LEGAL_UPDATED`). Pied de page sur toutes les pages, pages ajoutées au sitemap.
+> - **Identité de l'éditeur** (`src/lib/legal.ts`, `LEGAL_ENTITY`) : raison sociale, forme, siège, immatriculation, directeur de la publication, contact, droit applicable, médiateur de la consommation, région de la base, conservation des rapports d'erreur. Tant qu'un champ est `null`, la page affiche « [à compléter : …] » et un bandeau « document provisoire ».
+> - **Contenu aligné sur le code** : crédits réservés puis débités par livrable réussi, report plafonné à une allocation mensuelle, catégories refusées de la modération (4.5), empreintes de sécurité effacées sous 24 h, cookies strictement nécessaires (session Supabase, langue, destination de connexion), sous-traitants réellement utilisés (Supabase, Anthropic, Stripe, Vercel, Inngest, Sentry). Les textes restent à faire relire par un juriste.
+> - **Au paiement** : rappel des CGU et de la confidentialité, avec liens, sous les offres de la page Facturation ; message `custom_text.submit` sous le bouton de Stripe Checkout, avec l'URL des CGU. La case à cocher de Stripe (`consent_collection.terms_of_service`) exige l'URL des CGU dans le Dashboard : à activer à la mise en production (tâche 5.5).
+
 ---
 
 ## 3. Modèle de données

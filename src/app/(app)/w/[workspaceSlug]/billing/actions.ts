@@ -1,10 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { itemForLookupKey } from "@/lib/billing/plans";
 import { AlreadySubscribedError, BillingUnavailableError, createCheckoutSession, createPortalSession, getStripe } from "@/lib/billing/stripe";
+import { LEGAL_PATHS } from "@/lib/legal";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
@@ -35,7 +37,8 @@ export async function startCheckout(_previous: BillingState, formData: FormData)
   if (!item) throw new Error("Offre inconnue");
   let url: string;
   try {
-    url = await createCheckoutSession(getStripe(), createAdminClient(), { workspace, email: user.email, item, origin });
+    const consentMessage = (await getTranslations("Billing"))("stripeConsent", { url: `${origin}${LEGAL_PATHS.terms}` });
+    url = await createCheckoutSession(getStripe(), createAdminClient(), { workspace, email: user.email, item, origin, consentMessage });
   } catch (error) {
     return failure(error);
   }
