@@ -36,6 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground">
                 Tarifs
               </Link>
+              <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+                Mes pipelines
+              </Link>
               <Link href="/pipelines/new" className="text-sm text-muted-foreground hover:text-foreground">
                 Nouveau pipeline
               </Link>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BRIEF_FIELD_MESSAGES, parseBriefForm } from "@/lib/pipeline/brief-form";
+import { BRIEF_FIELD_MESSAGES, briefToFormValues, parseBriefForm } from "@/lib/pipeline/brief-form";
 
 const form = (fields: Record<string, string>) => {
   const data = new FormData();
@@ -75,5 +75,13 @@ describe("parseBriefForm", () => {
   it("ne renvoie pas de champ inattendu dans les valeurs", () => {
     const result = parseBriefForm(form({ ...valid, niche: "", injected: "x" }));
     expect(result.ok === false && result.values).not.toHaveProperty("injected");
+  });
+
+  it("relit sans perte un brief remis en formulaire (duplication)", () => {
+    const parsed = parseBriefForm(form({ ...valid, targetAudience: "Curieux", tier: "premium" }));
+    if (!parsed.ok) throw new Error("brief invalide");
+    const values = briefToFormValues(parsed.brief, parsed.tier);
+    expect(values).toEqual({ ...valid, targetAudience: "Curieux", tier: "premium" });
+    expect(parseBriefForm(form(values as Record<string, string>))).toMatchObject({ ok: true, brief: parsed.brief, tier: "premium" });
   });
 });

@@ -29,6 +29,38 @@ describe("BriefForm", () => {
     expect(screen.getByLabelText(/Standard/)).toBeChecked();
   });
 
+  it("préremplit le formulaire avec un brief dupliqué, et son coût", () => {
+    const values = {
+      niche: "Histoire",
+      topic: "Les pyramides de Gizeh",
+      language: "en",
+      tone: "mysterious",
+      style: "storytelling",
+      durationMinutes: "10",
+      targetAudience: "Curieux",
+      extraNotes: "Citer Hérodote",
+      tier: "premium",
+    };
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={studio} initialValues={values} />);
+    expect(screen.getByLabelText("Niche")).toHaveValue("Histoire");
+    expect(screen.getByLabelText("Sujet de la vidéo")).toHaveValue("Les pyramides de Gizeh");
+    expect(screen.getByLabelText("Durée cible (minutes)")).toHaveValue(10);
+    expect(screen.getByLabelText("Langue")).toHaveValue("en");
+    expect(screen.getByLabelText("Ton")).toHaveValue("mysterious");
+    expect(screen.getByLabelText("Style")).toHaveValue("storytelling");
+    expect(screen.getByLabelText("Public visé (facultatif)")).toHaveValue("Curieux");
+    expect(screen.getByLabelText("Consignes supplémentaires (facultatif)")).toHaveValue("Citer Hérodote");
+    expect(screen.getByLabelText(/Premium/)).toBeChecked();
+    expect(screen.getAllByText(/35 crédits/).length).toBeGreaterThan(0); // Premium 10 min : script 28, titres 1, SEO 2, voix off 3, miniatures 1
+  });
+
+  it("repasse en Standard un brief Premium dupliqué sur un plan qui ne l'inclut pas", () => {
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} initialValues={{ niche: "Histoire", tier: "premium" }} />);
+    expect(screen.getByLabelText(/Premium/)).toBeDisabled();
+    expect(screen.getByLabelText(/Premium/)).not.toBeChecked();
+    expect(screen.getByLabelText(/Standard/)).toBeChecked();
+  });
+
   it("envoie la saisie à la Server Action", async () => {
     const user = userEvent.setup();
     createPipeline.mockResolvedValue({ fieldErrors: {}, values: {} });

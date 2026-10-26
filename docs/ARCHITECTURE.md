@@ -125,7 +125,7 @@ pipeline-ai/
 
 > **Révision (octobre 2026, tâche 2.1).** Connexion Supabase Auth par lien magique et Google.
 >
-> **Filtre du proxy.** `src/lib/supabase/proxy.ts` rafraîchit la session. Il renvoie ensuite vers `/login?next=…` toute route listée dans `APP_ROUTE_PREFIXES` (`src/lib/auth/routes.ts` : `/pipelines/new`, `/w`, `/settings`). Une session ouverte sur `/login` est renvoyée vers sa destination.
+> **Filtre du proxy.** `src/lib/supabase/proxy.ts` rafraîchit la session. Il renvoie ensuite vers `/login?next=…` toute route listée dans `APP_ROUTE_PREFIXES` (`src/lib/auth/routes.ts` : `/dashboard`, `/pipelines/new`, `/w`, `/settings`). Une session ouverte sur `/login` est renvoyée vers sa destination.
 > - Ce filtre est optimiste, sur le cookie. Chaque page et chaque Server Action revérifient l'utilisateur avec `requireUser` (`src/lib/auth/session.ts`, couche d'accès aux données).
 > - `getUser` appelle `connection()` avant de créer le client Supabase. Celui-ci lit l'heure dès sa création, ce que Next refuse pendant le prérendu à la requête.
 >
@@ -175,6 +175,12 @@ pipeline-ai/
 > **Raccourci.** `/pipelines/new` redirige vers le workspace personnel. Les pipelines de démonstration restent sous `/pipelines/demo-*`.
 >
 > **E2E.** Un bouchon de l'API d'événements Inngest (`tests/e2e/inngest-stub.mjs`, démarré par Playwright) reçoit les événements sans exécuter de fonction, donc sans appel au modèle. Les tests vérifient l'événement envoyé et le 404 réel pour un autre utilisateur.
+>
+> **Révision (octobre 2026, tâche 2.4).** Tableau de bord `/w/[workspaceSlug]/dashboard`, page d'accueil du workspace (`/w/<slug>` y redirige, comme le raccourci `/dashboard` du lien « Mes pipelines »).
+> - **Liste** (`listPipelines`, `src/lib/pipeline/list.ts`) : lue avec le client de l'utilisateur, triée par `created_at desc, id desc` (index `pipelines (workspace_id, created_at desc)`), par pages de 20 avec le total exact. Une page au-delà de la dernière (PostgREST 416) renvoie vers la dernière page existante.
+> - **Recherche** `?q=` : `ilike` sur la colonne générée `title` (le sujet), jokers `%` et `_` échappés, 100 caractères au plus. Pas d'index trigramme : suffisant aux volumes d'un workspace au MVP.
+> - **Duplication** : `pipelines/new?from=<id>` préremplit le formulaire avec le brief et la formule (`loadBriefValues`, sous RLS et filtré par workspace). Une nouvelle clé d'idempotence est tirée : c'est un nouveau pipeline, réservé et débité normalement. Premium repasse en Standard si le plan ne l'inclut pas. Le preset de chaîne n'est pas repris avant la tâche 2.5.
+> - **État vide** : CTA « Créer mon premier pipeline » pour un éditeur, message d'attente pour un lecteur.
 
 ---
 

@@ -75,3 +75,19 @@ export function parseBriefForm(data: FormData): BriefFormResult {
   }
   return { ok: false, fieldErrors, values };
 }
+
+// Duplication d'un brief (tableau de bord) : brief enregistré → saisie du formulaire. Le preset de
+// chaîne n'est pas repris : le formulaire ne le propose pas encore (tâche 2.5).
+export function briefToFormValues(brief: Brief, tier: ModelTier): BriefFormValues {
+  return {
+    niche: brief.niche,
+    topic: brief.topic,
+    language: brief.language,
+    tone: brief.tone,
+    style: brief.style,
+    durationMinutes: String(brief.durationMinutes),
+    targetAudience: brief.targetAudience ?? "",
+    extraNotes: brief.extraNotes ?? "",
+    tier,
+  };
+}

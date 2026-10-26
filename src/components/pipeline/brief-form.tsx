@@ -7,7 +7,7 @@ import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
 import type { CreditSummary } from "@/lib/billing/balance";
 import { restrictionMessage } from "@/lib/billing/entitlements";
 import { PLANS, PLAN_KEYS } from "@/lib/billing/plans";
-import type { BriefFormField } from "@/lib/pipeline/brief-form";
+import type { BriefFormField, BriefFormValues } from "@/lib/pipeline/brief-form";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import { CostEstimate } from "@/components/billing/cost-estimate";
 import { InsufficientCreditsDialog } from "@/components/billing/insufficient-credits-dialog";
@@ -49,8 +49,6 @@ const SELECT_CLASS =
 // Premier plan qui inclut le script Premium, nommé à côté de l'option quand elle est grisée.
 const PREMIUM_PLAN = PLAN_KEYS.map((key) => PLANS[key]).find((plan) => plan.premium)?.name;
 
-const initialState: CreatePipelineState = { fieldErrors: {}, values: {} };
-
 function Field({
   name,
   label,
@@ -83,22 +81,35 @@ function Field({
   );
 }
 
-export function BriefForm({ workspaceSlug, credits, idempotencyKey }: { workspaceSlug: string; credits: CreditSummary; idempotencyKey: string }) {
-  const [state, formAction, pending] = useActionState(createPipeline, initialState);
+// `initialValues` préremplit le formulaire (duplication d'un brief depuis le tableau de bord).
+export function BriefForm({
+  workspaceSlug,
+  credits,
+  idempotencyKey,
+  initialValues = {},
+}: {
+  workspaceSlug: string;
+  credits: CreditSummary;
+  idempotencyKey: string;
+  initialValues?: BriefFormValues;
+}) {
+  const [state, formAction, pending] = useActionState<CreatePipelineState, FormData>(createPipeline, { fieldErrors: {}, values: initialValues });
   const { fieldErrors: errors, values } = state;
   const plan = PLANS[credits.planKey];
+  // Premium n'est retenu que si le plan l'inclut : l'option grisée ne serait pas envoyée.
+  const tierOf = (input: BriefFormValues): ModelTier => (input.tier === "premium" && plan.premium ? "premium" : "standard");
 
   // Durée et formule suivies en direct pour afficher le coût. Chaque réponse de la Server Action
   // réinitialise le formulaire avec la saisie renvoyée : on s'y recale, et le modal s'ouvre si la
   // réservation a échoué faute de crédits.
   const [duration, setDuration] = useState(values.durationMinutes ?? "8");
-  const [tier, setTier] = useState<ModelTier>("standard");
+  const [tier, setTier] = useState<ModelTier>(tierOf(values));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [answered, setAnswered] = useState(state);
   if (answered !== state) {
     setAnswered(state);
     setDuration(values.durationMinutes ?? "8");
-    setTier(values.tier === "premium" ? "premium" : "standard");
+    setTier(tierOf(values));
     setDialogOpen(Boolean(state.insufficient));
   }
 
@@ -188,7 +199,7 @@ export function BriefForm({ workspaceSlug, credits, idempotencyKey }: { workspac
       <fieldset className="grid gap-2">
         <legend className="mb-1 text-sm font-medium">Formule</legend>
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="tier" value="standard" defaultChecked={values.tier !== "premium"} onChange={() => setTier("standard")} />
+          <input type="radio" name="tier" value="standard" defaultChecked={tierOf(values) === "standard"} onChange={() => setTier("standard")} />
           Standard : script rédigé par Claude Sonnet
         </label>
         <label className="flex items-center gap-2 text-sm">
@@ -196,7 +207,7 @@ export function BriefForm({ workspaceSlug, credits, idempotencyKey }: { workspac
             type="radio"
             name="tier"
             value="premium"
-            defaultChecked={values.tier === "premium"}
+            defaultChecked={tierOf(values) === "premium"}
             disabled={!plan.premium}
             onChange={() => setTier("premium")}
           />
