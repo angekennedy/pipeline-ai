@@ -237,6 +237,13 @@ pipeline-ai/
 > - **Ordre dans `createPipeline`** : rate limit, disjoncteur, modération, puis réservation. Un refus ne débite rien et garde la saisie ; la modération, seule étape qui peut appeler le modèle, vient après les deux premières.
 > - **Tests** : unitaires (`tests/unit/security/limits.test.ts`, `moderation.test.ts`, actions et composants) ; en base (`tests/integration/limits.test.ts`) : 10 demandes simultanées sur une limite de 3 en acceptent exactement 3, fenêtre glissante, atomicité entre compteurs, purge, dépense globale et par workspace. Retirer le verrou fait échouer le test de concurrence (vérifié par mutation).
 
+> **Révision (octobre 2026, tâche 4.6).** Coût et marge par pipeline, page admin, alertes.
+> - **Vue** `private.v_pipeline_economics` (migration `20261025000014_economics.sql`), lue par la RPC `pipeline_economics` (service role) : coût LLM, crédits **capturés dans le registre** (plutôt que `generations.credits`), générations et échecs, réparations, ratio de cache, latence ; un pipeline sans génération y figure à coût nul. Régénérations comprises.
+> - **Marge** (`src/lib/admin/economics.ts`) : chiffre d'affaires estimé au prix du crédit dans le plan actuel du workspace (abonnement ÷ crédits : Creator 4,75 c, Pro 3,27 c, Studio 2,98 c ; Free 0, coût d'acquisition). Les packs, plus chers au crédit, ne sont pas distingués : estimation prudente. Coûts convertis au taux `USD_TO_EUR` (0,92 par défaut).
+> - **Page** `/admin` : administrateurs listés dans `ADMIN_EMAILS` (adresse vérifiée du JWT). Le proxy répond 404 à tout autre visiteur, connecté ou non, et la page revérifie avant de lire en service role. Totaux, alertes du moment, tableau des 200 derniers pipelines sur 7, 30 ou 90 jours. `noindex`.
+> - **Alertes** (cron Inngest `monitor-economics`, toutes les 15 min, vers Sentry) : coût par minute de vidéo à plus de 3× la médiane de la formule sur 7 jours (`cost_outliers`, au moins 5 pipelines dans la formule) ; taux d'échec des générations au-delà de 5 % sur 15 min (`generation_failures`, au moins 20 générations) ; réservations sans activité depuis plus d'une heure (`stale_reservations`, mêmes critères que le balayage : il ne les a pas libérées). Le disjoncteur alerte de son côté (tâche 4.5). La réconciliation Stripe/registre reste à faire.
+> - **Tests** : unitaires (`tests/unit/admin/economics.test.ts`, page, proxy) et en base (`tests/integration/economics.test.ts` : agrégats, médiane, fenêtre des échecs, réservations inactives, accès service role seul).
+
 ---
 
 ## 3. Modèle de données

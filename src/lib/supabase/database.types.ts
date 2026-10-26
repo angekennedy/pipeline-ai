@@ -311,6 +311,11 @@ isOneToOne: false
 "commit_asset_version":
 { Args: { "p_content": Json,"p_created_by"?: string,"p_generation"?: string,"p_pipeline": string,"p_restored_from"?: string,"p_schema_version": string,"p_source": Database["public"]['Enums']["version_source"],"p_source_versions": Json,"p_telemetry"?: Json,"p_type": Database["public"]['Enums']["asset_type"] }; Returns: string
                            },
+"cost_outliers":
+{ Args: { "p_baseline_since": string,"p_factor"?: number,"p_min_sample"?: number,"p_since": string }; Returns: {
+              "cost_per_minute": number,"cost_usd_micros": number,"median_per_minute": number,"model_tier": string,"pipeline_id": string,"workspace_id": string
+            }[]
+                           },
 "create_pipeline_with_reservation":
 { Args: { "p_brief": Json,"p_channel"?: string,"p_channel_snapshot"?: Json,"p_credits": number,"p_key": string,"p_tier": string,"p_user": string,"p_workspace": string }; Returns: {
               "created": boolean,"pipeline_id": string
@@ -322,8 +327,18 @@ isOneToOne: false
 "finalize_pipeline":
 { Args: { "p_pipeline": string,"p_status": Database["public"]['Enums']["pipeline_status"] }; Returns: number
                            },
+"generation_failures":
+{ Args: { "p_since": string }; Returns: {
+              "failed": number,"finished": number
+            }[]
+                           },
 "mark_generation_failed":
 { Args: { "p_code": string,"p_cost_usd_micros"?: number,"p_generation": string,"p_message": string }; Returns: undefined
+                           },
+"pipeline_economics":
+{ Args: { "p_limit"?: number,"p_since": string }; Returns: {
+              "cache_hit_ratio": number,"cost_usd_micros": number,"created_at": string,"credits_captured": number,"failed_generations": number,"generations": number,"minutes": number,"model_tier": string,"pipeline_id": string,"plan_key": string,"status": Database["public"]['Enums']["pipeline_status"],"total_latency_ms": number,"validation_repairs": number,"workspace_id": string
+            }[]
                            },
 "purge_rate_limits":
 { Args: Record<PropertyKey, never>; Returns: number
@@ -339,6 +354,9 @@ isOneToOne: false
                            },
 "spend_since":
 { Args: { "p_since": string,"p_workspace"?: string }; Returns: number
+                           },
+"stale_reservations":
+{ Args: { "p_idle"?: string }; Returns: number
                            },
 "stripe_apply_subscription":
 { Args: { "p_cancel_at_period_end": boolean,"p_period_end": string,"p_plan": string,"p_price": string,"p_status": string,"p_subscription": string,"p_workspace": string }; Returns: string

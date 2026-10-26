@@ -425,7 +425,8 @@
     "demo": "{topic} · Pipeline AI",
     "demoDescription": "Démonstration Pipeline AI : script, titres, SEO, voix off et miniatures pour « {topic} ».",
     "settings": "Paramètres · Pipeline AI",
-    "login": "Connexion · Pipeline AI"
+    "login": "Connexion · Pipeline AI",
+    "admin": "Administration · Pipeline AI"
   },
   "Channels": {
     "allPipelines": "← Tous les pipelines",
@@ -700,5 +701,43 @@
       "sexual": "contenu sexuel",
       "extremism": "extrémisme"
     }
+  },
+  "Admin": {
+    "title": "Coût et marge des pipelines",
+    "period": "{days} derniers jours, {count, plural, one {# pipeline} other {# pipelines}} (au plus {limit}).",
+    "periods": "Période",
+    "days": "{days} j",
+    "estimate": "Chiffre d'affaires estimé au prix du crédit dans le plan actuel du workspace (abonnement ÷ crédits) ; Free vaut 0. Coûts convertis au taux de {rate} € pour 1 $.",
+    "totals": {
+      "cost": "Coût LLM",
+      "revenue": "Chiffre d'affaires",
+      "margin": "Marge brute",
+      "credits": "Crédits débités"
+    },
+    "alerts": "Alertes (15 dernières minutes)",
+    "noAlerts": "Aucune alerte.",
+    "alert": {
+      "costOutlier": "Pipeline {pipeline} ({tier}) : {cost} par minute, plus de 3 fois la médiane ({median}).",
+      "failureRate": "Taux d'échec des générations : {rate} ({failed} sur {finished}).",
+      "staleReservations": "{count, plural, one {# réservation n'a pas été libérée} other {# réservations n'ont pas été libérées}} par le balayage."
+    },
+    "table": "Pipelines",
+    "empty": "Aucun pipeline sur la période.",
+    "col": {
+      "date": "Date",
+      "pipeline": "Pipeline",
+      "plan": "Plan",
+      "tier": "Formule",
+      "minutes": "Durée",
+      "status": "Statut",
+      "credits": "Crédits",
+      "cost": "Coût",
+      "revenue": "CA",
+      "margin": "Marge",
+      "cache": "Cache",
+      "failures": "Échecs"
+    },
+    "minutes": "{minutes} min",
+    "none": "—"
   }
 }

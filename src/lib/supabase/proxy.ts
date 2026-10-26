@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { isPlatformAdmin } from "@/lib/auth/admin";
 import { LOGIN_PATH, isAppRoute, safeNext, workspaceTarget, type WorkspaceTarget } from "@/lib/auth/routes";
 import { publicEnv } from "@/lib/env/public";
 import type { Database } from "./database.types";
@@ -46,17 +47,25 @@ export async function updateSession(request: NextRequest) {
     return redirectWithCookies(new URL(safeNext(request.nextUrl.searchParams.get("next")), request.url), response);
   }
 
+  // Administration de la plateforme (tâche 4.6) : un 404 pour tout autre visiteur, connecté ou non,
+  // qui ne doit pas apprendre que la page existe. La page revérifie.
+  if ((pathname === "/admin" || pathname.startsWith("/admin/")) && !isPlatformAdmin(signedIn ? String(data?.claims?.email ?? "") : null)) {
+    return rewriteNotFound(request, response);
+  }
+
   // Workspace ou pipeline hors de portée : un vrai 404, décidé avant le rendu. Dans la page, le
   // streaming (en-tête sous <Suspense>) commence avant la vérification et figerait un statut 200.
   // Lecture sous RLS, une ou deux requêtes par clé primaire ou index unique. Le layout et la page
   // revérifient de leur côté.
   const target = signedIn ? workspaceTarget(pathname) : null;
-  if (target && !(await canReach(supabase, target))) {
-    const notFound = NextResponse.rewrite(new URL("/introuvable", request.url));
-    response.cookies.getAll().forEach((cookie) => notFound.cookies.set(cookie));
-    return notFound;
-  }
+  if (target && !(await canReach(supabase, target))) return rewriteNotFound(request, response);
   return response;
+}
+
+function rewriteNotFound(request: NextRequest, from: NextResponse) {
+  const notFound = NextResponse.rewrite(new URL("/introuvable", request.url));
+  from.cookies.getAll().forEach((cookie) => notFound.cookies.set(cookie));
+  return notFound;
 }
 
 async function canReach(supabase: SupabaseClient<Database>, { slug, resource, invalid }: WorkspaceTarget) {

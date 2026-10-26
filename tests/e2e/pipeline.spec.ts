@@ -114,8 +114,12 @@ test.describe("sur mobile", () => {
 test("raccourcis clavier, compteurs SEO et aperçu mobile des miniatures (démonstration)", async ({ page }) => {
   await page.goto("/pipelines/demo-completed");
   await expect(page.getByRole("tab", { name: /Script/ })).toHaveAttribute("aria-selected", "true");
-  await page.keyboard.press("3");
-  await expect(page.getByRole("tab", { name: /SEO/ })).toHaveAttribute("aria-selected", "true");
+  // L'onglet est rendu par le serveur avant l'hydratation : la première touche peut arriver avant
+  // l'écouteur clavier. Elle est rejouée (sans effet une fois l'onglet choisi) jusqu'à ce qu'il réponde.
+  await expect(async () => {
+    await page.keyboard.press("3");
+    await expect(page.getByRole("tab", { name: /SEO/ })).toHaveAttribute("aria-selected", "true", { timeout: 500 });
+  }).toPass();
   await expect(page.getByText(/150 premiers caractères/)).toBeVisible();
   await page.keyboard.press("5");
   await expect(page.getByRole("group", { name: "Aperçu mobile du concept 1" })).toBeVisible();

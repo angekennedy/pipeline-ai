@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Session simulée : getClaims renvoie un utilisateur ou rien, et pose un cookie rafraîchi.
-let claims: { sub: string } | null = null;
+let claims: { sub: string; email?: string } | null = null;
 // Lignes visibles sous RLS par l'utilisateur simulé : workspaces par slug, pipelines et presets par id
 // (valeur : leur workspace).
 type Visible = { workspaces: Record<string, string>; pipelines: Record<string, string>; channels: Record<string, string> };
@@ -93,5 +93,29 @@ describe("proxy : portée des workspaces", () => {
     ]) {
       expect(rewrittenTo(await updateSession(request(path))), path).toBe("http://localhost:3000/introuvable");
     }
+  });
+});
+
+describe("proxy : administration de la plateforme", () => {
+  const rewrittenTo = (response: Response) => response.headers.get("x-middleware-rewrite");
+  beforeEach(() => vi.stubEnv("ADMIN_EMAILS", "ops@pipeline.test, Ada@Pipeline.test"));
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("ouvre /admin aux adresses listées dans ADMIN_EMAILS, sans tenir compte de la casse", async () => {
+    claims = { sub: "admin-1", email: "ada@pipeline.test" };
+    expect(rewrittenTo(await updateSession(request("/admin")))).toBeNull();
+  });
+
+  it("répond 404 aux autres, connectés ou non, sans renvoyer vers la connexion", async () => {
+    for (const visitor of [null, { sub: "user-1", email: "user@test.local" }, { sub: "user-2" }]) {
+      claims = visitor;
+      for (const path of ["/admin", "/admin/x"]) {
+        const response = await updateSession(request(path));
+        expect(rewrittenTo(response), `${path} ${visitor?.email}`).toBe("http://localhost:3000/introuvable");
+      }
+    }
+    vi.stubEnv("ADMIN_EMAILS", "");
+    claims = { sub: "admin-1", email: "ada@pipeline.test" };
+    expect(rewrittenTo(await updateSession(request("/admin")))).toBe("http://localhost:3000/introuvable");
   });
 });
