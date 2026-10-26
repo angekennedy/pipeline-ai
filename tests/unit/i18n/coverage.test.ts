@@ -42,10 +42,10 @@ describe("messages", () => {
 const ALLOWED = new Set(["Pipeline AI", "Pipeline AI · ", "#FFD400, #000000", "35-45"]);
 const TEXT_ATTRIBUTES = new Set(["aria-label", "title", "placeholder", "alt", "label", "hint", "description", "accessibleLabel", "empty", "saved", "aria-description"]);
 // Textes techniques, jamais affichés : erreurs internes (super, Error), messages de réparation adressés
-// au modèle (addIssue), préfixes des erreurs de base de données (rpc, failure, throwReservationError).
+// au modèle (addIssue), préfixes des erreurs de base de données (rpc, failure, unwrap, throwReservationError).
 // Journaux (console.warn…), alertes Sentry (captureMessage) et messages d'une ligne marquée `i18n-ignore` : même raison.
 const SKIP_CALLS = new Set([
-  "t", "cn", "cva", "querySelector", "querySelectorAll", "Error", "require", "import", "super", "addIssue", "rpc", "failure", "throwReservationError",
+  "t", "cn", "cva", "querySelector", "querySelectorAll", "Error", "require", "import", "super", "addIssue", "rpc", "failure", "unwrap", "throwReservationError",
   "log", "info", "warn", "error", "captureMessage",
 ]);
 // Fichiers rendus hors du fournisseur next-intl : la page d'erreur globale porte ses deux langues,

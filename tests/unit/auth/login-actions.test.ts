@@ -10,7 +10,8 @@ vi.mock("next/headers", () => ({
   headers: async () => new Headers({ origin: "http://localhost:3000", "x-forwarded-for": "203.0.113.7, 10.0.0.1" }),
 }));
 let retryAfter = 0;
-const rpc = vi.fn(async () => ({ data: retryAfter, error: null }));
+let invited = true; // bêta fermée (tâche 5.6) : beta_can_sign_in
+const rpc = vi.fn(async (name: string) => ({ data: name === "beta_can_sign_in" ? invited : retryAfter, error: null }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc }) }));
 const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT ${url}`);
@@ -28,6 +29,7 @@ const form = (fields: Record<string, string>) => {
 beforeEach(() => {
   vi.clearAllMocks();
   retryAfter = 0;
+  invited = true;
 });
 
 describe("sendMagicLink", () => {
@@ -61,6 +63,15 @@ describe("sendMagicLink", () => {
     retryAfter = 600;
     expect(await sendMagicLink(initial, form({ email: "a@test.local" }))).toMatchObject({ status: "error", error: "rateLimited" });
     expect(signInWithOtp).toHaveBeenCalledOnce(); // pas d'envoi au-delà de la limite
+  });
+
+  it("en bêta fermée, n'envoie pas de lien à une adresse ni invitée ni inscrite", async () => {
+    invited = false;
+    expect(await sendMagicLink(initial, form({ email: "inconnu@test.local" }))).toMatchObject({ status: "error", error: "inviteOnly" });
+    expect(rpc).toHaveBeenCalledWith("beta_can_sign_in", { p_email: "inconnu@test.local" });
+    expect(signInWithOtp).not.toHaveBeenCalled();
+    // La limite de fréquence passe avant : elle borne les essais d'adresses.
+    expect(rpc.mock.calls.map(([name]) => name)).toEqual(["rate_limit_hit", "beta_can_sign_in"]);
   });
 
   it("refuse une adresse jetable sans rien compter ni envoyer", async () => {

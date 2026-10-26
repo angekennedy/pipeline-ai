@@ -4,12 +4,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { rememberNext } from "@/lib/auth/next-cookie";
+import { canSignIn } from "@/lib/beta";
 import { enforceRateLimit, fingerprint, RateLimitedError, type RateLimitHit } from "@/lib/security/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 // `error` : clé du message affiché par le formulaire (Login.errors).
-export type MagicLinkState = { status: "idle" | "sent" | "error"; email: string; error?: "invalidEmail" | "disposableEmail" | "rateLimited" | "sendFailed" };
+export type MagicLinkState = { status: "idle" | "sent" | "error"; email: string; error?: "invalidEmail" | "disposableEmail" | "inviteOnly" | "rateLimited" | "sendFailed" };
 
 const EmailSchema = z.email();
 
@@ -41,12 +42,16 @@ export async function sendMagicLink(_previous: MagicLinkState, formData: FormDat
   const ip = await clientIp();
   const hits: RateLimitHit[] = [{ rule: "loginEmail", subject: fingerprint(email) }];
   if (ip) hits.push({ rule: "loginIp", subject: fingerprint(ip) });
+  const admin = createAdminClient();
   try {
-    await enforceRateLimit(createAdminClient(), hits);
+    await enforceRateLimit(admin, hits);
   } catch (error) {
     if (error instanceof RateLimitedError) return { status: "error", email, error: "rateLimited" };
     throw error;
   }
+  // Bêta fermée (tâche 5.6) : une adresse ni invitée ni déjà inscrite n'obtient pas de lien. Ce refus
+  // révèle qu'une adresse n'a pas de compte ; la limite de fréquence ci-dessus borne ces essais.
+  if (!(await canSignIn(admin, email))) return { status: "error", email, error: "inviteOnly" };
 
   await rememberNext(formData.get("next"));
   const supabase = await createClient();

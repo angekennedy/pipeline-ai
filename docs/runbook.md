@@ -157,3 +157,17 @@ Une clé publique (`NEXT_PUBLIC_*`, `POSTHOG_KEY`) n'est pas un secret, mais se 
 ### 2.10 Retour arrière d'un déploiement
 
 Vercel → Deployments → Instant Rollback. Les migrations, elles, ne sont pas annulées : avant de revenir en arrière, vérifier que l'ancien code fonctionne avec le schéma actuel. Une migration à défaire passe par une nouvelle migration, jamais par la modification d'un fichier déjà appliqué.
+
+---
+
+## 3. Bêta fermée (tâche 5.6)
+
+1. **Ouvrir la bêta** : sur `/admin`, section « Bêta fermée », activer les inscriptions sur invitation **avant** d'annoncer le site. Les comptes existants (dont les administrateurs) continuent de se connecter.
+2. **Inviter** : ajouter chaque adresse (note facultative : chaîne, niche), puis envoyer le lien du site à la personne. Elle s'inscrit avec cette adresse, par lien magique ou par Google. Une adresse non invitée reçoit « Pipeline AI est en bêta fermée » et aucun compte n'est créé (trigger `beta_gate`, en base).
+3. **Suivre** :
+   - `/admin` : coût et marge par pipeline, alertes, score NPS (promoteurs 9-10 moins détracteurs 0-6) et derniers commentaires. La question est posée dans le tableau de bord après le deuxième pipeline abouti ; « plus tard » la reporte de 30 jours.
+   - PostHog : funnel inscription → premier pipeline → paiement.
+   - Sentry : aucun incident P0 ouvert.
+4. **Critère de sortie** (PLAN 5.6) : NPS ≥ 30 sur un nombre de réponses significatif, et aucun P0 ouvert.
+5. **Lancement public** : désactiver les inscriptions sur invitation sur `/admin`. Aucun redéploiement n'est nécessaire.
+

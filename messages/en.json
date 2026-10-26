@@ -756,7 +756,8 @@
       "sendFailed": "Sending the link failed. Try again in a moment.",
       "expiredLink": "This sign-in link has expired or was already used. Request a new one.",
       "google": "Signing in with Google failed. Try again, or get a link by email.",
-      "disposableEmail": "Disposable email addresses are not accepted. Use an address you keep."
+      "disposableEmail": "Disposable email addresses are not accepted. Use an address you keep.",
+      "inviteOnly": "Pipeline AI is in closed beta: sign-up is by invitation only. Use the address you were invited with."
     }
   },
   "Limits": {
@@ -806,7 +807,30 @@
       "failures": "Failures"
     },
     "minutes": "{minutes} min",
-    "none": "—"
+    "none": "—",
+    "beta": {
+      "title": "Closed beta",
+      "on": "Invitation-only sign-up: on. Only invited addresses can create an account; existing accounts sign in as usual.",
+      "off": "Invitation-only sign-up: off. Anyone can create an account.",
+      "enable": "Turn on invitation-only sign-up",
+      "disable": "Open sign-up to everyone",
+      "email": "Email address",
+      "note": "Note (optional)",
+      "add": "Invite",
+      "added": "Invitation saved. Send the site link to the person: they sign up with this address.",
+      "invalid": "Invalid email address.",
+      "invites": "{count, plural, =0 {No invitations} one {# invitation} other {# invitations}}",
+      "remove": "Remove",
+      "removeLabel": "Remove the invitation for {email}"
+    },
+    "nps": {
+      "title": "NPS",
+      "score": "NPS score: {score}",
+      "none": "No responses yet.",
+      "counts": "{responses, plural, one {# response} other {# responses}}: {promoters} promoters (9-10), {passives} passives (7-8), {detractors} detractors (0-6).",
+      "comments": "Latest comments",
+      "comment": "{score}/10: {comment}"
+    }
   },
   "Legal": {
     "updated": "Last updated: {date}",
@@ -885,7 +909,7 @@
         },
         "data": {
           "title": "Data we process",
-          "body": "- Account: email address, display name, interface language.\n- Workspaces: name, members and roles, channel presets.\n- Content: your briefs, regeneration instructions and the generated content, with its version history.\n- Billing: Stripe customer ID and subscriptions, credit movements. Your card details are processed by Stripe and never reach us.\n- Security: non-reversible fingerprints of your email address and IP address, used to limit the number of requests, erased after 24 hours at most.\n- Technical errors: error reports without IP address, cookies or request content.\n- Usage analytics: three steps (sign-up, pipeline creation, payment), tied to a non-reversible pseudonymous identifier, with the video's tier and length or the offer purchased. No email, IP address, content or cookie."
+          "body": "- Account: email address, display name, interface language.\n- Workspaces: name, members and roles, channel presets.\n- Content: your briefs, regeneration instructions and the generated content, with its version history.\n- Billing: Stripe customer ID and subscriptions, credit movements. Your card details are processed by Stripe and never reach us.\n- Security: non-reversible fingerprints of your email address and IP address, used to limit the number of requests, erased after 24 hours at most.\n- Closed beta: the email address of invited people, with an optional note, until the invitation is removed.\n- Feedback: your 0-to-10 score and optional comment, if you answer the satisfaction question.\n- Technical errors: error reports without IP address, cookies or request content.\n- Usage analytics: three steps (sign-up, pipeline creation, payment), tied to a non-reversible pseudonymous identifier, with the video's tier and length or the offer purchased. No email, IP address, content or cookie."
         },
         "purposes": {
           "title": "Purposes and legal bases",
@@ -901,7 +925,7 @@
         },
         "retention": {
           "title": "Retention",
-          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 10 years, as required by law.\n- Security fingerprints: 24 hours at most.\n- Usage analytics: according to PostHog's retention period, with no possible link to your identity.\n- Error reports: {errorRetention}."
+          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 10 years, as required by law.\n- Security fingerprints: 24 hours at most.\n- Satisfaction feedback: until the account is deleted.\n- Usage analytics: according to PostHog's retention period, with no possible link to your identity.\n- Error reports: {errorRetention}."
         },
         "rights": {
           "title": "Your rights",
@@ -977,5 +1001,17 @@
         "topic": "How do octopuses change colour in an instant?"
       }
     }
+  },
+  "Nps": {
+    "title": "Your feedback",
+    "question": "How likely are you to recommend Pipeline AI to another creator?",
+    "low": "0: not at all likely",
+    "high": "10: extremely likely",
+    "comment": "What would make you give a higher score? (optional)",
+    "send": "Send",
+    "sending": "Sending…",
+    "later": "Later",
+    "thanks": "Thank you: your answer helps improve Pipeline AI.",
+    "scoreError": "Pick a score from 0 to 10."
   }
 }

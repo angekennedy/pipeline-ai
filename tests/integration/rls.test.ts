@@ -22,6 +22,7 @@ const TABLES = [
   "credit_ledger",
   "subscriptions",
   "stripe_events",
+  "nps_responses",
 ] as const;
 type Table = (typeof TABLES)[number];
 
@@ -63,6 +64,7 @@ beforeAll(async () => {
   );
   unwrap(await admin.from("subscriptions").insert({ id: `sub_${wsA}`, workspace_id: wsA, status: "active", price_id: "price_x", plan_key: "creator" }).select());
   unwrap(await admin.from("stripe_events").insert({ id: `evt_${wsA}`, type: "invoice.paid" }).select());
+  unwrap(await admin.from("nps_responses").insert({ user_id: a.id, score: 8, comment: "Avis de A" }).select());
 });
 afterAll(async () => {
   await admin.from("stripe_events").delete().eq("id", `evt_${wsA}`);
@@ -78,7 +80,9 @@ async function visibleRowsOfA(client: TestUser["client"], table: Table): Promise
         ? client.from(table).select("id").eq("id", wsA)
         : table === "stripe_events"
           ? client.from(table).select("id").eq("id", `evt_${wsA}`)
-          : client.from(table).select("workspace_id").eq("workspace_id", wsA);
+          : table === "nps_responses"
+            ? client.from(table).select("user_id").eq("user_id", a.id) // avis personnel : propre à l'utilisateur, pas au workspace
+            : client.from(table).select("workspace_id").eq("workspace_id", wsA);
   return unwrap(await query).length;
 }
 
@@ -111,6 +115,7 @@ describe("RLS", () => {
     expect(await visibleRowsOfA(viewer.client, "credit_accounts")).toBe(1);
     expect(await visibleRowsOfA(viewer.client, "credit_ledger")).toBe(0);
     expect(await visibleRowsOfA(viewer.client, "subscriptions")).toBe(0);
+    expect(await visibleRowsOfA(viewer.client, "nps_responses")).toBe(0); // même membre du workspace
   });
 
   it("refuse les écritures hors des droits du rôle", async () => {

@@ -159,6 +159,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"nps_responses": {
+                  Row: {
+                    "comment": string | null,"created_at": string,"score": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "comment"?: string | null,"created_at"?: string,"score": number,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "comment"?: string | null,"created_at"?: string,"score"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"pipeline_assets": {
                   Row: {
                     "current_version_id": string | null,"id": string,"pipeline_id": string,"status": Database["public"]['Enums']["asset_status"],"type": Database["public"]['Enums']["asset_type"],"workspace_id": string
@@ -305,7 +319,18 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "claim_generation":
+            "add_beta_invite":
+{ Args: { "p_email": string,"p_note"?: string }; Returns: undefined
+                           },
+"beta_can_sign_in":
+{ Args: { "p_email": string }; Returns: boolean
+                           },
+"beta_settings":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "invite_only": boolean,"invites": Json
+            }[]
+                           },
+"claim_generation":
 { Args: { "p_attempt": number,"p_generation": string }; Returns: boolean
                            },
 "commit_asset_version":
@@ -335,6 +360,11 @@ isOneToOne: false
 "mark_generation_failed":
 { Args: { "p_code": string,"p_cost_usd_micros"?: number,"p_generation": string,"p_message": string }; Returns: undefined
                            },
+"nps_summary":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "detractors": number,"passives": number,"promoters": number,"responses": number
+            }[]
+                           },
 "pipeline_economics":
 { Args: { "p_limit"?: number,"p_since": string }; Returns: {
               "cache_hit_ratio": number,"cost_usd_micros": number,"created_at": string,"credits_captured": number,"failed_generations": number,"generations": number,"minutes": number,"model_tier": string,"pipeline_id": string,"plan_key": string,"status": Database["public"]['Enums']["pipeline_status"],"total_latency_ms": number,"validation_repairs": number,"workspace_id": string
@@ -349,8 +379,14 @@ isOneToOne: false
 "release_regeneration":
 { Args: { "p_key": string }; Returns: number
                            },
+"remove_beta_invite":
+{ Args: { "p_email": string }; Returns: undefined
+                           },
 "reserve_regeneration":
 { Args: { "p_credits": number,"p_key": string,"p_pipeline": string,"p_tier": string,"p_user": string,"p_workspace": string }; Returns: boolean
+                           },
+"set_beta_invite_only":
+{ Args: { "p_enabled": boolean }; Returns: undefined
                            },
 "spend_since":
 { Args: { "p_since": string,"p_workspace"?: string }; Returns: number

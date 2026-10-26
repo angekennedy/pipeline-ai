@@ -274,6 +274,11 @@ pipeline-ai/
 > - **`pnpm preflight <fichier d'env>`** (`src/lib/preflight.ts`, `scripts/preflight.mts`) : points bloquants (variables requises, Stripe live, secret du webhook, case CGU, identité de l'éditeur, URL publique en https) et avertissements (admin, Sentry, PostHog, seuils de dépense). N'affiche que des noms, jamais de valeur ; code de sortie 1 tant qu'un point bloquant reste.
 > - **Coupe-circuit** : `SPEND_DAILY_LIMIT_USD=0.01` suspend toute nouvelle génération sans débit (runbook §2.2).
 
+> **Révision (octobre 2026, tâche 5.6).** Bêta fermée : inscriptions sur invitation et question NPS (migration `20261025000015_beta.sql`, `src/lib/beta.ts`, runbook §3).
+> - **Invitation** : réglage `beta_invite_only` dans `private.app_settings` et adresses dans `private.beta_invites`, gérés depuis `/admin` (Server Actions revérifiant l'administrateur), sans redéploiement. Le trigger `beta_gate` (`before insert on auth.users`) refuse en base la création d'un compte non invité, quelle que soit la voie (lien magique, Google, API admin). Avant d'envoyer un lien, `sendMagicLink` interroge `beta_can_sign_in` (invité, ou compte existant) et explique le refus ; pour Google, la route de rappel traduit l'erreur générique de Supabase en « sur invitation » quand le mode est actif. En mode bêta, ce refus révèle qu'une adresse n'a pas de compte : la limite de fréquence de la connexion, appliquée avant, borne ces essais.
+> - **NPS** : `public.nps_responses`, une réponse par utilisateur (note de 0 à 10, commentaire facultatif), écrite et lue sous RLS par son seul auteur, effacée avec le compte. Question affichée dans le tableau de bord après le deuxième pipeline abouti (`shouldAskNps`), reportable 30 jours (cookie). Synthèse et derniers commentaires sur `/admin` (`nps_summary`, service role).
+> - **Confidentialité** : invitations et avis ajoutés aux données traitées. **Tests** : en base (`tests/integration/beta.test.ts`, trigger, droits, RLS du NPS ; `rls.test.ts` couvre la nouvelle table), unitaires (logique, actions, page admin, composant).
+
 ---
 
 ## 3. Modèle de données

@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { DATE_TIME } from "@/i18n/format";
+import { NpsPrompt } from "@/components/nps-prompt";
 import { PipelineStatusBadge } from "@/components/pipeline/pipeline-screen";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { requireUser } from "@/lib/auth/session";
+import { NPS_DISMISSED_COOKIE, shouldAskNps } from "@/lib/beta";
 import { listPipelines, parseListParams, SEARCH_MAX_LENGTH, type PipelineListItem } from "@/lib/pipeline/list";
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
@@ -59,11 +63,14 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
   const { workspaceSlug } = await params;
   const { workspace, role } = await requireMembership(workspaceSlug);
   const { q, page } = parseListParams(await searchParams);
-  const list = await listPipelines(await createClient(), workspace.id, { q, page });
+  const db = await createClient();
+  const list = await listPipelines(db, workspace.id, { q, page });
   // Page au-delà de la dernière (lien ancien, pipelines supprimés) : vers la dernière page existante.
   if (list.items.length === 0 && list.total > 0) redirect(listHref(workspace.slug, q, list.pageCount));
 
   const canEdit = hasRole(role, "editor");
+  // Question NPS de la bêta (tâche 5.6) : après le deuxième pipeline abouti, sauf « plus tard ».
+  const askNps = !(await cookies()).has(NPS_DISMISSED_COOKIE) && (await shouldAskNps(db, (await requireUser()).id));
   const newPipelineHref = `/w/${workspace.slug}/pipelines/new`;
   const empty = list.total === 0 && !q; // aucun pipeline du tout, pas une recherche vide
   const t = await getTranslations("Dashboard");
@@ -86,6 +93,8 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
           )}
         </div>
       </div>
+
+      {askNps && <NpsPrompt />}
 
       {empty ? (
         <section className="flex flex-col items-center gap-4 rounded-xl border border-dashed px-4 py-16 text-center">

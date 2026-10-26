@@ -756,7 +756,8 @@
       "sendFailed": "L'envoi du lien a échoué. Réessayez dans un instant.",
       "expiredLink": "Ce lien de connexion a expiré ou a déjà servi. Demandez-en un nouveau.",
       "google": "La connexion avec Google a échoué. Réessayez, ou recevez un lien par e-mail.",
-      "disposableEmail": "Les adresses e-mail jetables ne sont pas acceptées. Utilisez une adresse que vous gardez."
+      "disposableEmail": "Les adresses e-mail jetables ne sont pas acceptées. Utilisez une adresse que vous gardez.",
+      "inviteOnly": "Pipeline AI est en bêta fermée : l'inscription se fait sur invitation. Utilisez l'adresse à laquelle vous avez été invité·e."
     }
   },
   "Limits": {
@@ -806,7 +807,30 @@
       "failures": "Échecs"
     },
     "minutes": "{minutes} min",
-    "none": "—"
+    "none": "—",
+    "beta": {
+      "title": "Bêta fermée",
+      "on": "Inscriptions sur invitation : activées. Seules les adresses invitées peuvent créer un compte ; les comptes existants se connectent normalement.",
+      "off": "Inscriptions sur invitation : désactivées. Tout le monde peut créer un compte.",
+      "enable": "Activer les inscriptions sur invitation",
+      "disable": "Ouvrir les inscriptions à tous",
+      "email": "Adresse e-mail",
+      "note": "Note (facultatif)",
+      "add": "Inviter",
+      "added": "Invitation enregistrée. Envoyez le lien du site à la personne : elle s'inscrit avec cette adresse.",
+      "invalid": "Adresse e-mail invalide.",
+      "invites": "{count, plural, =0 {Aucune invitation} one {# invitation} other {# invitations}}",
+      "remove": "Retirer",
+      "removeLabel": "Retirer l'invitation de {email}"
+    },
+    "nps": {
+      "title": "NPS",
+      "score": "Score NPS : {score}",
+      "none": "Aucune réponse pour l'instant.",
+      "counts": "{responses, plural, one {# réponse} other {# réponses}} : {promoters} promoteurs (9-10), {passives} passifs (7-8), {detractors} détracteurs (0-6).",
+      "comments": "Derniers commentaires",
+      "comment": "{score}/10 : {comment}"
+    }
   },
   "Legal": {
     "updated": "Dernière mise à jour : {date}",
@@ -885,7 +909,7 @@
         },
         "data": {
           "title": "Données traitées",
-          "body": "- Compte : adresse e-mail, nom affiché, langue de l'interface.\n- Workspaces : nom, membres et rôles, presets de chaîne.\n- Contenus : vos briefs, consignes de régénération et les contenus générés, avec leur historique de versions.\n- Facturation : identifiant client et abonnements Stripe, mouvements de crédits. Vos données de carte sont traitées par Stripe et ne nous sont jamais transmises.\n- Sécurité : empreintes non réversibles de votre adresse e-mail et de votre adresse IP, pour limiter le nombre de demandes, effacées au plus tard après 24 heures.\n- Erreurs techniques : rapports d'erreur sans adresse IP, sans cookies et sans contenu de requête.\n- Mesure d'audience : trois étapes (inscription, création d'un pipeline, paiement), rattachées à un identifiant pseudonyme non réversible, avec la formule et la durée de la vidéo ou l'offre achetée. Ni e-mail, ni adresse IP, ni contenu, ni cookie."
+          "body": "- Compte : adresse e-mail, nom affiché, langue de l'interface.\n- Workspaces : nom, membres et rôles, presets de chaîne.\n- Contenus : vos briefs, consignes de régénération et les contenus générés, avec leur historique de versions.\n- Facturation : identifiant client et abonnements Stripe, mouvements de crédits. Vos données de carte sont traitées par Stripe et ne nous sont jamais transmises.\n- Sécurité : empreintes non réversibles de votre adresse e-mail et de votre adresse IP, pour limiter le nombre de demandes, effacées au plus tard après 24 heures.\n- Bêta fermée : l'adresse e-mail des personnes invitées, avec une note facultative, jusqu'au retrait de l'invitation.\n- Avis : votre note de 0 à 10 et votre commentaire facultatif, si vous répondez à la question de satisfaction.\n- Erreurs techniques : rapports d'erreur sans adresse IP, sans cookies et sans contenu de requête.\n- Mesure d'audience : trois étapes (inscription, création d'un pipeline, paiement), rattachées à un identifiant pseudonyme non réversible, avec la formule et la durée de la vidéo ou l'offre achetée. Ni e-mail, ni adresse IP, ni contenu, ni cookie."
         },
         "purposes": {
           "title": "Finalités et bases légales",
@@ -901,7 +925,7 @@
         },
         "retention": {
           "title": "Durées de conservation",
-          "body": "- Compte, workspaces et contenus : jusqu'à la suppression du compte, effacés à ce moment-là.\n- Pièces comptables : 10 ans, comme l'exige la loi.\n- Empreintes de sécurité : 24 heures au plus.\n- Mesure d'audience : selon la durée de conservation de PostHog, sans lien possible avec votre identité.\n- Rapports d'erreur : {errorRetention}."
+          "body": "- Compte, workspaces et contenus : jusqu'à la suppression du compte, effacés à ce moment-là.\n- Pièces comptables : 10 ans, comme l'exige la loi.\n- Empreintes de sécurité : 24 heures au plus.\n- Avis de satisfaction : jusqu'à la suppression du compte.\n- Mesure d'audience : selon la durée de conservation de PostHog, sans lien possible avec votre identité.\n- Rapports d'erreur : {errorRetention}."
         },
         "rights": {
           "title": "Vos droits",
@@ -977,5 +1001,17 @@
         "topic": "Comment les pieuvres changent-elles de couleur en un instant ?"
       }
     }
+  },
+  "Nps": {
+    "title": "Votre avis",
+    "question": "Quelle est la probabilité que vous recommandiez Pipeline AI à un autre créateur ?",
+    "low": "0 : pas du tout probable",
+    "high": "10 : très probable",
+    "comment": "Qu'est-ce qui vous ferait donner une meilleure note ? (facultatif)",
+    "send": "Envoyer",
+    "sending": "Envoi…",
+    "later": "Plus tard",
+    "thanks": "Merci : votre réponse aide à améliorer Pipeline AI.",
+    "scoreError": "Choisissez une note de 0 à 10."
   }
 }
