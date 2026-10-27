@@ -44,7 +44,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # Services inutiles aux tests exclus : démarrage plus court.
-      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,storage-api,postgres-meta,supavisor
+      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,postgres-meta,supavisor # storage-api : médias (tests/integration/video.test.ts)
       - name: Types générés à jour
         run: |
           pnpm db:types
