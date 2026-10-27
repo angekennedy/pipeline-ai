@@ -88,11 +88,24 @@ function validate<T>(schema: z.ZodType<T>, text: string): { ok: true; data: T } 
     : { ok: false, issues: result.error.issues.map(({ path, message }) => ({ path, message })) };
 }
 
-// Forme d'entrée : le modèle produit ce que Zod lit, avant transformations éventuelles.
+// Forme d'entrée : le modèle produit ce que Zod lit, avant transformations éventuelles. Les
+// `pattern` sont retirés : l'API refuse les expressions JavaScript (`\p{L}` et le drapeau `u`), et
+// Zod les applique de toute façon, avec réparation.
 export function jsonSchemaOf(schema: z.ZodType): Record<string, unknown> {
-  const json = z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as Record<string, unknown>;
+  const json = withoutPatterns(z.toJSONSchema(schema, { io: "input", unrepresentable: "any" })) as Record<string, unknown>;
   delete json.$schema;
   return json;
+}
+
+function withoutPatterns(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(withoutPatterns);
+  if (node === null || typeof node !== "object") return node;
+  return Object.fromEntries(
+    Object.entries(node)
+      // Un champ nommé « pattern » sous `properties` est une propriété, pas une contrainte.
+      .filter(([key, value]) => key !== "pattern" || typeof value !== "string")
+      .map(([key, value]) => [key, withoutPatterns(value)]),
+  );
 }
 
 const repairInstruction = (issues: SchemaIssue[]) =>
