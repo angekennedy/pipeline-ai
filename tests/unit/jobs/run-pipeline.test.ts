@@ -128,7 +128,7 @@ describe("fonction Inngest run-pipeline", () => {
     expect(createFn().opts).toMatchObject({
       id: "run-pipeline",
       idempotency: "event.data.pipelineId",
-      concurrency: [{ key: "event.data.workspaceId", limit: 2 }, { limit: 50 }],
+      concurrency: [{ key: "event.data.workspaceId", limit: 2 }, { limit: 5 }],
       retries: 3,
       cancelOn: [{ event: "pipeline/canceled", match: "data.pipelineId" }],
     });

@@ -761,7 +761,7 @@ export const runPipeline = inngest.createFunction(
   {
     id: 'run-pipeline',
     idempotency: 'event.data.pipelineId',                       // double envoi : une seule exécution
-    concurrency: [{ key: 'event.data.workspaceId', limit: 2 }, { limit: 50 }],  // équité + plafond global
+    concurrency: [{ key: 'event.data.workspaceId', limit: 2 }, { limit: 5 }],  // équité + plafond global (limite du plan Inngest)
     retries: 3,
     cancelOn: [{ event: 'pipeline/canceled', match: 'data.pipelineId' }],
     onFailure: async ({ event }) => releaseRemaining(event.data.event.data.pipelineId, 'failure'),
