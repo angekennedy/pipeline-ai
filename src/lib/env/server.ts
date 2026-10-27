@@ -12,6 +12,7 @@ const ServerEnvSchema = z
       .string()
       .trim()
       .min(1)
+      // i18n-ignore : message de démarrage, lu dans les logs de build, jamais affiché aux utilisateurs.
       .regex(/^[\x21-\x7E]+$/, "Caractère invalide (apostrophe courbe, espace ou caractère accentué ?) : recopiez la clé depuis platform.openai.com"),
     // Surcharges facultatives des modèles par défaut de src/lib/ai/models.ts.
     MODEL_SCRIPT_STANDARD: z.string().min(1).optional(),
