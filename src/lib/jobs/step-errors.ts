@@ -1,4 +1,4 @@
-import type Anthropic from "@anthropic-ai/sdk";
+import type { OpenAIClient } from "@/lib/ai/openai";
 import { NonRetriableError } from "inngest";
 import type { PipelineStore } from "@/lib/pipeline/store";
 import type { PipelineEventPublisher } from "@/lib/realtime/events";
@@ -6,7 +6,7 @@ import type { PipelineEventPublisher } from "@/lib/realtime/events";
 // Dépendances injectées dans les fonctions Inngest (store Supabase en production, mémoire en test).
 export type JobDeps = {
   store: () => PipelineStore;
-  anthropic?: Anthropic; // injecté par les tests ; sinon le client partagé de lib/ai
+  openai?: OpenAIClient; // injecté par les tests ; sinon le client partagé de lib/ai
   publisher?: (pipelineId: string) => PipelineEventPublisher; // Realtime Broadcast du pipeline
   // Libère les crédits réservés d'une régénération en échec définitif (migration 0012).
   releaseRegeneration?: (key: string) => Promise<number>;

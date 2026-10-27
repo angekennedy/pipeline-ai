@@ -11,7 +11,7 @@ import { applyScriptForm, sceneFieldName } from "@/lib/pipeline/script-form";
 import { editAsset } from "@/lib/pipeline/versions";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { validBrief } from "../fixtures/assets";
-import { fakeAnthropic } from "./fake-anthropic";
+import { fakeOpenAI } from "./fake-openai";
 import { admin, cleanup, createUser, unwrap, type TestUser } from "./helpers";
 
 // Éditeur du script et régénération (tâche 4.2) : la version éditée est versionnée, puis reprise par la
@@ -34,7 +34,7 @@ beforeAll(async () => {
   a = await createUser("regen");
   ws = unwrap(await admin.from("workspace_members").select("workspace_id").eq("user_id", a.id).single()).workspace_id;
   ({ pipelineId } = await createPipelineWithReservation(admin, { workspaceId: ws, userId: a.id, brief, tier: "standard", idempotencyKey: randomUUID() }));
-  const client = fakeAnthropic();
+  const client = fakeOpenAI();
   await runPipelineSteps(pipelineId, { step, store, generate: (type) => generateAsset(pipelineId, type, { store, client }) });
 });
 afterAll(cleanup);
@@ -55,7 +55,7 @@ describe("script édité puis dérivés régénérés", () => {
     // Régénération des dérivés : réservation par asset, puis génération dans l'ordre du DAG.
     const before = await balance();
     const requests: Array<{ type: AssetType; body: string }> = [];
-    const client = fakeAnthropic([], requests);
+    const client = fakeOpenAI([], requests);
     const derived = ["titles", "seo", "voiceover", "thumbnails"] as const;
     const keys = Object.fromEntries(derived.map((type) => [type, key()])) as Record<(typeof derived)[number], string>;
     for (const type of derived) {
@@ -84,13 +84,13 @@ describe("facturation d'une régénération", () => {
     const before = await balance();
     const regen = key();
     await reserveRegeneration(admin, { workspaceId: ws, userId: a.id, pipelineId, key: regen, credits: credits("seo"), tier: "standard" });
-    await expect(generateAsset(pipelineId, "seo", { store, client: fakeAnthropic(["seo"]), regeneration: { key: regen } })).rejects.toThrow();
+    await expect(generateAsset(pipelineId, "seo", { store, client: fakeOpenAI(["seo"]), regeneration: { key: regen } })).rejects.toThrow();
     expect(await releaseRegeneration(admin, regen)).toBe(credits("seo"));
     expect(await releaseRegeneration(admin, regen)).toBe(0); // idempotente
     expect(await balance()).toEqual(before);
 
     // Une réussite tardive, après libération, n'est pas facturée.
-    await generateAsset(pipelineId, "seo", { store, client: fakeAnthropic(), regeneration: { key: regen } });
+    await generateAsset(pipelineId, "seo", { store, client: fakeOpenAI(), regeneration: { key: regen } });
     expect(await balance()).toEqual(before);
   });
 

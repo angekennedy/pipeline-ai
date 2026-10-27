@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { ModelKey } from "@/lib/ai/models";
+import { MAX_OUTPUT_TOKENS } from "@/lib/ai/openai";
 import { CREDIT_RULES } from "@/lib/billing/credit-rules";
 import { prompts, type PromptContext, type PromptTemplate } from "@/lib/ai/prompts";
 import { requireScript } from "@/lib/ai/prompts/shared";
@@ -50,13 +51,12 @@ export type AssetDefinition<K extends AssetType> = {
   // post-traitement sait corriger seul (tag trop long, concept écarté) ne coûte pas une réparation.
   // Les éditions manuelles restent validées par `schema`.
   outputSchema?: (ctx: PromptContext) => z.ZodType<AssetContent[K]>;
-  // Le thinking adaptatif est actif sur les trois modèles et compte dans max_tokens.
+  // Plafonné à la limite de sortie des modèles (MAX_OUTPUT_TOKENS).
   maxTokens: (brief: Brief) => number;
   credits: (brief: Brief, tier: ModelTier) => number;
   postProcess: (content: AssetContent[K], ctx: PromptContext) => AssetContent[K];
 };
 
-const MAX_OUTPUT_TOKENS = 64_000;
 const narrationWords = (brief: Brief) => brief.durationMinutes * WORDS_PER_MINUTE[brief.language];
 const capped = (n: number) => Math.min(MAX_OUTPUT_TOKENS, n);
 const unchanged = <T>(content: T) => content;

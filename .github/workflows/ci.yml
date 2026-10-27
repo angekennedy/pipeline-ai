@@ -14,7 +14,7 @@ env:
   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
   SUPABASE_SECRET_KEY: ci-placeholder
-  ANTHROPIC_API_KEY: ci-placeholder
+  OPENAI_API_KEY: ci-placeholder
 
 jobs:
   check:

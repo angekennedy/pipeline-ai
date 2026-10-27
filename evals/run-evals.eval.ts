@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import Anthropic from "@anthropic-ai/sdk";
+import { OpenAIClient, OpenAIError } from "@/lib/ai/openai";
 import { it } from "vitest";
 import { BriefSchema, type Brief } from "@/lib/ai/schemas";
 import type { ModelTier } from "@/lib/pipeline/registry";
@@ -74,7 +74,7 @@ it("évaluation des pipelines", async () => {
   const out = openVariant(variant);
   if (variant !== "baseline") writeFileSync(join(out.dir, "change.md"), `# ${config.description}\n\nMêmes briefs et même notation que baseline.\n`);
 
-  const client = new Anthropic({ maxRetries: 4 }); // backoff exponentiel avec jitter du SDK sur 429/529
+  const client = new OpenAIClient({ apiKey: process.env.OPENAI_API_KEY ?? "", maxRetries: 4 }); // backoff exponentiel avec jitter sur 429/5xx
   const cases = loadCases().filter((c) => !out.isDone(c.id, REP));
   console.log(`${cases.length} cas à exécuter (${variant}, formule ${config.tier}).`);
 
@@ -128,7 +128,7 @@ it("évaluation des pipelines", async () => {
       );
       console.log(`✓ ${c.id} : juge ${judge.grade.judge.toFixed(2)}/5, contrôles ${(checks.grade.checks * 100).toFixed(0)} %${checks.failed.length ? ` (échecs : ${checks.failed.join(", ")})` : ""}, ${(pipelineCost + judgeCost).toFixed(3)} $`);
     } catch (error) {
-      const failureClass = (error as { failureClass?: string }).failureClass ?? (error instanceof Anthropic.APIError ? "api_error" : "harness_error");
+      const failureClass = (error as { failureClass?: string }).failureClass ?? (error instanceof OpenAIError ? "api_error" : "harness_error");
       out.writeError({ ...base, failure_class: failureClass, message: error instanceof Error ? error.message : String(error) });
       console.log(`✗ ${c.id} : ${failureClass} (${error instanceof Error ? error.message : String(error)})`);
     }

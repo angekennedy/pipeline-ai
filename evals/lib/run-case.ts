@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type Anthropic from "@anthropic-ai/sdk";
+import type { OpenAIClient } from "@/lib/ai/openai";
 import { modelFor } from "@/lib/ai/models";
 import { prompts, type PromptContext } from "@/lib/ai/prompts";
 import { ASSET_TYPES, type AssetType, type Brief, type Script, type Titles } from "@/lib/ai/schemas";
@@ -34,10 +34,8 @@ export type CaseRun = {
   latencyS: number;
 };
 
-const text = (content: unknown) =>
-  typeof content === "string" ? content : (content as Array<{ text: string }>).map((block) => block.text).join("\n\n");
 
-export async function runCase(brief: Brief, tier: ModelTier, { client }: { client?: Anthropic } = {}): Promise<CaseRun> {
+export async function runCase(brief: Brief, tier: ModelTier, { client }: { client?: OpenAIClient } = {}): Promise<CaseRun> {
   const store = new MemoryPipelineStore();
   const pipelineId = randomUUID();
   store.addPipeline({ id: pipelineId, workspaceId: "evals", brief, channel: null, tier });
@@ -82,8 +80,8 @@ export async function runCase(brief: Brief, tier: ModelTier, { client }: { clien
     if (assets[type].failure === "SKIPPED") continue;
     const prompt = registry[type].dependsOn.every((dep) => content[dep]) ? prompts[type].build(ctx) : null;
     if (prompt) {
-      trace.push({ role: "system", content: `[${type}]\n${text(prompt.system)}` });
-      trace.push({ role: "user", content: text(prompt.messages[0]!.content) });
+      trace.push({ role: "system", content: `[${type}]\n${prompt.system}` });
+      trace.push({ role: "user", content: prompt.messages[0]!.content });
     }
     trace.push({ role: "assistant", content: content[type] ? JSON.stringify(content[type], null, 2) : `Échec : ${assets[type].failure}` });
   }

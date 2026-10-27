@@ -1,5 +1,5 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
+import { OpenAIError, type OpenAIClient } from "@/lib/ai/openai";
 import type { PromptContext } from "@/lib/ai/prompts";
 import { assetSchemas, type AssetType, type Script, type Titles } from "@/lib/ai/schemas";
 import { LlmError, callStructured } from "@/lib/ai/structured";
@@ -21,7 +21,7 @@ export class MissingDependencyError extends Error {
 
 export type GenerateAssetOptions = {
   store: PipelineStore;
-  client?: Anthropic;
+  client?: OpenAIClient;
   onText?: (delta: string, snapshot: string) => void;
   // Affichage en direct (Realtime Broadcast), sans effet sur le résultat si l'envoi échoue.
   publish?: PipelineEventPublisher;
@@ -58,7 +58,7 @@ export async function loadContext(store: PipelineStore, pipeline: PipelineRecord
 function failureOf(error: unknown): GenerationFailure {
   if (error instanceof LlmError) return { code: error.code, message: error.message, costUsdMicros: error.costUsdMicros };
   if (error instanceof MissingDependencyError) return { code: error.code, message: error.message, costUsdMicros: null };
-  if (error instanceof Anthropic.APIError) return { code: "PROVIDER_ERROR", message: error.message, costUsdMicros: null };
+  if (error instanceof OpenAIError) return { code: "PROVIDER_ERROR", message: error.message, costUsdMicros: null };
   return { code: "INTERNAL", message: error instanceof Error ? error.message : String(error), costUsdMicros: null };
 }
 

@@ -22,6 +22,12 @@ const FINGERPRINTS: Record<string, string> = {
   // Après l'évaluation v2 : titres sans mention du script, 4 concepts de miniatures.
   "titles@3": "876c72b165ccde98",
   "thumbnails@3": "af17c6450d3e6152",
+  // Passage à OpenAI : système en chaîne, message utilisateur en un seul texte (mêmes consignes).
+  "script@3": "edd383ef0f5e8698",
+  "titles@4": "da96b0e0c7ed084f",
+  "seo@2": "407e12314085455b",
+  "voiceover@2": "2f83cf075ffc2df0",
+  "thumbnails@4": "9955ca0bc18224a1",
 };
 
 const ctx = {

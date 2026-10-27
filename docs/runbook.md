@@ -21,11 +21,12 @@ Chaque point a sa vérification. Cocher seulement ce qui a été vérifié.
 - [ ] Google (facultatif) : fournisseur configuré avec l'URL de rappel Supabase, puis `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true`.
 - [ ] Région du projet reportée dans la politique de confidentialité (`Legal.privacy.sections.processors` dans `messages/*.json`).
 
-### 1.2 Anthropic
+### 1.2 OpenAI
 
-- [ ] Clé API dédiée à la production, dans un workspace Anthropic à part (Console → Workspaces).
-- [ ] **Plafond de dépense mensuel** sur ce workspace (Console → Limits). C'est le dernier filet : le disjoncteur de l'application (§1.6) doit se déclencher avant lui.
-- [ ] Palier de rate limit suffisant pour la concurrence prévue (au plus 50 pipelines en parallèle, 2 par workspace : `run-pipeline`).
+- [ ] Crédit prépayé sur le compte API (platform.openai.com → Settings → Billing) : sans crédit, chaque génération échoue en `PROVIDER_ERROR` (429 `insufficient_quota`).
+- [ ] Clé API dédiée à la production (`OPENAI_API_KEY`), dans un projet OpenAI à part (Settings → Projects), avec accès à `gpt-4o` et `gpt-4o-mini`.
+- [ ] **Plafond de dépense mensuel** sur ce projet (Settings → Limits). C'est le dernier filet : le disjoncteur de l'application (§1.6) doit se déclencher avant lui.
+- [ ] Palier de rate limit suffisant pour la concurrence prévue (au plus 5 pipelines en parallèle, 2 par workspace : `run-pipeline`).
 - [ ] *Vérifier* : un pipeline d'exemple (onboarding) se génère de bout en bout avec cette clé.
 
 ### 1.3 Stripe en live
@@ -47,12 +48,12 @@ Chaque point a sa vérification. Cocher seulement ce qui a été vérifié.
 
 - [ ] Domaine de production attaché, HTTPS actif, et `NEXT_PUBLIC_SITE_URL=https://<domaine>`.
 - [ ] Fonctions en `pdx1` (Portland), au plus près de la base Supabase en Oregon : fixé par `vercel.json`, qui prime sur le réglage du tableau de bord. *Vérifier* : l'en-tête `x-vercel-id` d'une réponse de `/api/inngest` contient `pdx1`.
-- [ ] Variables de l'environnement *Production* seulement : Supabase, Anthropic, Inngest, Stripe live, `STRIPE_TERMS_CONSENT`, `ADMIN_EMAILS`, `POSTHOG_KEY`, Sentry, seuils de dépense. Les previews gardent les clés de test : le build refuse une clé live sur une preview, et une clé de test en production.
+- [ ] Variables de l'environnement *Production* seulement : Supabase, OpenAI, Inngest, Stripe live, `STRIPE_TERMS_CONSENT`, `ADMIN_EMAILS`, `POSTHOG_KEY`, Sentry, seuils de dépense. Les previews gardent les clés de test : le build refuse une clé live sur une preview, et une clé de test en production.
 - [ ] *Vérifier* : `vercel env pull .env.production.local --environment=production`, puis `pnpm preflight .env.production.local` sans `FAIL`. Supprimer le fichier ensuite (il est ignoré par git).
 
 ### 1.6 Garde-fous de dépense et d'abus
 
-- [ ] `SPEND_DAILY_LIMIT_USD` et `SPEND_DAILY_WORKSPACE_LIMIT_USD` choisis (200 $ et 25 $ par défaut), sous le plafond mensuel Anthropic ramené à la journée.
+- [ ] `SPEND_DAILY_LIMIT_USD` et `SPEND_DAILY_WORKSPACE_LIMIT_USD` choisis (200 $ et 25 $ par défaut), sous le plafond mensuel OpenAI ramené à la journée.
 - [ ] Liste des mots-clés de modération relue (`src/lib/security/moderation.ts`).
 
 ### 1.7 Observabilité
@@ -96,15 +97,15 @@ group by 1 order by 2 desc limit 10;
 
 ### 2.2 Suspendre toutes les générations (coupe-circuit)
 
-Panne prolongée d'Anthropic, coût qui s'emballe, faille suspectée : `SPEND_DAILY_LIMIT_USD=0.01` sur Vercel, puis redéploiement. Toute création et toute régénération est refusée sans débit, avec un message explicite ; les pipelines en cours se terminent. Rétablir la valeur pour reprendre.
+Panne prolongée d'OpenAI, coût qui s'emballe, faille suspectée : `SPEND_DAILY_LIMIT_USD=0.01` sur Vercel, puis redéploiement. Toute création et toute régénération est refusée sans débit, avec un message explicite ; les pipelines en cours se terminent. Rétablir la valeur pour reprendre.
 
-### 2.3 Panne ou surcharge d'Anthropic (429, 529, 5xx)
+### 2.3 Panne ou surcharge d'OpenAI (429, 5xx)
 
-**Signal** : alerte `alert:failureRate` (plus de 5 % d'échecs sur 15 min), erreurs `PROVIDER_ERROR` dans Sentry, status.anthropic.com.
+**Signal** : alerte `alert:failureRate` (plus de 5 % d'échecs sur 15 min), erreurs `PROVIDER_ERROR` dans Sentry, status.openai.com. Un 429 `insufficient_quota` n'est pas une panne : le crédit prépayé est épuisé.
 **Ce qui se passe seul** : Inngest relance chaque étape avec backoff. Un asset qui échoue définitivement est rendu au workspace (réservation libérée) ; le pipeline finit `partial` ou `failed`.
 **Action** : surcharge brève, rien. Panne longue, coupe-circuit (§2.2) pour ne pas accumuler les échecs.
 
-### 2.4 Taux d'échec élevé sans panne d'Anthropic
+### 2.4 Taux d'échec élevé sans panne d'OpenAI
 
 Souvent un défaut de prompt ou de schéma après un déploiement.
 
@@ -142,7 +143,7 @@ Rouler la clé chez le fournisseur, la remplacer sur Vercel, redéployer, puis v
 | Clé | Où la rouler |
 |---|---|
 | `SUPABASE_SECRET_KEY` | Supabase → Settings → API Keys |
-| `ANTHROPIC_API_KEY` | Console Anthropic → API Keys (désactiver l'ancienne) |
+| `OPENAI_API_KEY` | platform.openai.com → API keys (révoquer l'ancienne) |
 | `STRIPE_SECRET_KEY` | Stripe → Développeurs → Clés API → Rouler |
 | `STRIPE_WEBHOOK_SECRET` | Stripe → Webhooks → l'endpoint → Rouler le secret |
 | `INNGEST_SIGNING_KEY`, `INNGEST_EVENT_KEY` | Inngest → Manage → Signing Key, Event Keys |

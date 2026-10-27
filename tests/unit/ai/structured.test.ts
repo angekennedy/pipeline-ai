@@ -1,20 +1,20 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { http, HttpResponse } from "msw/http";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { OpenAIClient, OpenAIError } from "@/lib/ai/openai";
 import {
   LlmRefusalError,
   LlmTruncatedError,
   LlmValidationError,
   callStructured,
 } from "@/lib/ai/structured";
-import { ANTHROPIC_MESSAGES_URL, anthropicSequence, jsonReplyStream, refusalStream } from "../../mocks/anthropic";
+import { OPENAI_CHAT_URL, openaiSequence, jsonReplyStream, refusalStream } from "../../mocks/openai";
 import { server } from "../../mocks/server";
 
-const client = new Anthropic({ apiKey: "test-key", maxRetries: 0 });
+const client = new OpenAIClient({ apiKey: "test-key", maxRetries: 0 });
 
 const Schema = z.object({
-  title: z.string().min(10), // contrainte retirée du JSON Schema par le SDK, revalidée par Zod
+  title: z.string().min(10), // contrainte indicative dans le JSON Schema, appliquée par Zod
   tags: z.array(z.string()).max(2),
 });
 const valid = { title: "Le secret des pyramides", tags: ["histoire"] };
@@ -29,52 +29,51 @@ const request = (overrides: Partial<Parameters<typeof callStructured>[0]> = {}) 
 });
 
 function mock(...replies: Array<() => Response>) {
-  const sequence = anthropicSequence(...replies);
+  const sequence = openaiSequence(...replies);
   server.use(sequence.handler);
   return sequence.calls;
 }
 
 describe("callStructured", () => {
   it("renvoie la sortie validée, l'usage et le coût", async () => {
-    mock(() => jsonReplyStream(valid, { usage: { input_tokens: 1000, output_tokens: 100 } }));
+    mock(() => jsonReplyStream(valid, { usage: { prompt_tokens: 1000, completion_tokens: 100, cached_tokens: 400 } }));
     const result = await callStructured(request(), { client });
     expect(result).toMatchObject({
       data: valid,
-      model: "claude-sonnet-5-5",
+      model: "gpt-4o-2024-08-06",
       attempts: 1,
       repairs: 0,
-      usage: { inputTokens: 1000, outputTokens: 100, cacheReadTokens: 0, cacheCreationTokens: 0 },
-      costUsdMicros: 1000 * 2 + 100 * 10,
+      usage: { inputTokens: 600, outputTokens: 100, cacheReadTokens: 400, cacheCreationTokens: 0 },
+      costUsdMicros: Math.round(600 * 2.5 + 400 * 1.25 + 100 * 10),
     });
   });
 
-  it("envoie le JSON Schema en sortie structurée, l'effort et le streaming", async () => {
+  it("envoie le système en premier message, le JSON Schema en sortie structurée et le streaming", async () => {
     const calls = mock(() => jsonReplyStream(valid));
     await callStructured(request(), { client });
     const body = calls[0]!.body as {
       model: string;
-      max_tokens: number;
+      max_completion_tokens: number;
       stream: boolean;
-      tool_choice?: unknown;
-      output_config: { effort: string; format: { type: string; schema: { additionalProperties: boolean; properties: { title: object } } } };
+      stream_options: { include_usage: boolean };
+      messages: Array<{ role: string; content: string }>;
+      response_format: { type: string; json_schema: { strict: boolean; schema: { $schema?: string; properties: { title: object } } } };
     };
-    expect(body).toMatchObject({ model: "claude-sonnet-5-5", max_tokens: 1000, stream: true });
-    expect(body.tool_choice).toBeUndefined(); // le tool use forcé renvoie 400 sur Opus et Sonnet 5.5
-    expect(body.output_config.effort).toBe("medium");
-    expect(body.output_config.format.type).toBe("json_schema");
-    expect(body.output_config.format.schema.additionalProperties).toBe(false);
-    expect(body.output_config.format.schema.properties.title).not.toHaveProperty("minLength");
+    expect(body).toMatchObject({ model: "gpt-4o", max_completion_tokens: 1000, stream: true, stream_options: { include_usage: true } });
+    expect(body.messages.map((m) => m.role)).toEqual(["system", "user"]);
+    expect(body.messages[0]!.content).toBe("Tu écris des scripts YouTube.");
+    expect(body.response_format.type).toBe("json_schema");
+    expect(body.response_format.json_schema.strict).toBe(false);
+    expect(body.response_format.json_schema.schema).not.toHaveProperty("$schema");
+    expect(body.response_format.json_schema.schema.properties.title).toMatchObject({ type: "string" });
+    expect(calls[0]!.headers.get("authorization")).toBe("Bearer test-key");
   });
 
-  it("active le repli serveur sur refus pour Sonnet, pas pour Haiku", async () => {
-    const calls = mock(() => jsonReplyStream(valid));
-    await callStructured(request(), { client });
-    await callStructured(request({ modelKey: "light" }), { client });
-
-    expect(calls[0]!.body.fallbacks).toBe("default");
-    expect(calls[0]!.headers.get("anthropic-beta")).toContain("server-side-fallback-2026-07-01");
-    expect(calls[1]!.body).not.toHaveProperty("fallbacks");
-    expect(calls[1]!.headers.get("anthropic-beta") ?? "").not.toContain("server-side-fallback");
+  it("utilise gpt-4o-mini pour les livrables légers", async () => {
+    const calls = mock(() => jsonReplyStream(valid, { model: "gpt-4o-mini-2024-07-18" }));
+    const result = await callStructured(request({ modelKey: "light" }), { client });
+    expect(calls[0]!.body.model).toBe("gpt-4o-mini");
+    expect(result.costUsdMicros).toBe(Math.round(100 * 0.15 + 200 * 0.6));
   });
 
   it("transmet le texte au fil du stream", async () => {
@@ -94,9 +93,10 @@ describe("callStructured", () => {
 
     expect(result).toMatchObject({ data: valid, attempts: 2, repairs: 1 });
     expect(result.usage.inputTokens).toBe(200); // usage cumulé sur les deux appels
-    const retry = calls[1]!.body.messages as Array<{ role: string; content: unknown }>;
-    expect(retry.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
-    expect(JSON.stringify(retry[2]!.content)).toContain("title");
+    const retry = calls[1]!.body.messages as Array<{ role: string; content: string }>;
+    expect(retry.map((m) => m.role)).toEqual(["system", "user", "assistant", "user"]);
+    expect(retry[2]!.content).toBe(JSON.stringify({ title: "Court", tags: [] }));
+    expect(retry[3]!.content).toContain("title");
   });
 
   it("répare aussi un JSON illisible", async () => {
@@ -117,46 +117,68 @@ describe("callStructured", () => {
   });
 
   it("lève une erreur de refus sans relancer", async () => {
-    const calls = mock(() => refusalStream("cyber"));
+    const calls = mock(() => refusalStream("Je ne peux pas aider."));
     const error = await callStructured(request(), { client }).catch((e) => e);
     expect(error).toBeInstanceOf(LlmRefusalError);
-    expect(error).toMatchObject({ code: "CONTENT_REFUSED", category: "cyber", retryable: false });
+    expect(error).toMatchObject({ code: "CONTENT_REFUSED", category: null, explanation: "Je ne peux pas aider.", retryable: false });
     expect(calls).toHaveLength(1);
   });
 
-  it("accepte un refus sans catégorie", async () => {
-    mock(() => refusalStream(null));
-    await expect(callStructured(request(), { client })).rejects.toMatchObject({ code: "CONTENT_REFUSED", category: null });
+  it("compte le filtre de contenu comme un refus", async () => {
+    mock(() => jsonReplyStream("", { finishReason: "content_filter" }));
+    await expect(callStructured(request(), { client })).rejects.toMatchObject({ code: "CONTENT_REFUSED", category: "content_filter" });
   });
 
   it("renvoie un coût null si le modèle qui a répondu n'a pas de tarif connu", async () => {
-    mock(() => jsonReplyStream(valid, { model: "claude-inconnu" }));
-    await expect(callStructured(request(), { client })).resolves.toMatchObject({ model: "claude-inconnu", costUsdMicros: null });
+    mock(() => jsonReplyStream(valid, { model: "gpt-inconnu" }));
+    await expect(callStructured(request(), { client })).resolves.toMatchObject({ model: "gpt-inconnu", costUsdMicros: null });
   });
 
   it("relance une fois avec 1,5 fois plus de tokens si la sortie est tronquée", async () => {
     const calls = mock(
-      () => jsonReplyStream('{"title": "Le sec', { stopReason: "max_tokens" }),
+      () => jsonReplyStream('{"title": "Le sec', { finishReason: "length" }),
       () => jsonReplyStream(valid),
     );
     await expect(callStructured(request(), { client })).resolves.toMatchObject({ data: valid, attempts: 2 });
-    expect(calls.map((c) => c.body.max_tokens)).toEqual([1000, 1500]);
+    expect(calls.map((c) => c.body.max_completion_tokens)).toEqual([1000, 1500]);
+  });
+
+  it("plafonne les tokens à la limite de sortie du modèle, sans relance inutile", async () => {
+    const calls = mock(() => jsonReplyStream('{"title"', { finishReason: "length" }));
+    const error = await callStructured(request({ maxTokens: 64_000 }), { client }).catch((e) => e);
+    expect(error).toBeInstanceOf(LlmTruncatedError);
+    expect(calls.map((c) => c.body.max_completion_tokens)).toEqual([16_384]);
   });
 
   it("échoue si la sortie reste tronquée", async () => {
-    const calls = mock(() => jsonReplyStream('{"title"', { stopReason: "max_tokens" }));
+    const calls = mock(() => jsonReplyStream('{"title"', { finishReason: "length" }));
     const error = await callStructured(request(), { client }).catch((e) => e);
     expect(error).toBeInstanceOf(LlmTruncatedError);
     expect(error).toMatchObject({ code: "MAX_TOKENS", retryable: false });
     expect(calls).toHaveLength(2);
   });
 
-  it("laisse remonter les erreurs HTTP typées du SDK", async () => {
+  it("laisse remonter les erreurs HTTP de l'API avec leur statut et leur message", async () => {
     server.use(
-      http.post(ANTHROPIC_MESSAGES_URL, () =>
-        HttpResponse.json({ type: "error", error: { type: "invalid_request_error", message: "bad" } }, { status: 400 }),
+      http.post(OPENAI_CHAT_URL, () =>
+        HttpResponse.json({ error: { message: "You exceeded your current quota", type: "insufficient_quota", code: "insufficient_quota" } }, { status: 429 }),
       ),
     );
-    await expect(callStructured(request(), { client })).rejects.toBeInstanceOf(Anthropic.BadRequestError);
+    const error = await callStructured(request(), { client }).catch((e) => e);
+    expect(error).toBeInstanceOf(OpenAIError);
+    expect(error).toMatchObject({ status: 429, type: "insufficient_quota", message: "429 You exceeded your current quota" });
+  });
+
+  it("relance les erreurs passagères avant d'abandonner", async () => {
+    let attempts = 0;
+    server.use(
+      http.post(OPENAI_CHAT_URL, () => {
+        attempts++;
+        return attempts === 1 ? HttpResponse.json({ error: { message: "overloaded" } }, { status: 503, headers: { "retry-after": "0.01" } }) : jsonReplyStream(valid);
+      }),
+    );
+    const retrying = new OpenAIClient({ apiKey: "test-key", maxRetries: 1 });
+    await expect(callStructured(request(), { client: retrying })).resolves.toMatchObject({ data: valid });
+    expect(attempts).toBe(2);
   });
 });

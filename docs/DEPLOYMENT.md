@@ -61,7 +61,7 @@ main ──▶ GitHub Actions « Staging DB » ──▶ supabase db push sur le
    | `NEXT_PUBLIC_SUPABASE_URL` | Project URL du staging |
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key |
    | `SUPABASE_SECRET_KEY` | Secret key (sensible) |
-   | `ANTHROPIC_API_KEY` | Une clé dédiée au staging, avec une limite de dépense. Attends que l'organisation Anthropic soit rétablie. |
+   | `OPENAI_API_KEY` | Une clé dédiée au staging, dans un projet OpenAI avec une limite de dépense. |
 
 4. **Settings → Deployment Protection** : les previews sont protégées par l'authentification Vercel, ce qui bloque aussi les appels d'Inngest. Active **Protection Bypass for Automation** ; l'intégration Inngest (étape 3) utilisera ce secret.
 5. Dans **Settings → Git**, les previews par PR sont activées par défaut, et le bot Vercel commente chaque PR avec son URL.
@@ -122,7 +122,7 @@ Tout se fait d'abord en **mode test** (bascule « Mode test » en haut du tablea
 | Variable | Où | Requise |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Vercel | Oui (build) |
-| `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY` | Vercel | Oui (build) |
+| `SUPABASE_SECRET_KEY`, `OPENAI_API_KEY` | Vercel | Oui (build) |
 | `INNGEST_SIGNING_KEY`, `INNGEST_EVENT_KEY` | Vercel (intégration Inngest) | Oui sur Vercel |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `.env.local`, Vercel | Oui sur Vercel ; sans elles en local, la facturation est indisponible |
 | `NEXT_PUBLIC_SENTRY_DSN` | Vercel | Non : Sentry inactif sans DSN |

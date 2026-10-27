@@ -559,6 +559,8 @@ Les éditions manuelles (`user_edit`) passent par une Server Action qui vérifie
 
 ## 4. Orchestration IA
 
+> **Fournisseur : OpenAI depuis octobre 2026.** Cette section décrit la conception d'origine sur l'API Claude. Le pipeline, les schémas, la réparation Zod et la grille de crédits sont inchangés ; seule la couche d'appel a changé (`src/lib/ai/openai.ts`, client `fetch` sans SDK, et `src/lib/ai/structured.ts`). Le script passe par `gpt-4o` en Standard comme en Premium (`MODEL_SCRIPT_PREMIUM` pour en choisir un autre), les quatre dérivés et la modération par `gpt-4o-mini`. Sorties structurées en `response_format: json_schema` non strict, sortie plafonnée à 16 384 tokens, cache de préfixe automatique (pas de `cache_control`), pas de repli serveur ni de niveau d'effort. Tarifs dans `src/lib/ai/pricing.ts`.
+
 ### 4.1 Brief et contrat d'asset
 
 ```ts

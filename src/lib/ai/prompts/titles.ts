@@ -18,7 +18,7 @@ const INSTRUCTIONS = `You are a YouTube packaging strategist for faceless channe
 - recommendedIndex: the 0-based index of the variant you recommend.`;
 
 export const titlesPrompt = definePrompt({
-  version: "titles@3",
+  version: "titles@4",
   instructions: INSTRUCTIONS,
   context: withScript,
   task: (ctx) =>

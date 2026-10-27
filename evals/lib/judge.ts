@@ -1,4 +1,4 @@
-import type Anthropic from "@anthropic-ai/sdk";
+import type { OpenAIClient } from "@/lib/ai/openai";
 import { z } from "zod";
 import { LANGUAGE_NAMES } from "@/lib/ai/prompts/shared";
 import { callStructured, type UsageTotals } from "@/lib/ai/structured";
@@ -60,7 +60,7 @@ export type JudgeResult = {
   costUsdMicros: number | null;
 };
 
-export async function judgePipeline(output: PipelineOutput, { client }: { client?: Anthropic } = {}): Promise<JudgeResult> {
+export async function judgePipeline(output: PipelineOutput, { client }: { client?: OpenAIClient } = {}): Promise<JudgeResult> {
   if (!output.assets.script) {
     const zeros = Object.fromEntries(JUDGE_CRITERIA.map(({ id }) => [id, 0]));
     return { grade: { judge: 0, ...zeros } as JudgeResult["grade"], explanation: { judge: "pas de script à juger" }, model: null, usage: null, costUsdMicros: 0 };

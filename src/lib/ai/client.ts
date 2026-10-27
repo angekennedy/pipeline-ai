@@ -1,13 +1,13 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
 import { serverEnv } from "@/lib/env/server";
+import { OpenAIClient } from "./openai";
 
-let client: Anthropic | undefined;
+let client: OpenAIClient | undefined;
 
-export function getAnthropic(): Anthropic {
-  client ??= new Anthropic({
-    apiKey: serverEnv.ANTHROPIC_API_KEY,
-    // Le SDK relance déjà les 408, 409, 429, 5xx et les erreurs réseau. On reste bas :
+export function getOpenAI(): OpenAIClient {
+  client ??= new OpenAIClient({
+    apiKey: serverEnv.OPENAI_API_KEY,
+    // Le client relance déjà les 408, 409, 429, 5xx et les erreurs réseau. On reste bas :
     // les étapes Inngest ajoutent leurs propres relances.
     maxRetries: 2,
     timeout: 10 * 60 * 1000,

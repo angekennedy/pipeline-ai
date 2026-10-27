@@ -10,10 +10,10 @@ describe("serverEnv", () => {
 
   it("expose les secrets serveur", async () => {
     vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_test");
-    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
+    vi.stubEnv("OPENAI_API_KEY", "sk-proj-test");
     await expect(loadServerEnv()).resolves.toMatchObject({
       SUPABASE_SECRET_KEY: "sb_secret_test",
-      ANTHROPIC_API_KEY: "sk-ant-test",
+      OPENAI_API_KEY: "sk-proj-test",
     });
   });
 
@@ -22,7 +22,7 @@ describe("serverEnv", () => {
     expect(env.MODEL_SCRIPT_STANDARD).toBeUndefined();
   });
 
-  it.each(["SUPABASE_SECRET_KEY", "ANTHROPIC_API_KEY"])("échoue si %s manque", async (name) => {
+  it.each(["SUPABASE_SECRET_KEY", "OPENAI_API_KEY"])("échoue si %s manque", async (name) => {
     vi.stubEnv(name, "");
     await expect(loadServerEnv()).rejects.toThrow();
   });

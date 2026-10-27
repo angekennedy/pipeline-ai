@@ -1,17 +1,17 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { OpenAIClient } from "@/lib/ai/openai";
 import { InngestTestEngine } from "@inngest/test";
 import { HttpResponse, http } from "msw/http";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ASSET_TYPES, type Brief, type ChannelPreset } from "@/lib/ai/schemas";
 import { createRunPipelineFunction, markPipelineFailed } from "@/lib/jobs/functions/run-pipeline";
-import { ANTHROPIC_MESSAGES_URL, jsonReplyStream, refusalStream } from "../../mocks/anthropic";
+import { OPENAI_CHAT_URL, jsonReplyStream, refusalStream } from "../../mocks/openai";
 import { MemoryPipelineStore } from "../../mocks/memory-store";
 import { server } from "../../mocks/server";
 import { validBrief, validChannel, validScript, validSeo, validThumbnails, validTitles, validVoiceover } from "../../fixtures/assets";
 
 const PIPELINE_ID = "7d0e6f4a-3c1b-4e8a-9f2d-5b6c7a8e9f01";
 const WORKSPACE_ID = "1f2e3d4c-5b6a-4987-8a1b-2c3d4e5f6a7b";
-const client = new Anthropic({ apiKey: "test-key", maxRetries: 0 });
+const client = new OpenAIClient({ apiKey: "test-key", maxRetries: 0 });
 
 const voiceover = { ...validVoiceover, segments: [1, 2, 3, 4].map((sceneIndex) => ({ ...validVoiceover.segments[0]!, sceneIndex })) };
 
@@ -30,17 +30,17 @@ type Asset = (typeof ROLES)[number][1];
 function mockAssets(overrides: Partial<Record<Asset, () => Response>> = {}) {
   const replies: Record<Asset, () => Response> = {
     script: () => jsonReplyStream(validScript),
-    titles: () => jsonReplyStream(validTitles, { model: "claude-haiku-5-5" }),
-    seo: () => jsonReplyStream(validSeo, { model: "claude-haiku-5-5" }),
-    voiceover: () => jsonReplyStream(voiceover, { model: "claude-haiku-5-5" }),
-    thumbnails: () => jsonReplyStream(validThumbnails, { model: "claude-haiku-5-5" }),
+    titles: () => jsonReplyStream(validTitles, { model: "gpt-4o-mini-2024-07-18" }),
+    seo: () => jsonReplyStream(validSeo, { model: "gpt-4o-mini-2024-07-18" }),
+    voiceover: () => jsonReplyStream(voiceover, { model: "gpt-4o-mini-2024-07-18" }),
+    thumbnails: () => jsonReplyStream(validThumbnails, { model: "gpt-4o-mini-2024-07-18" }),
     ...overrides,
   };
   const requested: Asset[] = [];
   server.use(
-    http.post(ANTHROPIC_MESSAGES_URL, async ({ request }) => {
-      const body = (await request.json()) as { system: Array<{ text: string }> };
-      const asset = ROLES.find(([role]) => body.system[0]!.text.includes(role))![1];
+    http.post(OPENAI_CHAT_URL, async ({ request }) => {
+      const body = (await request.json()) as { messages: Array<{ content: string }> };
+      const asset = ROLES.find(([role]) => body.messages[0]!.content.includes(role))![1];
       requested.push(asset);
       return replies[asset]();
     }),
@@ -50,7 +50,7 @@ function mockAssets(overrides: Partial<Record<Asset, () => Response>> = {}) {
 
 let store: MemoryPipelineStore;
 
-const createFn = () => createRunPipelineFunction({ store: () => store, anthropic: client });
+const createFn = () => createRunPipelineFunction({ store: () => store, openai: client });
 
 const engine = (data: Record<string, unknown> = { pipelineId: PIPELINE_ID, workspaceId: WORKSPACE_ID }) =>
   new InngestTestEngine({ function: createFn(), events: [{ name: "pipeline/requested", data }] });
@@ -91,7 +91,7 @@ describe("fonction Inngest run-pipeline", () => {
     const events: Array<{ pipelineId: string; type: string; asset?: string; status?: string }> = [];
     const fn = createRunPipelineFunction({
       store: () => store,
-      anthropic: client,
+      openai: client,
       publisher: (pipelineId) => async (event) => void events.push({ pipelineId, ...event }),
     });
     await new InngestTestEngine({ function: fn, events: [{ name: "pipeline/requested", data: { pipelineId: PIPELINE_ID, workspaceId: WORKSPACE_ID } }] }).execute();

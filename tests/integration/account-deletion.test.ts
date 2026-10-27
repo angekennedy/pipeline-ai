@@ -8,7 +8,7 @@ import { generateAsset } from "@/lib/pipeline/generate-asset";
 import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { validBrief, validChannel } from "../fixtures/assets";
-import { fakeAnthropic } from "./fake-anthropic";
+import { fakeOpenAI } from "./fake-openai";
 import { admin, cleanup, createPipeline, createUser, createWorkspace, unwrap, type TestUser } from "./helpers";
 
 // Suppression du compte (tâche 2.6, RGPD) : utilisateur, workspaces dont il est le seul owner et tout
@@ -65,7 +65,7 @@ describe("suppression du compte", () => {
       tier: "standard",
       idempotencyKey: randomUUID(),
     });
-    await runPipelineSteps(pipelineId, { step, store, generate: (type) => generateAsset(pipelineId, type, { store, client: fakeAnthropic([]) }) });
+    await runPipelineSteps(pipelineId, { step, store, generate: (type) => generateAsset(pipelineId, type, { store, client: fakeOpenAI([]) }) });
     const before = await remaining(ws);
     expect(before).toMatchObject({ workspaces: 1, pipelines: 1, pipeline_assets: 5, asset_versions: 5, generations: 5, channels: 1, credit_accounts: 1 });
     expect(before.credit_ledger).toBeGreaterThan(1); // offre d'inscription, réservation, captures

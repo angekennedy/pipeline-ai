@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { OpenAIClient, OpenAIError } from "@/lib/ai/openai";
 import { HttpResponse } from "msw/http";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LlmRefusalError } from "@/lib/ai/structured";
@@ -7,12 +7,12 @@ import type { Brief, ChannelPreset } from "@/lib/ai/schemas";
 import { MissingDependencyError, generateAsset } from "@/lib/pipeline/generate-asset";
 import type { ModelTier } from "@/lib/pipeline/registry";
 import { GenerationInProgressError } from "@/lib/pipeline/store";
-import { anthropicSequence, jsonReplyStream, refusalStream } from "../../mocks/anthropic";
+import { openaiSequence, jsonReplyStream, refusalStream } from "../../mocks/openai";
 import { MemoryPipelineStore } from "../../mocks/memory-store";
 import { server } from "../../mocks/server";
 import { validBrief, validChannel, validScript, validSeo, validTitles, validVoiceover } from "../../fixtures/assets";
 
-const client = new Anthropic({ apiKey: "test-key", maxRetries: 0 });
+const client = new OpenAIClient({ apiKey: "test-key", maxRetries: 0 });
 const PIPELINE_ID = "7d0e6f4a-3c1b-4e8a-9f2d-5b6c7a8e9f01";
 
 let store: MemoryPipelineStore;
@@ -28,13 +28,13 @@ function addPipeline(tier: ModelTier = "standard") {
 }
 
 function mock(...replies: Array<() => Response>) {
-  const sequence = anthropicSequence(...replies);
+  const sequence = openaiSequence(...replies);
   server.use(sequence.handler);
   return sequence.calls;
 }
 
 const overloaded = () =>
-  HttpResponse.json({ type: "error", error: { type: "overloaded_error", message: "Overloaded" } }, { status: 529 });
+  HttpResponse.json({ error: { type: "server_error", message: "Overloaded" } }, { status: 503 });
 
 const run = (type: Parameters<typeof generateAsset>[1], options = {}) =>
   generateAsset(PIPELINE_ID, type, { store, client, ...options });
@@ -46,7 +46,7 @@ beforeEach(() => {
 
 describe("generateAsset", () => {
   it("génère le script, le post-traite et enregistre la version avec sa télémétrie", async () => {
-    const calls = mock(() => jsonReplyStream(validScript, { usage: { input_tokens: 1000, output_tokens: 500 } }));
+    const calls = mock(() => jsonReplyStream(validScript, { usage: { prompt_tokens: 1000, completion_tokens: 500 } }));
     const versionId = await run("script");
 
     const version = store.versions.find((v) => v.id === versionId)!;
@@ -57,27 +57,27 @@ describe("generateAsset", () => {
     const generation = store.generation(`pipe:${PIPELINE_ID}:script`);
     expect(generation).toMatchObject({ status: "succeeded", attempt: 1, versionId, credits: 12 });
     expect(generation.telemetry).toMatchObject({
-      model: "claude-sonnet-5-5",
-      promptVersion: "script@2",
+      model: "gpt-4o-2024-08-06",
+      promptVersion: "script@3",
       usage: { inputTokens: 1000, outputTokens: 500 },
-      costUsdMicros: 1000 * 2 + 500 * 10,
+      costUsdMicros: 1000 * 2.5 + 500 * 10,
       repairs: 0,
       attempts: 1,
     });
     expect(generation.telemetry!.latencyMs).toBeGreaterThanOrEqual(0);
 
-    const body = calls[0]!.body as { model: string; max_tokens: number; system: Array<{ text: string }> };
-    expect(body.model).toBe("claude-sonnet-5-5");
-    expect(body.max_tokens).toBe(8000 + 1200 * 4);
-    expect(body.system[0]!.text).toContain("scriptwriter");
+    const body = calls[0]!.body as { model: string; max_completion_tokens: number; messages: Array<{ role: string; content: string }> };
+    expect(body.model).toBe("gpt-4o");
+    expect(body.max_completion_tokens).toBe(8000 + 1200 * 4);
+    expect(body.messages[0]).toMatchObject({ role: "system", content: expect.stringContaining("scriptwriter") });
   });
 
-  it("utilise Opus pour un pipeline Premium", async () => {
-    const calls = mock(() => jsonReplyStream(validScript, { model: "claude-opus-5-5" }));
+  it("utilise le modèle Premium (gpt-4o par défaut) et facture la grille Premium", async () => {
+    const calls = mock(() => jsonReplyStream(validScript));
     store = new MemoryPipelineStore();
     addPipeline("premium");
     await run("script");
-    expect(calls[0]!.body.model).toBe("claude-opus-5-5");
+    expect(calls[0]!.body.model).toBe("gpt-4o");
     expect(store.generation(`pipe:${PIPELINE_ID}:script`).credits).toBe(24);
   });
 
@@ -96,7 +96,7 @@ describe("generateAsset", () => {
     const calls = mock(overloaded, () => jsonReplyStream(validScript));
 
     const error = await run("script").catch((e) => e);
-    expect(error).toBeInstanceOf(Anthropic.APIError);
+    expect(error).toBeInstanceOf(OpenAIError);
     expect(store.generation(`pipe:${PIPELINE_ID}:script`)).toMatchObject({
       status: "failed",
       attempt: 1,
@@ -119,24 +119,24 @@ describe("generateAsset", () => {
 
   it("génère un dérivé à partir de la version courante du script", async () => {
     const scriptVersionId = store.seedVersion(PIPELINE_ID, "script", validScript);
-    const calls = mock(() => jsonReplyStream(validSeo, { model: "claude-haiku-5-5" }));
+    const calls = mock(() => jsonReplyStream(validSeo, { model: "gpt-4o-mini-2024-07-18" }));
     const versionId = await run("seo");
 
     const version = store.versions.find((v) => v.id === versionId)!;
     expect(version.sourceVersions).toEqual({ script: scriptVersionId });
     expect((version.content as { chapters: unknown[] }).chapters).toHaveLength(3);
 
-    const body = calls[0]!.body as { model: string; messages: Array<{ content: Array<{ text: string }> }> };
-    expect(body.model).toBe("claude-haiku-5-5");
-    expect(body.messages[0]!.content[0]!.text).toContain("<final_script>");
+    const body = calls[0]!.body as { model: string; messages: Array<{ role: string; content: string }> };
+    expect(body.model).toBe("gpt-4o-mini");
+    expect(body.messages[1]!.content).toContain("<final_script>");
   });
 
   it("demande une réparation quand la sortie ne colle pas au script (une scène sans voix off)", async () => {
     store.seedVersion(PIPELINE_ID, "script", validScript);
     const complete = { ...validVoiceover, segments: [1, 2, 3, 4].map((sceneIndex) => ({ ...validVoiceover.segments[0]!, sceneIndex })) };
     const calls = mock(
-      () => jsonReplyStream(validVoiceover, { model: "claude-haiku-5-5" }),
-      () => jsonReplyStream(complete, { model: "claude-haiku-5-5" }),
+      () => jsonReplyStream(validVoiceover, { model: "gpt-4o-mini-2024-07-18" }),
+      () => jsonReplyStream(complete, { model: "gpt-4o-mini-2024-07-18" }),
     );
     await run("voiceover");
 
@@ -198,7 +198,7 @@ describe("generateAsset : événements Realtime", () => {
 
   it("dérivé : started puis completed, sans scènes partielles", async () => {
     store.seedVersion(PIPELINE_ID, "script", validScript);
-    mock(() => jsonReplyStream(validTitles, { model: "claude-haiku-5-5" }));
+    mock(() => jsonReplyStream(validTitles, { model: "gpt-4o-mini-2024-07-18" }));
     const { events, publish } = recorder();
     await run("titles", { publish });
     expect(types(events)).toEqual(["asset.started", "asset.completed"]);

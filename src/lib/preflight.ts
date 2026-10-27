@@ -19,7 +19,7 @@ export function preflightChecks(env: Env, entity: LegalEntity): Check[] {
   const missing = (keys: string[]) => keys.filter((key) => !present(env, key));
   const list = (keys: string[]) => (keys.length ? keys.join(", ") : undefined);
 
-  const required = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SECRET_KEY", "ANTHROPIC_API_KEY", "INNGEST_SIGNING_KEY", "INNGEST_EVENT_KEY"];
+  const required = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SECRET_KEY", "OPENAI_API_KEY", "INNGEST_SIGNING_KEY", "INNGEST_EVENT_KEY"];
   return [
     { id: "env.required", ok: missing(required).length === 0, blocking: true, detail: list(missing(required)) },
     { id: "stripe.live", ok: Boolean(env.STRIPE_SECRET_KEY?.startsWith("sk_live_")), blocking: true, detail: "STRIPE_SECRET_KEY" },

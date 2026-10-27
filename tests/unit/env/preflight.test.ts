@@ -8,7 +8,7 @@ const ready = {
   NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co",
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_x",
   SUPABASE_SECRET_KEY: "sb_secret_x",
-  ANTHROPIC_API_KEY: "sk-ant-x",
+  OPENAI_API_KEY: "sk-proj-x",
   INNGEST_SIGNING_KEY: "signkey-prod-x",
   INNGEST_EVENT_KEY: "event-x",
   STRIPE_SECRET_KEY: "sk_live_x",
@@ -43,7 +43,7 @@ describe("preflightChecks", () => {
 
   it("liste les variables requises absentes, et seulement avertit pour l'admin, Sentry, PostHog et les seuils", () => {
     const checks = preflightChecks({ NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co" }, entity);
-    expect(checks.find((check) => check.id === "env.required")?.detail).toBe("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, ANTHROPIC_API_KEY, INNGEST_SIGNING_KEY, INNGEST_EVENT_KEY");
+    expect(checks.find((check) => check.id === "env.required")?.detail).toBe("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, OPENAI_API_KEY, INNGEST_SIGNING_KEY, INNGEST_EVENT_KEY");
     const warnings = checks.filter((check) => !check.ok && !check.blocking).map((check) => check.id);
     expect(warnings).toEqual(["admin.emails", "sentry.dsn", "posthog.key", "spend.limits"]);
   });

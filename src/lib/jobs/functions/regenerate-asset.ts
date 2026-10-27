@@ -18,7 +18,7 @@ export const releaseFailedRegeneration =
 // Régénération à la demande de l'utilisateur : un asset, puis ses dérivés demandés, l'un après l'autre
 // dans l'ordre du DAG (les miniatures partent des titres régénérés). Les autres assets ne sont pas
 // touchés : ceux devenus obsolètes sont renvoyés pour que l'interface propose de les régénérer.
-export function createRegenerateAssetFunction({ store, anthropic, publisher, releaseRegeneration }: JobDeps) {
+export function createRegenerateAssetFunction({ store, openai, publisher, releaseRegeneration }: JobDeps) {
   return inngest.createFunction(
     {
       id: "regenerate-asset",
@@ -35,7 +35,7 @@ export function createRegenerateAssetFunction({ store, anthropic, publisher, rel
         const versionId = await step.run(`regenerate:${item.assetType}`, () =>
           generateAsset(pipelineId, item.assetType, {
             store: store(),
-            client: anthropic,
+            client: openai,
             publish: publisher?.(pipelineId),
             regeneration: { key: item.regenerationKey, feedback: i === 0 ? feedback : undefined },
           }).catch((error: unknown) => {

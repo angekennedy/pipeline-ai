@@ -13,7 +13,7 @@ const INSTRUCTIONS = `You are a voice director preparing a finished video script
 - providerPrompt: at most 500 characters of delivery direction for the speech engine (tone, intensity, breathing), in English.`;
 
 export const voiceoverPrompt = definePrompt({
-  version: "voiceover@1",
+  version: "voiceover@2",
   instructions: INSTRUCTIONS,
   context: withScript,
   task: (ctx) =>
