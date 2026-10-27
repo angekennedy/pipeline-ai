@@ -31,12 +31,12 @@ describe("preflightChecks", () => {
 
   it("bloque sur une clé Stripe de test, sans case CGU, sans éditeur ni URL publique", () => {
     const failures = blockingFailures(
-      preflightChecks({ ...ready, STRIPE_SECRET_KEY: "sk_test_x", STRIPE_TERMS_CONSENT: undefined, NEXT_PUBLIC_SITE_URL: "http://localhost:3000" }, { ...entity, publisher: null, mediator: " " }),
+      preflightChecks({ ...ready, STRIPE_SECRET_KEY: "sk_test_x", STRIPE_TERMS_CONSENT: undefined, NEXT_PUBLIC_SITE_URL: "http://localhost:3000" }, { ...entity, publisher: null, phone: " " }),
     );
     expect(failures.map((check) => [check.id, check.detail])).toEqual([
       ["stripe.live", "STRIPE_SECRET_KEY"],
       ["stripe.terms", "STRIPE_TERMS_CONSENT=required"],
-      ["legal.entity", "publisher, mediator"],
+      ["legal.entity", "publisher, phone"],
       ["site.url", "NEXT_PUBLIC_SITE_URL (https://…)"],
     ]);
   });

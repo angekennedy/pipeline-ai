@@ -44,7 +44,7 @@ describe("page Facturation", () => {
     expect(screen.getByRole("link", { name: "conditions générales d'utilisation et de vente" })).toHaveAttribute("href", "/cgu");
     expect(screen.getByRole("link", { name: "politique de confidentialité" })).toHaveAttribute("href", "/confidentialite");
     expect(consent).toBeVisible();
-    expect(screen.getByText("Prix en euros, toutes taxes comprises (TTC).")).toBeInTheDocument();
+    expect(screen.getByText("Prix en euros, taxes incluses.")).toBeInTheDocument();
   });
 
   it("n'affiche pas le rappel sans paiement en ligne", async () => {

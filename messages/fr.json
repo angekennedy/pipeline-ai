@@ -544,7 +544,7 @@
     },
     "consent": "En passant au paiement, vous acceptez les <terms>conditions générales d'utilisation et de vente</terms> et la <privacy>politique de confidentialité</privacy>.",
     "stripeConsent": "En payant, vous acceptez les conditions générales de Pipeline AI : {url}",
-    "taxes": "Prix en euros, toutes taxes comprises (TTC)."
+    "taxes": "Prix en euros, taxes incluses."
   },
   "Plans": {
     "pitch": {
@@ -595,7 +595,7 @@
     },
     "example": "{label} : <credits></credits>",
     "regeneration": "Régénérer un asset coûte le même prix que le générer. Une édition manuelle ou une restauration est gratuite.",
-    "taxes": "Prix en euros, toutes taxes comprises (TTC)."
+    "taxes": "Prix en euros, taxes incluses."
   },
   "CreditBadge": {
     "label": "{credits} disponibles, plan {plan}. Facturation et crédits",
@@ -839,16 +839,13 @@
     "draft": "Document provisoire : certaines informations restent à compléter, et ce texte doit encore être relu par un juriste.",
     "toc": "Sommaire",
     "missing": {
-      "publisher": "[à compléter : raison sociale de l'éditeur]",
-      "legalForm": "[à compléter : forme juridique et capital]",
+      "publisher": "[à compléter : dénomination de l'entreprise]",
       "address": "[à compléter : adresse du siège]",
-      "registration": "[à compléter : RCS ou SIREN, numéro de TVA]",
-      "director": "[à compléter : directeur de la publication]",
-      "email": "[à compléter : adresse e-mail de contact]",
-      "jurisdiction": "[à compléter : droit applicable et tribunaux compétents]",
-      "mediator": "[à compléter : médiateur de la consommation]",
-      "databaseRegion": "[à compléter : région d'hébergement de la base]",
-      "errorRetention": "[à compléter : durée de conservation]"
+      "registration": "[à compléter : numéro d'entreprise du Québec (NEQ)]",
+      "taxNumbers": "[à compléter : numéros de TPS et de TVQ]",
+      "phone": "[à compléter : numéro de téléphone]",
+      "privacyOfficer": "[à compléter : responsable de la protection des renseignements personnels]",
+      "email": "[à compléter : adresse e-mail de contact]"
     },
     "footer": {
       "nav": "Informations légales",
@@ -870,11 +867,11 @@
         },
         "credits": {
           "title": "Crédits, plans et paiement",
-          "body": "Chaque livrable coûte un nombre de crédits qui dépend de la durée de la vidéo et de la formule, affiché avant chaque lancement. Les crédits sont réservés au lancement ; seuls les livrables générés avec succès sont débités, les autres sont rendus automatiquement.\n\n- Le plan Free offre des crédits une seule fois, à l'inscription.\n- Les plans payants sont des abonnements mensuels, renouvelés automatiquement jusqu'à leur résiliation, possible à tout moment depuis la page Facturation. La résiliation prend effet à la fin de la période payée.\n- Les packs de crédits sont des achats ponctuels.\n- Les prix sont indiqués en euros, toutes taxes comprises (TTC) ; prix et contenu des plans : page Tarifs. Le paiement est traité par Stripe.\n\nLes crédits ne sont ni remboursables en argent ni cessibles. Les crédits non utilisés sont reportés au mois suivant, dans la limite d'une allocation mensuelle ; l'excédent expire au renouvellement."
+          "body": "Chaque livrable coûte un nombre de crédits qui dépend de la durée de la vidéo et de la formule, affiché avant chaque lancement. Les crédits sont réservés au lancement ; seuls les livrables générés avec succès sont débités, les autres sont rendus automatiquement.\n\n- Le plan Free offre des crédits une seule fois, à l'inscription.\n- Les plans payants sont des abonnements mensuels, renouvelés automatiquement jusqu'à leur résiliation, possible à tout moment depuis la page Facturation. La résiliation prend effet à la fin de la période payée.\n- Les packs de crédits sont des achats ponctuels.\n- Les prix sont indiqués en euros, taxes incluses : les taxes de vente applicables selon votre lieu de résidence (TPS et TVQ au Canada, TVA dans l'Union européenne) sont comprises dans le prix affiché. Prix et contenu des plans : page Tarifs. Le paiement est traité par Stripe.\n\nLes crédits ne sont ni remboursables en argent ni cessibles. Les crédits non utilisés sont reportés au mois suivant, dans la limite d'une allocation mensuelle ; l'excédent expire au renouvellement."
         },
         "withdrawal": {
-          "title": "Droit de rétractation",
-          "body": "Si vous êtes un consommateur, vous disposez d'un délai de 14 jours pour vous rétracter d'un achat. Le service étant fourni immédiatement, lancer une génération pendant ce délai vaut demande d'exécution immédiate : vous perdez votre droit de rétractation pour les crédits ainsi utilisés."
+          "title": "Résolution et rétractation",
+          "body": "Si vous résidez au Québec, la Loi sur la protection du consommateur vous permet de résoudre un contrat conclu à distance dans les cas et délais qu'elle prévoit, notamment si nous ne vous avons pas transmis les informations ou le contrat qu'elle exige, ou si le service n'est pas fourni.\n\nSi vous résidez dans l'Union européenne, vous disposez d'un délai de 14 jours pour vous rétracter d'un achat. Le service étant fourni immédiatement, lancer une génération pendant ce délai vaut demande d'exécution immédiate : vous perdez votre droit de rétractation pour les crédits ainsi utilisés."
         },
         "content": {
           "title": "Contenus générés",
@@ -898,7 +895,7 @@
         },
         "law": {
           "title": "Droit applicable et litiges",
-          "body": "Droit applicable et juridiction : {jurisdiction}.\n\nEn cas de litige, écrivez d'abord à {email}. Si vous êtes un consommateur, vous pouvez aussi saisir gratuitement le médiateur de la consommation : {mediator}."
+          "body": "Ces conditions sont régies par les lois du Québec et les lois fédérales du Canada qui s'y appliquent. Les tribunaux du district judiciaire d'Iberville sont compétents, sous réserve des règles qui permettent au consommateur d'agir devant le tribunal de son domicile et de conserver les protections impératives de son lieu de résidence.\n\nEn cas de litige, écrivez d'abord à {email}. Si vous résidez au Québec, vous pouvez aussi vous adresser à l'Office de la protection du consommateur (opc.gouv.qc.ca)."
         }
       }
     },
@@ -906,32 +903,32 @@
       "title": "Politique de confidentialité",
       "sections": {
         "controller": {
-          "title": "Responsable du traitement",
-          "body": "Le responsable du traitement est {publisher}, {address}. Pour toute question sur vos données : {email}."
+          "title": "Responsable des renseignements personnels",
+          "body": "{publisher}, {address}, est responsable des renseignements personnels recueillis par Pipeline AI.\n\nLa personne responsable de la protection des renseignements personnels est {privacyOfficer}. Pour toute question sur vos renseignements ou pour exercer vos droits : {email}."
         },
         "data": {
           "title": "Données traitées",
           "body": "- Compte : adresse e-mail, nom affiché, langue de l'interface.\n- Workspaces : nom, membres et rôles, presets de chaîne.\n- Contenus : vos briefs, consignes de régénération et les contenus générés, avec leur historique de versions.\n- Facturation : identifiant client et abonnements Stripe, mouvements de crédits. Vos données de carte sont traitées par Stripe et ne nous sont jamais transmises.\n- Sécurité : empreintes non réversibles de votre adresse e-mail et de votre adresse IP, pour limiter le nombre de demandes, effacées au plus tard après 24 heures.\n- Bêta fermée : l'adresse e-mail des personnes invitées, avec une note facultative, jusqu'au retrait de l'invitation.\n- Avis : votre note de 0 à 10 et votre commentaire facultatif, si vous répondez à la question de satisfaction.\n- Erreurs techniques : rapports d'erreur sans adresse IP, sans cookies et sans contenu de requête.\n- Mesure d'audience : trois étapes (inscription, création d'un pipeline, paiement), rattachées à un identifiant pseudonyme non réversible, avec la formule et la durée de la vidéo ou l'offre achetée. Ni e-mail, ni adresse IP, ni contenu, ni cookie."
         },
         "purposes": {
-          "title": "Finalités et bases légales",
-          "body": "- Fournir le service et facturer : exécution du contrat.\n- Conserver les pièces comptables : obligation légale.\n- Prévenir les abus et sécuriser le service (limites de fréquence, modération des briefs, alertes de dépense) : intérêt légitime.\n- Mesurer l'usage du service pour l'améliorer, sans profilage : intérêt légitime.\n\nAucune donnée n'est vendue ni utilisée à des fins publicitaires."
+          "title": "Finalités, consentement et bases légales",
+          "body": "- Fournir le service et facturer : exécution du contrat.\n- Conserver les pièces comptables : obligation légale.\n- Prévenir les abus et sécuriser le service (limites de fréquence, modération des briefs, alertes de dépense) : intérêt légitime.\n- Mesurer l'usage du service pour l'améliorer, sans profilage : intérêt légitime.\n\nNous ne recueillons que les renseignements nécessaires à ces fins. En créant un compte, vous consentez à leur utilisation à ces fins, comme le prévoit la loi québécoise ; pour les personnes situées dans l'Union européenne, les bases légales du RGPD sont celles indiquées ci-dessus. Aucune donnée n'est vendue ni utilisée à des fins publicitaires."
         },
         "ai": {
           "title": "Génération par l'IA",
           "body": "Pour générer vos contenus, votre brief, votre preset de chaîne et vos consignes sont envoyés à l'API d'Anthropic (modèles Claude). Selon les conditions commerciales d'Anthropic, ces données ne servent pas à entraîner ses modèles. N'indiquez pas de données personnelles sensibles dans un brief."
         },
         "processors": {
-          "title": "Sous-traitants",
-          "body": "- Supabase : base de données et authentification, hébergées dans la région {databaseRegion}.\n- Anthropic : génération des contenus (États-Unis).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application.\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques.\n- PostHog : mesure d'audience (Union européenne).\n\nLes transferts hors de l'Union européenne sont encadrés par les clauses contractuelles types de la Commission européenne ou par le cadre de protection des données UE–États-Unis."
+          "title": "Prestataires et communication hors du Québec",
+          "body": "- Supabase : base de données et authentification, hébergées en Oregon (États-Unis).\n- Anthropic : génération des contenus (États-Unis).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application, dont les fonctions s'exécutent en Oregon (États-Unis).\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques (Union européenne).\n- PostHog : mesure d'audience (Union européenne).\n\nVos renseignements sont donc conservés et traités à l'extérieur du Québec, principalement aux États-Unis, où ils sont soumis aux lois locales. Chaque prestataire est lié par une entente écrite qui protège ces renseignements. Pour les personnes situées dans l'Union européenne, les transferts vers les États-Unis reposent sur les clauses contractuelles types de la Commission européenne ou sur le cadre de protection des données UE–États-Unis."
         },
         "retention": {
           "title": "Durées de conservation",
-          "body": "- Compte, workspaces et contenus : jusqu'à la suppression du compte, effacés à ce moment-là.\n- Pièces comptables : 10 ans, comme l'exige la loi.\n- Empreintes de sécurité : 24 heures au plus.\n- Avis de satisfaction : jusqu'à la suppression du compte.\n- Mesure d'audience : selon la durée de conservation de PostHog, sans lien possible avec votre identité.\n- Rapports d'erreur : {errorRetention}."
+          "body": "- Compte, workspaces et contenus : jusqu'à la suppression du compte, effacés à ce moment-là.\n- Pièces comptables : 6 ans après la fin de l'année d'imposition concernée, comme l'exige la loi fiscale.\n- Empreintes de sécurité : 24 heures au plus.\n- Avis de satisfaction : jusqu'à la suppression du compte.\n- Mesure d'audience : selon la durée de conservation de PostHog, sans lien possible avec votre identité.\n- Rapports d'erreur : 30 jours."
         },
         "rights": {
           "title": "Vos droits",
-          "body": "Vous pouvez accéder à vos données, les rectifier, les effacer, en demander la portabilité, vous opposer à un traitement ou en demander la limitation. Le nom affiché se modifie dans les paramètres, le compte s'y supprime, et chaque pipeline s'exporte en Markdown, JSON ou ZIP.\n\nPour toute autre demande : {email}. Vous pouvez aussi adresser une réclamation à la CNIL (cnil.fr)."
+          "body": "Vous pouvez accéder à vos renseignements, les faire rectifier ou supprimer, retirer votre consentement et en obtenir une copie dans un format structuré et couramment utilisé. Si vous êtes situé dans l'Union européenne, vous pouvez aussi vous opposer à un traitement ou en demander la limitation. Le nom affiché se modifie dans les paramètres, le compte s'y supprime, et chaque pipeline s'exporte en Markdown, JSON ou ZIP.\n\nPour toute autre demande : {email}. Nous répondons dans un délai de 30 jours. Vous pouvez aussi porter plainte auprès de la Commission d'accès à l'information du Québec (cai.gouv.qc.ca) ou, dans l'Union européenne, auprès de votre autorité de protection des données (en France, la CNIL : cnil.fr)."
         },
         "cookies": {
           "title": "Cookies",
@@ -973,7 +970,7 @@
       "sections": {
         "publisher": {
           "title": "Éditeur",
-          "body": "{publisher}, {legalForm}.\n\nSiège : {address}.\n\nImmatriculation et TVA : {registration}.\n\nDirecteur de la publication : {director}.\n\nContact : {email}."
+          "body": "{publisher}, société par actions.\n\nSiège : {address}.\n\nNuméro d'entreprise du Québec (NEQ) : {registration}.\n\nNuméros de TPS et de TVQ : {taxNumbers}.\n\nResponsable de la publication et de la protection des renseignements personnels : {privacyOfficer}.\n\nContact : {email}, {phone}."
         },
         "host": {
           "title": "Hébergeur",

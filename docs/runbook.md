@@ -19,7 +19,7 @@ Chaque point a sa vérification. Cocher seulement ce qui a été vérifié.
 - [ ] Auth → Email Templates → Magic Link : contenu de `supabase/templates/magic-link.html` (il pointe vers `/auth/confirm`, ce qui permet d'ouvrir le lien sur un autre appareil).
 - [ ] **SMTP personnalisé** (Auth → SMTP Settings) : le SMTP intégré de Supabase n'envoie que quelques e-mails par heure, trop peu pour de vraies inscriptions. *Vérifier* : un lien magique arrive depuis l'expéditeur du domaine.
 - [ ] Google (facultatif) : fournisseur configuré avec l'URL de rappel Supabase, puis `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true`.
-- [ ] Région du projet reportée dans `LEGAL_ENTITY.databaseRegion` (`src/lib/legal.ts`).
+- [ ] Région du projet reportée dans la politique de confidentialité (`Legal.privacy.sections.processors` dans `messages/*.json`).
 
 ### 1.2 Anthropic
 
@@ -30,7 +30,7 @@ Chaque point a sa vérification. Cocher seulement ce qui a été vérifié.
 
 ### 1.3 Stripe en live
 
-- [ ] Compte activé pour les paiements live (identité, IBAN). Question de la TVA tranchée (Stripe Tax, ou prix TTC).
+- [ ] Compte activé pour les paiements live (identité, IBAN). Question des taxes tranchée (Stripe Tax, ou prix taxes incluses) : TPS et TVQ, et TVA pour les clients de l'UE, avec un comptable.
 - [ ] Catalogue live : `STRIPE_SECRET_KEY=sk_live_… STRIPE_SEED_LIVE=1 pnpm stripe:seed`. *Vérifier* : les produits `pipeline_*` et leurs prix apparaissent en mode live.
 - [ ] Customer Portal configuré **en mode live** (il est distinct du mode test) : moyen de paiement, factures, résiliation, changement de plan au prorata.
 - [ ] Webhook live vers `https://<domaine>/api/webhooks/stripe`, avec les 8 événements listés dans [DEPLOYMENT.md](DEPLOYMENT.md) (§4 bis), et son secret dans `STRIPE_WEBHOOK_SECRET`.
@@ -65,7 +65,8 @@ Chaque point a sa vérification. Cocher seulement ce qui a été vérifié.
 ### 1.8 Documents légaux
 
 - [ ] `LEGAL_ENTITY` complété (`src/lib/legal.ts`) : plus aucun « [à compléter] » ni bandeau « document provisoire » sur `/cgu`, `/confidentialite`, `/charte`, `/mentions-legales`.
-- [ ] Textes relus par un juriste (rétractation, transferts hors UE, médiateur).
+- [ ] Textes relus par un juriste québécois : Loi sur la protection du consommateur (contrat à distance, art. 54.1 et suivants ; abonnements), Loi 25, clause de juridiction, et droits des clients de l'UE.
+- [ ] Loi 25 : évaluation des facteurs relatifs à la vie privée faite avant la communication des renseignements hors du Québec (art. 17), et ententes écrites avec chaque prestataire.
 
 ### 1.9 Validation finale
 

@@ -1,31 +1,28 @@
 // Identité de l'éditeur, reprise par les pages légales (tâche 5.2). Les champs à `null` restent à
 // renseigner par le porteur du projet : la page affiche alors « [à compléter : …] » et un bandeau
-// « document provisoire ». Les textes eux-mêmes sont dans messages/*.json (namespace Legal).
+// « document provisoire ». Les textes eux-mêmes sont dans messages/*.json (namespace Legal), rédigés
+// pour une société québécoise (Loi sur la protection du consommateur, Loi 25) : les faits qui
+// dépendent de la langue (forme juridique, droit applicable, régions, durées) y figurent aussi.
 
 export type LegalEntity = {
-  publisher: string | null; // raison sociale, ou nom et prénom d'un entrepreneur individuel
-  legalForm: string | null; // forme juridique et capital (SAS au capital de…, EI…)
-  address: string | null; // siège social
-  registration: string | null; // RCS ou SIREN, et numéro de TVA intracommunautaire
-  director: string | null; // directeur de la publication
-  email: string | null; // contact, y compris pour les données personnelles
-  jurisdiction: string | null; // droit applicable et tribunaux compétents
-  mediator: string | null; // médiateur de la consommation (obligatoire pour une vente aux consommateurs en France)
-  databaseRegion: string | null; // région d'hébergement de Supabase
-  errorRetention: string | null; // durée de conservation des rapports d'erreur (Sentry)
+  publisher: string | null; // dénomination de la société
+  address: string | null; // siège
+  registration: string | null; // numéro d'entreprise du Québec (NEQ)
+  taxNumbers: string | null; // numéros de TPS et de TVQ
+  phone: string | null; // téléphone, exigé pour un contrat conclu à distance (LPC, art. 54.4)
+  privacyOfficer: string | null; // responsable de la protection des renseignements personnels (Loi 25)
+  email: string | null; // contact, y compris pour les renseignements personnels
 };
 
 export const LEGAL_ENTITY: LegalEntity = {
-  publisher: null,
-  legalForm: null,
-  address: null,
-  registration: null,
-  director: null,
-  email: null,
-  jurisdiction: null,
-  mediator: null,
-  databaseRegion: null,
-  errorRetention: null,
+  publisher: "DISTRIBUTION ECONOMART INC.",
+  // i18n-ignore : adresse postale, identique dans les deux langues.
+  address: "914, rue Desaulniers, porte 11, Saint-Jean-sur-Richelieu (Québec) J3A 1B1",
+  registration: "1180053242",
+  taxNumbers: "720037357 RT0001, 1231926913 TQ0001",
+  phone: "438-468-8474",
+  privacyOfficer: "Ange Kennedy Keloute",
+  email: "kelouteange@gmail.com",
 };
 
 // Hébergeur de l'application (Vercel), mentionné dans les mentions légales.
