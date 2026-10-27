@@ -2,11 +2,16 @@ import { http, HttpResponse } from "msw/http";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { OpenAIClient, OpenAIError } from "@/lib/ai/openai";
+import type { PromptContext } from "@/lib/ai/prompts";
+import { assetSchemas } from "@/lib/ai/schemas";
+import { registry } from "@/lib/pipeline/registry";
+import { validBrief, validScript, validTitles } from "../../fixtures/assets";
 import {
   LlmRefusalError,
   LlmTruncatedError,
   LlmValidationError,
   callStructured,
+  jsonSchemaOf,
 } from "@/lib/ai/structured";
 import { OPENAI_CHAT_URL, openaiSequence, jsonReplyStream, refusalStream } from "../../mocks/openai";
 import { server } from "../../mocks/server";
@@ -67,6 +72,25 @@ describe("callStructured", () => {
     expect(body.response_format.json_schema.schema).not.toHaveProperty("$schema");
     expect(body.response_format.json_schema.schema.properties.title).toMatchObject({ type: "string" });
     expect(calls[0]!.headers.get("authorization")).toBe("Bearer test-key");
+  });
+
+  it("retire les expressions régulières du JSON Schema envoyé, que Zod applique ensuite", async () => {
+    const Hashtags = z.object({ hashtags: z.array(z.string().regex(/^#\p{L}[\p{L}\p{N}_]*$/u)).max(3) });
+    const calls = mock(
+      () => jsonReplyStream({ hashtags: ["sans-dièse"] }),
+      () => jsonReplyStream({ hashtags: ["#ciel"] }),
+    );
+    const result = await callStructured(request({ schema: Hashtags }), { client });
+
+    expect(JSON.stringify(calls[0]!.body.response_format)).not.toContain("pattern");
+    expect(result).toMatchObject({ data: { hashtags: ["#ciel"] }, repairs: 1 });
+  });
+
+  it.each(Object.keys(assetSchemas) as Array<keyof typeof assetSchemas>)("n'envoie aucun pattern pour le schéma %s", (type) => {
+    expect(JSON.stringify(jsonSchemaOf(assetSchemas[type]))).not.toMatch(/"pattern":/);
+    const ctx = { brief: validBrief, channel: null, script: validScript, titles: validTitles } as PromptContext;
+    const output = registry[type].outputSchema?.(ctx);
+    if (output) expect(JSON.stringify(jsonSchemaOf(output))).not.toMatch(/"pattern":/);
   });
 
   it("utilise gpt-4o-mini pour les livrables légers", async () => {
