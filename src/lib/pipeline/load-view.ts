@@ -5,7 +5,9 @@ import type { Database } from "@/lib/supabase/database.types";
 import type { AssetContent, ModelTier } from "./registry";
 import { regenerationCredits, staleAssets, type CurrentVersions } from "./staleness";
 import type { PipelineStatus, SourceVersions, VersionSource } from "./store";
-import type { AssetView, AssetViewStatus, PipelineAssets, PipelineView } from "./view";
+import { MEDIA_BUCKET } from "@/lib/media/storage";
+import { VideoManifestSchema } from "@/lib/video/manifest";
+import type { AssetView, AssetViewStatus, PipelineAssets, PipelineView, VideoView } from "./view";
 
 // Vue d'un pipeline lue en base (page /w/[workspaceSlug]/pipelines/[pipelineId]). À appeler avec le
 // client de l'utilisateur : la RLS limite la lecture à ses workspaces, et un pipeline d'un autre
@@ -62,6 +64,22 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
 
   const stale = staleAssets(current);
   for (const type of stale) views[type].stale = true;
+
+  let video: VideoView | undefined;
+  if (brief.video) {
+    const row = assetRows.find((a) => a.type === "video");
+    const version = versionRows.find((v) => v.id === row?.current_version_id) ?? null;
+    const videoStatus = assetStatus(row?.status, Boolean(version), TERMINAL.has(status));
+    const manifest = version ? VideoManifestSchema.safeParse(version.content) : null;
+    video = {
+      status: videoStatus,
+      content: videoStatus === "ready" && manifest?.success ? manifest.data : null,
+      error: videoStatus === "failed" ? failureView(failureRows.find((g) => g.asset_type === "video")?.error_code ?? null) : null,
+    };
+  }
+  const thumbnails = views.thumbnails.content as AssetContent["thumbnails"] | null;
+  const media = await signMedia(db, (thumbnails?.concepts ?? []).flatMap((concept) => (concept.imagePath ? [concept.imagePath] : [])));
+
   return {
     id: pipeline.id,
     brief,
@@ -71,7 +89,18 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
     assets: views as PipelineAssets,
     staleCredits: regenerationCredits(stale, brief, tier),
     ...(typeof pipeline.channel_name === "string" && { channelName: pipeline.channel_name }),
+    ...(video && { video }),
+    ...(Object.keys(media).length > 0 && { media }),
   };
+}
+
+// Liens signés avec le client de l'utilisateur : la policy du bucket limite la lecture aux membres du
+// workspace. Un échec n'empêche pas d'afficher le pipeline (les concepts restent lisibles).
+async function signMedia(db: SupabaseClient<Database>, paths: string[]): Promise<Record<string, string>> {
+  if (paths.length === 0) return {};
+  const { data, error } = await db.storage.from(MEDIA_BUCKET).createSignedUrls(paths, 3600);
+  if (error || !data) return {};
+  return Object.fromEntries(data.flatMap((entry) => (entry.path && entry.signedUrl && !entry.error ? [[entry.path, entry.signedUrl]] : [])));
 }
 
 // Un asset encore `pending` dans un pipeline terminé n'a pas été lancé : une dépendance a échoué.

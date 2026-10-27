@@ -1,8 +1,11 @@
 import "server-only";
 import { OpenAIError, type OpenAIClient } from "@/lib/ai/openai";
 import type { PromptContext } from "@/lib/ai/prompts";
-import { assetSchemas, type AssetType, type Script, type Titles } from "@/lib/ai/schemas";
+import { assetSchemas, type AssetType, type Script, type Thumbnails, type Titles } from "@/lib/ai/schemas";
 import { LlmError, callStructured } from "@/lib/ai/structured";
+import { ElevenLabsError } from "@/lib/media/elevenlabs";
+import { ShotstackError } from "@/lib/media/shotstack";
+import { renderThumbnailImages, type ImageDeps } from "@/lib/media/thumbnail-images";
 import { createSceneThrottle, safePublish } from "@/lib/realtime/broadcast";
 import type { PipelineEventPublisher } from "@/lib/realtime/events";
 import { registry, type AssetDefinition } from "./registry";
@@ -28,6 +31,8 @@ export type GenerateAssetOptions = {
   // Régénération demandée par l'utilisateur : génération distincte (clé `regen:<nonce>`) et
   // consigne libre, transmise au modèle comme donnée non fiable.
   regeneration?: { key: string; feedback?: string };
+  // Génération des images des miniatures (production) ; absente, les concepts restent sans image.
+  images?: ImageDeps;
   signal?: AbortSignal;
 };
 
@@ -55,10 +60,13 @@ export async function loadContext(store: PipelineStore, pipeline: PipelineRecord
   return { ctx, sourceVersions };
 }
 
-function failureOf(error: unknown): GenerationFailure {
+// Échec enregistré sur la génération : code stable pour l'interface, message exact pour le diagnostic.
+export function failureOf(error: unknown): GenerationFailure {
   if (error instanceof LlmError) return { code: error.code, message: error.message, costUsdMicros: error.costUsdMicros };
   if (error instanceof MissingDependencyError) return { code: error.code, message: error.message, costUsdMicros: null };
-  if (error instanceof OpenAIError) return { code: "PROVIDER_ERROR", message: error.message, costUsdMicros: null };
+  if (error instanceof OpenAIError || error instanceof ElevenLabsError || error instanceof ShotstackError) {
+    return { code: "PROVIDER_ERROR", message: error.message, costUsdMicros: null };
+  }
   return { code: "INTERNAL", message: error instanceof Error ? error.message : String(error), costUsdMicros: null };
 }
 
@@ -111,10 +119,19 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
 
     await scenes?.flush();
 
+    let content = def.postProcess(result.data, ctx);
+    let costUsdMicros = result.costUsdMicros;
+    // Images HD : selon le plan au lancement (brief.thumbnailImages), et seulement en production.
+    if (type === "thumbnails" && pipeline.brief.thumbnailImages && options.images) {
+      const rendered = await renderThumbnailImages(content as Thumbnails, { workspaceId: pipeline.workspaceId, pipelineId, generationId: generation.id }, options.images);
+      content = rendered.content as typeof content;
+      costUsdMicros = costUsdMicros === null || rendered.costUsdMicros === null ? null : costUsdMicros + rendered.costUsdMicros;
+    }
+
     const versionId = await store.commitAssetVersion({
       pipelineId,
       assetType: type,
-      content: def.postProcess(result.data, ctx),
+      content,
       schemaVersion: def.schemaVersion,
       source: regeneration ? "ai_regen" : "ai",
       sourceVersions: loaded.sourceVersions,
@@ -126,7 +143,7 @@ export async function generateAsset(pipelineId: string, type: AssetType, options
           model: result.model,
           promptVersion: def.prompt.version,
           usage: result.usage,
-          costUsdMicros: result.costUsdMicros,
+          costUsdMicros,
           latencyMs: Math.round(performance.now() - startedAt),
           repairs: result.repairs,
           attempts: result.attempts,

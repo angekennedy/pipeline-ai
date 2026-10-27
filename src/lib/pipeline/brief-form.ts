@@ -15,6 +15,7 @@ export const BRIEF_FORM_FIELDS = [
   "extraNotes",
   "tier",
   "channelId",
+  "video", // case à cocher : « on » quand elle est cochée, absente sinon
 ] as const;
 export type BriefFormField = (typeof BRIEF_FORM_FIELDS)[number];
 
@@ -55,6 +56,7 @@ export function parseBriefForm(data: FormData): BriefFormResult {
     extraNotes: optional(values.extraNotes),
     channelId: optional(values.channelId), // « Aucun preset » envoie une chaîne vide
     tier: values.tier ?? "standard",
+    video: values.video === "on" ? true : undefined,
   });
 
   if (result.success) {
@@ -82,5 +84,6 @@ export function briefToFormValues(brief: Brief, tier: ModelTier): BriefFormValue
     extraNotes: brief.extraNotes ?? "",
     tier,
     channelId: brief.channelId ?? "",
+    video: brief.video ? "on" : "",
   };
 }

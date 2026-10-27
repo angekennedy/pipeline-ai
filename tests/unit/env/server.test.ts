@@ -35,6 +35,23 @@ describe("serverEnv", () => {
     expect((error as Error).message).not.toContain(value);
   });
 
+  it("laisse la vidéo facultative, avec le modèle de voix par défaut", async () => {
+    await expect(loadServerEnv()).resolves.toMatchObject({ ELEVENLABS_MODEL_ID: "eleven_multilingual_v2" });
+    vi.stubEnv("ELEVENLABS_API_KEY", " sk_eleven ");
+    vi.stubEnv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM");
+    vi.stubEnv("SHOTSTACK_API_KEY", "ss_key");
+    vi.stubEnv("SHOTSTACK_ENV", "v1");
+    await expect(loadServerEnv()).resolves.toMatchObject({ ELEVENLABS_API_KEY: "sk_eleven", SHOTSTACK_ENV: "v1" });
+  });
+
+  it("refuse une clé ElevenLabs ou Shotstack abîmée, et un environnement Shotstack inconnu", async () => {
+    vi.stubEnv("SHOTSTACK_API_KEY", "ss\u2019key");
+    await expect(loadServerEnv()).rejects.toThrow(/SHOTSTACK_API_KEY[\s\S]*dashboard\.shotstack\.io/);
+    vi.stubEnv("SHOTSTACK_API_KEY", "ss_key");
+    vi.stubEnv("SHOTSTACK_ENV", "prod");
+    await expect(loadServerEnv()).rejects.toThrow(/SHOTSTACK_ENV/);
+  });
+
   it("laisse les surcharges de modèles facultatives", async () => {
     const env = await loadServerEnv();
     expect(env.MODEL_SCRIPT_STANDARD).toBeUndefined();

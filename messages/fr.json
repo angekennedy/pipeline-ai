@@ -16,7 +16,8 @@
       "titles": "Titres",
       "seo": "SEO",
       "voiceover": "Voix off",
-      "thumbnails": "Miniatures"
+      "thumbnails": "Miniatures",
+      "video": "Vidéo"
     },
     "scenePurpose": {
       "hook": "Accroche",
@@ -272,7 +273,8 @@
     "unknownFormat": "Format inconnu : {formats}",
     "notFound": "Pipeline introuvable",
     "signIn": "Connexion requise",
-    "rateLimited": "Trop d'exports : réessayez dans quelques minutes."
+    "rateLimited": "Trop d'exports : réessayez dans quelques minutes.",
+    "videoLink": "Vidéo MP4 (1080p), à télécharger : {url}"
   },
   "Panels": {
     "copyScript": "Copier le script",
@@ -303,14 +305,16 @@
     "conceptPreview": "Aperçu mobile du concept {index}",
     "badgeOverlap": "Le badge de durée de YouTube recouvre ce coin : placez le texte ailleurs.",
     "overlay": "Texte « {text} » · {placement} · {font} · {emotion}",
-    "negative": "Négatif : {text}"
+    "negative": "Négatif : {text}",
+    "downloadImage": "Télécharger l'image {index}"
   },
   "Restriction": {
     "subscription_past_due": "Le dernier paiement de votre abonnement a échoué : la création de pipelines est suspendue. Vos pipelines restent consultables. Mettez à jour votre moyen de paiement pour la rétablir.",
     "duration": "Le plan {plan} limite les vidéos à {limit} min. Réduisez la durée, ou passez au plan {upgrade} pour aller jusqu'à 60 min.",
     "premium": "Le script Premium n'est pas inclus dans le plan {plan}. Choisissez la formule Standard, ou passez au plan {upgrade}.",
     "channel_presets": "Le plan {plan} est limité à {limit, plural, one {# preset de chaîne} other {# presets de chaîne}}. Supprimez-en un, ou passez à un plan supérieur.",
-    "seePricing": "Voir les tarifs"
+    "seePricing": "Voir les tarifs",
+    "video": "La vidéo complète n'est pas incluse dans le plan {plan}. Décochez l'option vidéo, ou passez au plan {upgrade}."
   },
   "CostEstimate": {
     "cost": "Coût : <total></total>",
@@ -360,8 +364,14 @@
       "targetAudience": "Décrivez le public en 200 caractères au plus.",
       "extraNotes": "Les consignes tiennent en 2 000 caractères au plus.",
       "tier": "Choisissez la formule Standard ou Premium.",
-      "channelId": "Ce preset n'existe plus. Choisissez-en un autre, ou aucun."
-    }
+      "channelId": "Ce preset n'existe plus. Choisissez-en un autre, ou aucun.",
+      "video": "La vidéo n'est pas disponible pour le moment. Décochez l'option pour lancer le pipeline."
+    },
+    "video": "Vidéo",
+    "videoOption": "Créer aussi la vidéo complète (MP4 1080p) : images, voix off, sous-titres et transitions",
+    "videoPlan": "(plan {plan} ou supérieur)",
+    "videoUnavailable": "(indisponible pour le moment)",
+    "videoHint": "{credits} crédits par minute de vidéo, en plus du pipeline. Prête à publier sur YouTube."
   },
   "ChannelForm": {
     "identity": "Identité de la chaîne",
@@ -568,7 +578,8 @@
       "premium": "Script Premium",
       "standard": "Script Standard",
       "presets": "{count, plural, one {# preset de chaîne} other {# presets de chaîne}}",
-      "seats": "{count, plural, one {# siège} other {# sièges}}"
+      "seats": "{count, plural, one {# siège} other {# sièges}}",
+      "media": "Miniatures en images HD et vidéo MP4 en option"
     },
     "start": "Commencer",
     "choose": "Choisir",
@@ -587,7 +598,8 @@
       "titles": "1",
       "seo": "2",
       "voiceover": "2 + 1 par tranche de 10 min",
-      "thumbnails": "1"
+      "thumbnails": "1 sur Free (concepts) · 15 avec 4 images HD (plans payants)",
+      "video": "{credits} par minute (option vidéo, plans payants)"
     },
     "examples": {
       "tenStandard": "Vidéo de 10 min, Standard",
@@ -642,7 +654,7 @@
       "titles": "De 5 à 10 variantes sous des angles différents, avec leur longueur et une recommandation.",
       "seo": "Description, tags, hashtags et chapitres horodatés, dans les limites de YouTube.",
       "voiceover": "Le texte prêt pour ElevenLabs, avec le rythme, les pauses et les mots appuyés de chaque segment.",
-      "thumbnails": "Des concepts avec prompt d'image et texte en surimpression, à vérifier en aperçu mobile."
+      "thumbnails": "4 miniatures générées en haute définition, texte incrusté compris, avec leur aperçu mobile."
     },
     "exampleTitle": "Un exemple réel, sans retouche",
     "exampleText": "Ce pipeline a été généré par Pipeline AI à partir de ce brief. Rien n'a été réécrit.",
@@ -667,7 +679,7 @@
       }
     },
     "pricingTitle": "Des crédits, au prix de chaque livrable",
-    "pricingText": "Le coût dépend de la durée et de la formule : {credits} crédits pour une vidéo de 10 min en Standard. Le total s'affiche avant chaque lancement.",
+    "pricingText": "Le coût dépend de la durée et de la formule : {credits} crédits pour une vidéo de 10 min en Standard, miniatures en images HD comprises. Le total s'affiche avant chaque lancement.",
     "pricingLink": "Voir les tarifs",
     "faqTitle": "Questions fréquentes",
     "faq": {
@@ -677,7 +689,7 @@
       },
       "video": {
         "q": "Pipeline AI fabrique-t-il la vidéo elle-même ?",
-        "a": "Non. Il livre le script, les titres, le SEO, le texte de la voix off et les concepts de miniatures. Vous enregistrez ou synthétisez la voix, par exemple avec ElevenLabs, puis vous montez les images."
+        "a": "Oui, en option sur les plans payants : une vidéo MP4 en 1080p avec les images générées, la voix off ElevenLabs, les sous-titres synchronisés et des transitions simples, prête à publier. Sans l'option, il livre le script, les titres, le SEO, le texte de la voix off et les miniatures."
       },
       "models": {
         "q": "Quels modèles écrivent les contenus ?",
@@ -932,11 +944,11 @@
         },
         "ai": {
           "title": "Génération par l'IA",
-          "body": "Pour générer vos contenus, votre brief, votre preset de chaîne et vos consignes sont envoyés à l'API d'OpenAI (modèles GPT). Selon les conditions d'OpenAI pour son API, ces données ne servent pas à entraîner ses modèles ; OpenAI peut les conserver jusqu'à 30 jours pour détecter les abus. N'indiquez pas de données personnelles sensibles dans un brief."
+          "body": "Pour générer vos contenus, votre brief, votre preset de chaîne et vos consignes sont envoyés à l'API d'OpenAI (modèles GPT). Selon les conditions d'OpenAI pour son API, ces données ne servent pas à entraîner ses modèles ; OpenAI peut les conserver jusqu'à 30 jours pour détecter les abus. Si vous demandez la vidéo, les descriptions d'images sont aussi envoyées à OpenAI, le texte de la voix off à ElevenLabs pour la synthèse vocale, et les images, la voix et les sous-titres à Shotstack pour le montage et l'hébergement du MP4. N'indiquez pas de données personnelles sensibles dans un brief."
         },
         "processors": {
           "title": "Prestataires et communication hors du Québec",
-          "body": "- Supabase : base de données et authentification, hébergées en Oregon (États-Unis).\n- OpenAI : génération des contenus (États-Unis).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application, dont les fonctions s'exécutent en Oregon (États-Unis).\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques (Union européenne).\n- PostHog : mesure d'audience (Union européenne).\n\nVos renseignements sont donc conservés et traités à l'extérieur du Québec, principalement aux États-Unis, où ils sont soumis aux lois locales. Chaque prestataire est lié par une entente écrite qui protège ces renseignements. Pour les personnes situées dans l'Union européenne, les transferts vers les États-Unis reposent sur les clauses contractuelles types de la Commission européenne ou sur le cadre de protection des données UE–États-Unis."
+          "body": "- Supabase : base de données, authentification et stockage des médias (images, voix off, sous-titres), hébergés en Oregon (États-Unis).\n- OpenAI : génération des contenus et des images (États-Unis).\n- ElevenLabs : synthèse de la voix off des vidéos (États-Unis).\n- Shotstack : montage et hébergement des vidéos (Australie).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application, dont les fonctions s'exécutent en Oregon (États-Unis).\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques (Union européenne).\n- PostHog : mesure d'audience (Union européenne).\n\nVos renseignements sont donc conservés et traités à l'extérieur du Québec, principalement aux États-Unis, où ils sont soumis aux lois locales. Chaque prestataire est lié par une entente écrite qui protège ces renseignements. Pour les personnes situées dans l'Union européenne, les transferts vers les États-Unis reposent sur les clauses contractuelles types de la Commission européenne ou sur le cadre de protection des données UE–États-Unis."
         },
         "retention": {
           "title": "Durées de conservation",
@@ -1028,5 +1040,17 @@
     "later": "Plus tard",
     "thanks": "Merci : votre réponse aide à améliorer Pipeline AI.",
     "scoreError": "Choisissez une note de 0 à 10."
+  },
+  "Video": {
+    "title": "Vidéo MP4",
+    "pending": "La vidéo sera créée après les miniatures.",
+    "running": "Création de la vidéo : images, voix off, sous-titres, puis montage. Comptez jusqu'à {minutes} min ; la page se met à jour à la fin.",
+    "skipped": "Vidéo non créée : le script n'a pas abouti. Ses crédits vous ont été rendus.",
+    "refunded": "Les crédits de la vidéo vous ont été rendus.",
+    "noPlayer": "Votre navigateur ne lit pas cette vidéo : téléchargez-la.",
+    "sandbox": "Rendu d'essai (bac à sable Shotstack) : la vidéo porte un filigrane. Ne la publiez pas.",
+    "download": "Télécharger la vidéo (MP4)",
+    "details": "1080p · environ {minutes} min",
+    "disclosure": "Avant de publier, cochez « Contenu modifié ou synthétique » dans YouTube Studio : la voix et les images de cette vidéo sont générées par l'IA."
   }
 }

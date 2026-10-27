@@ -8,9 +8,12 @@ import {
   pipelineToMarkdown,
   pipelineToSpeech,
   pipelineToSrt,
+  mediaEntries,
   pipelineToZip,
+  pipelineToZipStream,
   type ExportFormat,
 } from "@/lib/export/document";
+import { supabaseMediaStorage } from "@/lib/media/storage";
 import { loadPipelineView } from "@/lib/pipeline/load-view";
 import { enforceRateLimit, RateLimitedError } from "@/lib/security/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -53,6 +56,10 @@ export async function GET(request: Request, { params }: RouteContext<"/api/pipel
   const view = await loadPipelineView(db, pipeline.workspace_id, id);
   if (!view) return notFound();
 
+  // Archive avec médias (images, voix off, plans de la vidéo) : produite en flux, lue avec le client
+  // de l'utilisateur (policy du bucket).
+  const zipStream = format.data === "zip" && view.assets.script.status === "ready" && mediaEntries(view).length > 0;
+
   const body =
     format.data === "md"
       ? pipelineToMarkdown(view, t)
@@ -62,7 +69,9 @@ export async function GET(request: Request, { params }: RouteContext<"/api/pipel
           ? pipelineToSpeech(view)
           : format.data === "srt"
             ? pipelineToSrt(view)
-            : pipelineToZip(view, t);
+            : zipStream
+              ? pipelineToZipStream(view, t, (path) => supabaseMediaStorage(db).download(path))
+              : pipelineToZip(view, t);
   if (body === null) return new Response(t("Export.notReady"), { status: 409 });
 
   const { type, extension } = CONTENT[format.data];

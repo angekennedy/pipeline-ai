@@ -28,6 +28,17 @@ Chaque point a sa vérification. Cocher seulement ce qui a été vérifié.
 - [ ] **Plafond de dépense mensuel** sur ce projet (Settings → Limits). C'est le dernier filet : le disjoncteur de l'application (§1.6) doit se déclencher avant lui.
 - [ ] Palier de rate limit suffisant pour la concurrence prévue (au plus 5 pipelines en parallèle, 2 par workspace : `run-pipeline`).
 - [ ] *Vérifier* : un pipeline d'exemple (onboarding) se génère de bout en bout avec cette clé.
+- [ ] Organisation **vérifiée** (Settings → Organization → Verify) : obligatoire pour les images (`gpt-image-2`) des miniatures HD et de la vidéo. Sans elle, les miniatures des plans payants échouent en `PROVIDER_ERROR` (message exact dans /admin).
+
+### 1.2 bis Vidéo MP4 (ElevenLabs, Shotstack)
+
+Option du brief, réservée aux plans payants (`PLANS.video`, `private.plan_allows_video`) : images `gpt-image-2` (4 par minute, haute qualité), voix ElevenLabs avec minutage, sous-titres calés sur la voix, montage et hébergement du MP4 par Shotstack. Coût mesuré ≈ 1 $ par minute, facturé 60 crédits par minute (`VIDEO_CREDITS_PER_MINUTE`, à recalibrer d'après /admin).
+
+- [ ] Compte **ElevenLabs** avec usage commercial (Starter ou plus), clé API dans `ELEVENLABS_API_KEY`, voix choisie dans `ELEVENLABS_VOICE_ID` (multilingue : `eleven_multilingual_v2` par défaut).
+- [ ] Compte **Shotstack** : clé du bac à sable (`SHOTSTACK_ENV=stage`, vidéos en filigrane) pour les essais, puis clé de production (`v1`, défaut en production Vercel) et crédit de rendu (≈ 0,20 $ la minute rendue).
+- [ ] Les trois variables sur Vercel (Production) : sans elles, la case vidéo du formulaire reste grisée (« indisponible »).
+- [ ] Stockage Supabase : bucket `pipeline-media` (migration 0017). Le plan Free limite chaque fichier à 50 Mo (le MP4 reste chez Shotstack) et le total à **1 Go** : une vidéo de 60 min y laisse ≈ 150 Mo d'images et de voix. Surveiller l'espace, passer en Pro ou purger les médias anciens avant la limite.
+- [ ] *Vérifier* : une vidéo de 1 min en bac à sable, de bout en bout (lecture, téléchargement, ZIP avec les médias), puis son coût réel dans /admin.
 
 ### 1.3 Stripe en live
 

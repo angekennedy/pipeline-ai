@@ -445,6 +445,9 @@ isOneToOne: false
 "sweep_stale_reservations":
 { Args: { "p_idle"?: string }; Returns: number
                            },
+"touch_generation":
+{ Args: { "p_generation": string }; Returns: boolean
+                           },
 "upsert_generation":
 { Args: { "p_credits": number,"p_feedback"?: string,"p_key": string,"p_pipeline": string,"p_type": Database["public"]['Enums']["asset_type"] }; Returns: {
               "api_calls": number | null,
@@ -482,7 +485,7 @@ isOneToOne: false
       } }
           }
           Enums: {
-            "asset_status": "pending"|"running"|"ready"|"failed"|"stale","asset_type": "script"|"titles"|"seo"|"voiceover"|"thumbnails","gen_status": "queued"|"running"|"succeeded"|"failed","ledger_kind": "grant"|"purchase"|"reserve"|"capture"|"release"|"refund"|"adjust"|"expire","member_role": "viewer"|"editor"|"admin"|"owner","pipeline_status": "queued"|"running"|"partial"|"completed"|"failed"|"canceled","version_source": "ai"|"ai_regen"|"user_edit"|"restore"
+            "asset_status": "pending"|"running"|"ready"|"failed"|"stale","asset_type": "script"|"titles"|"seo"|"voiceover"|"thumbnails"|"video","gen_status": "queued"|"running"|"succeeded"|"failed","ledger_kind": "grant"|"purchase"|"reserve"|"capture"|"release"|"refund"|"adjust"|"expire","member_role": "viewer"|"editor"|"admin"|"owner","pipeline_status": "queued"|"running"|"partial"|"completed"|"failed"|"canceled","version_source": "ai"|"ai_regen"|"user_edit"|"restore"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -602,7 +605,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "asset_status": ["pending", "running", "ready", "failed", "stale"],"asset_type": ["script", "titles", "seo", "voiceover", "thumbnails"],"gen_status": ["queued", "running", "succeeded", "failed"],"ledger_kind": ["grant", "purchase", "reserve", "capture", "release", "refund", "adjust", "expire"],"member_role": ["viewer", "editor", "admin", "owner"],"pipeline_status": ["queued", "running", "partial", "completed", "failed", "canceled"],"version_source": ["ai", "ai_regen", "user_edit", "restore"]
+            "asset_status": ["pending", "running", "ready", "failed", "stale"],"asset_type": ["script", "titles", "seo", "voiceover", "thumbnails", "video"],"gen_status": ["queued", "running", "succeeded", "failed"],"ledger_kind": ["grant", "purchase", "reserve", "capture", "release", "refund", "adjust", "expire"],"member_role": ["viewer", "editor", "admin", "owner"],"pipeline_status": ["queued", "running", "partial", "completed", "failed", "canceled"],"version_source": ["ai", "ai_regen", "user_edit", "restore"]
           }
         }
 } as const

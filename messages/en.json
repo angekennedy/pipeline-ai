@@ -16,7 +16,8 @@
       "titles": "Titles",
       "seo": "SEO",
       "voiceover": "Voiceover",
-      "thumbnails": "Thumbnails"
+      "thumbnails": "Thumbnails",
+      "video": "Video"
     },
     "scenePurpose": {
       "hook": "Hook",
@@ -272,7 +273,8 @@
     "unknownFormat": "Unknown format: {formats}",
     "notFound": "Pipeline not found",
     "signIn": "Sign-in required",
-    "rateLimited": "Too many exports: try again in a few minutes."
+    "rateLimited": "Too many exports: try again in a few minutes.",
+    "videoLink": "MP4 video (1080p), to download: {url}"
   },
   "Panels": {
     "copyScript": "Copy the script",
@@ -303,14 +305,16 @@
     "conceptPreview": "Mobile preview of concept {index}",
     "badgeOverlap": "YouTube's duration badge covers this corner: place the text elsewhere.",
     "overlay": "Text “{text}” · {placement} · {font} · {emotion}",
-    "negative": "Negative: {text}"
+    "negative": "Negative: {text}",
+    "downloadImage": "Download image {index}"
   },
   "Restriction": {
     "subscription_past_due": "The last payment for your subscription failed: creating pipelines is suspended. Your pipelines remain viewable. Update your payment method to restore it.",
     "duration": "The {plan} plan limits videos to {limit} min. Shorten the duration, or upgrade to the {upgrade} plan to go up to 60 min.",
     "premium": "The Premium script is not included in the {plan} plan. Choose Standard, or upgrade to the {upgrade} plan.",
     "channel_presets": "The {plan} plan is limited to {limit, plural, one {# channel preset} other {# channel presets}}. Delete one, or upgrade to a higher plan.",
-    "seePricing": "See pricing"
+    "seePricing": "See pricing",
+    "video": "The full video isn't included in the {plan} plan. Untick the video option, or upgrade to {upgrade}."
   },
   "CostEstimate": {
     "cost": "Cost: <total></total>",
@@ -360,8 +364,14 @@
       "targetAudience": "Describe the audience in at most 200 characters.",
       "extraNotes": "Instructions are at most 2,000 characters.",
       "tier": "Choose the Standard or Premium tier.",
-      "channelId": "This preset no longer exists. Choose another one, or none."
-    }
+      "channelId": "This preset no longer exists. Choose another one, or none.",
+      "video": "The video isn't available right now. Untick the option to launch the pipeline."
+    },
+    "video": "Video",
+    "videoOption": "Also create the full video (1080p MP4): images, voice-over, captions and transitions",
+    "videoPlan": "({plan} plan or higher)",
+    "videoUnavailable": "(currently unavailable)",
+    "videoHint": "{credits} credits per minute of video, on top of the pipeline. Ready to publish on YouTube."
   },
   "ChannelForm": {
     "identity": "Channel identity",
@@ -568,7 +578,8 @@
       "premium": "Premium script",
       "standard": "Standard script",
       "presets": "{count, plural, one {# channel preset} other {# channel presets}}",
-      "seats": "{count, plural, one {# seat} other {# seats}}"
+      "seats": "{count, plural, one {# seat} other {# seats}}",
+      "media": "HD thumbnail images and an optional MP4 video"
     },
     "start": "Get started",
     "choose": "Choose",
@@ -587,7 +598,8 @@
       "titles": "1",
       "seo": "2",
       "voiceover": "2 + 1 per 10 min",
-      "thumbnails": "1"
+      "thumbnails": "1 on Free (concepts) · 15 with 4 HD images (paid plans)",
+      "video": "{credits} per minute (video option, paid plans)"
     },
     "examples": {
       "tenStandard": "10-minute video, Standard",
@@ -642,7 +654,7 @@
       "titles": "5 to 10 variants from different angles, with their length and a recommendation.",
       "seo": "Description, tags, hashtags and timestamped chapters, within YouTube's limits.",
       "voiceover": "Text ready for ElevenLabs, with the pace, pauses and emphasis of each segment.",
-      "thumbnails": "Concepts with an image prompt and overlay text, checked in a mobile preview."
+      "thumbnails": "4 thumbnails generated in high definition, overlay text included, with their mobile preview."
     },
     "exampleTitle": "A real example, unedited",
     "exampleText": "Pipeline AI generated this pipeline from this brief. Nothing was rewritten.",
@@ -667,7 +679,7 @@
       }
     },
     "pricingTitle": "Credits, priced per deliverable",
-    "pricingText": "The cost depends on length and tier: {credits} credits for a 10-minute video in Standard. The total is shown before every run.",
+    "pricingText": "The cost depends on length and tier: {credits} credits for a 10-minute video in Standard, HD thumbnail images included. The total is shown before every run.",
     "pricingLink": "See pricing",
     "faqTitle": "Frequently asked questions",
     "faq": {
@@ -677,7 +689,7 @@
       },
       "video": {
         "q": "Does Pipeline AI make the video itself?",
-        "a": "No. It delivers the script, titles, SEO, voiceover text and thumbnail concepts. You record or synthesize the voice, for example with ElevenLabs, then edit the footage."
+        "a": "Yes, as an option on paid plans: a 1080p MP4 video with the generated images, an ElevenLabs voice-over, synced captions and simple transitions, ready to publish. Without the option, it delivers the script, titles, SEO, voice-over text and thumbnails."
       },
       "models": {
         "q": "Which models write the content?",
@@ -932,11 +944,11 @@
         },
         "ai": {
           "title": "AI generation",
-          "body": "To generate your content, your brief, channel preset and instructions are sent to OpenAI's API (GPT models). Under OpenAI's API terms, this data is not used to train its models; OpenAI may keep it for up to 30 days to detect abuse. Do not include sensitive personal data in a brief."
+          "body": "To generate your content, your brief, channel preset and instructions are sent to OpenAI's API (GPT models). Under OpenAI's API terms, this data is not used to train its models; OpenAI may keep it for up to 30 days to detect abuse. If you request the video, image descriptions are also sent to OpenAI, the voice-over text to ElevenLabs for speech synthesis, and the images, voice and captions to Shotstack for editing and hosting the MP4. Do not include sensitive personal data in a brief."
         },
         "processors": {
           "title": "Service providers and communication outside Québec",
-          "body": "- Supabase: database and authentication, hosted in Oregon (United States).\n- OpenAI: content generation (United States).\n- Stripe: payment and billing.\n- Vercel: application hosting, with functions running in Oregon (United States).\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking (European Union).\n- PostHog: usage analytics (European Union).\n\nYour information is therefore stored and processed outside Québec, mainly in the United States, where it is subject to local laws. Each provider is bound by a written agreement that protects this information. For people in the European Union, transfers to the United States rely on the European Commission's standard contractual clauses or on the EU–US Data Privacy Framework."
+          "body": "- Supabase: database, authentication and media storage (images, voice-over, captions), hosted in Oregon (United States).\n- OpenAI: content and image generation (United States).\n- ElevenLabs: voice-over synthesis for videos (United States).\n- Shotstack: video editing and hosting (Australia).\n- Stripe: payment and billing.\n- Vercel: application hosting, with functions running in Oregon (United States).\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking (European Union).\n- PostHog: usage analytics (European Union).\n\nYour information is therefore stored and processed outside Québec, mainly in the United States, where it is subject to local laws. Each provider is bound by a written agreement that protects this information. For people in the European Union, transfers to the United States rely on the European Commission's standard contractual clauses or on the EU–US Data Privacy Framework."
         },
         "retention": {
           "title": "Retention",
@@ -1028,5 +1040,17 @@
     "later": "Later",
     "thanks": "Thank you: your answer helps improve Pipeline AI.",
     "scoreError": "Pick a score from 0 to 10."
+  },
+  "Video": {
+    "title": "MP4 video",
+    "pending": "The video will be created after the thumbnails.",
+    "running": "Creating the video: images, voice-over, captions, then editing. Allow up to {minutes} min; the page updates when it's done.",
+    "skipped": "Video not created: the script didn't succeed. Its credits were returned to you.",
+    "refunded": "The video's credits were returned to you.",
+    "noPlayer": "Your browser can't play this video: download it instead.",
+    "sandbox": "Test render (Shotstack sandbox): the video has a watermark. Don't publish it.",
+    "download": "Download the video (MP4)",
+    "details": "1080p · about {minutes} min",
+    "disclosure": "Before publishing, tick “Altered or synthetic content” in YouTube Studio: this video's voice and images are AI-generated."
   }
 }

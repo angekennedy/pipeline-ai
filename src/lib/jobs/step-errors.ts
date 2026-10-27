@@ -1,6 +1,8 @@
 import type { OpenAIClient } from "@/lib/ai/openai";
 import { NonRetriableError } from "inngest";
+import type { ImageDeps } from "@/lib/media/thumbnail-images";
 import type { PipelineStore } from "@/lib/pipeline/store";
+import type { VideoDeps } from "@/lib/video/run-video";
 import type { PipelineEventPublisher } from "@/lib/realtime/events";
 
 // Dépendances injectées dans les fonctions Inngest (store Supabase en production, mémoire en test).
@@ -10,6 +12,10 @@ export type JobDeps = {
   publisher?: (pipelineId: string) => PipelineEventPublisher; // Realtime Broadcast du pipeline
   // Libère les crédits réservés d'une régénération en échec définitif (migration 0012).
   releaseRegeneration?: (key: string) => Promise<number>;
+  // Images des miniatures ; absentes (tests, évaluations), les concepts restent sans image.
+  images?: () => ImageDeps;
+  // Vidéo MP4 ; null quand la voix ou le rendu ne sont pas configurés (media/config).
+  video?: () => VideoDeps | null;
 };
 
 // Les erreurs marquées `retryable: false` (refus, schéma invalide après réparation, sortie tronquée,

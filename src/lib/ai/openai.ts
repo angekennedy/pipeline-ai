@@ -1,12 +1,12 @@
 // Client minimal de l'API OpenAI (Chat Completions en streaming), en `fetch` : pas de SDK à
 // installer. Couvre ce dont callStructured a besoin : relances sur les erreurs passagères, délai
 // maximal, lecture du flux SSE, usage final (`stream_options.include_usage`).
+import { requestWithRetry } from "@/lib/http";
 
 const BASE_URL = "https://api.openai.com/v1";
 
 // Limite de sortie de gpt-4o et gpt-4o-mini : au-delà, l'API renvoie une 400.
 export const MAX_OUTPUT_TOKENS = 16_384;
-const RETRYABLE_STATUSES = new Set([408, 409, 429, 500, 502, 503, 504]);
 
 // Erreur HTTP de l'API : `status` 0 pour une erreur réseau ou un délai dépassé.
 export class OpenAIError extends Error {
@@ -44,6 +44,19 @@ export type ChatResult = {
   usage: ChatUsage;
 };
 
+// Taille en `LARGEURxHAUTEUR` : multiples de 16, ratio entre 1:3 et 3:1 (1536x864 pour du 16:9).
+export type ImageRequest = {
+  model: string;
+  prompt: string;
+  size: `${number}x${number}`;
+  quality: "low" | "medium" | "high";
+  output_format: "jpeg" | "png" | "webp";
+  output_compression?: number;
+};
+
+export type ImageUsage = { input_tokens: number; output_tokens: number };
+export type ImageResult = { bytes: Uint8Array; usage: ImageUsage | null };
+
 type ChunkEvent = {
   model?: string;
   choices?: Array<{ delta?: { content?: string | null; refusal?: string | null }; finish_reason?: string | null }>;
@@ -59,7 +72,6 @@ export type OpenAIClientOptions = {
   fetch?: typeof fetch;
 };
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class OpenAIClient {
   readonly maxRetries: number;
@@ -77,6 +89,15 @@ export class OpenAIClient {
     this.fetchImpl = fetchImpl ?? ((...args) => fetch(...args));
   }
 
+  // Une image par appel, renvoyée en base64 par l'API (jamais d'URL avec les modèles GPT Image).
+  async generateImage(body: ImageRequest, { signal }: { signal?: AbortSignal } = {}): Promise<ImageResult> {
+    const response = await this.post("/images/generations", { ...body, n: 1 }, signal);
+    const json = (await response.json()) as { data?: Array<{ b64_json?: string }>; usage?: ImageUsage };
+    const encoded = json.data?.[0]?.b64_json;
+    if (!encoded) throw new OpenAIError(response.status, "Réponse d'image sans contenu");
+    return { bytes: new Uint8Array(Buffer.from(encoded, "base64")), usage: json.usage ?? null };
+  }
+
   async streamChat(
     body: ChatRequest,
     { signal, onText }: { signal?: AbortSignal; onText?: (delta: string, snapshot: string) => void } = {},
@@ -85,41 +106,20 @@ export class OpenAIClient {
     return readStream(response, onText);
   }
 
-  private async post(path: string, body: unknown, signal?: AbortSignal): Promise<Response> {
-    for (let attempt = 0; ; attempt++) {
-      let response: Response;
-      try {
-        response = await this.fetchImpl(`${this.baseURL}${path}`, {
-          method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${this.apiKey}` },
-          body: JSON.stringify(body),
-          signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(this.timeout)]) : AbortSignal.timeout(this.timeout),
-        });
-      } catch (error) {
-        if (signal?.aborted) throw error;
-        if (attempt < this.maxRetries) {
-          await sleep(backoff(attempt));
-          continue;
-        }
-        throw new OpenAIError(0, `Requête OpenAI impossible : ${error instanceof Error ? error.message : String(error)}`);
-      }
-      if (response.ok) return response;
-      if (RETRYABLE_STATUSES.has(response.status) && attempt < this.maxRetries) {
-        await response.body?.cancel();
-        await sleep(retryAfter(response) ?? backoff(attempt));
-        continue;
-      }
-      throw await errorOf(response);
-    }
+  private post(path: string, body: unknown, signal?: AbortSignal): Promise<Response> {
+    return requestWithRetry(
+      `${this.baseURL}${path}`,
+      { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${this.apiKey}` }, body: JSON.stringify(body) },
+      {
+        maxRetries: this.maxRetries,
+        timeout: this.timeout,
+        fetch: this.fetchImpl,
+        signal,
+        toError: errorOf,
+        networkError: (error) => new OpenAIError(0, `Requête OpenAI impossible : ${error instanceof Error ? error.message : String(error)}`),
+      },
+    );
   }
-}
-
-// 0,5 s, 1 s, 2 s… avec jitter, plafonné à 8 s.
-const backoff = (attempt: number) => Math.min(8000, 500 * 2 ** attempt) * (0.75 + Math.random() * 0.25);
-
-function retryAfter(response: Response): number | null {
-  const seconds = Number(response.headers.get("retry-after"));
-  return Number.isFinite(seconds) && seconds > 0 && seconds <= 60 ? seconds * 1000 : null;
 }
 
 async function errorOf(response: Response): Promise<OpenAIError> {

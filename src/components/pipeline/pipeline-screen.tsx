@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { StaleBanner } from "./asset-history";
 import { AutoRefresh, PipelineActionsProvider, type PipelineActionsValue } from "./pipeline-actions";
 import { AssetTabs } from "./asset-tabs";
+import { VideoPanel } from "./video-panel";
 
 const STATUS_VARIANTS: Record<PipelineStatus, "default" | "secondary" | "destructive" | "outline"> = {
   queued: "outline",
@@ -41,6 +42,7 @@ function PipelineBody({ view, scenes }: { view: PipelineView; scenes: Scene[] })
       </div>
       {stale.length > 0 && <StaleBanner types={stale} credits={view.staleCredits} />}
       <AssetTabs view={view} scenes={scenes} />
+      {view.video && <VideoPanel video={view.video} pipelineStatus={view.status} durationMinutes={view.brief.durationMinutes} />}
     </div>
   );
 }

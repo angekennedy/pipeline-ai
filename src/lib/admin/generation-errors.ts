@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { AssetType } from "@/lib/ai/schemas";
+import type { StoredAssetType } from "@/lib/pipeline/store";
 import type { Database } from "@/lib/supabase/database.types";
 
 // Dernières générations en échec, avec le message exact du fournisseur ou de la validation
@@ -10,7 +10,7 @@ import type { Database } from "@/lib/supabase/database.types";
 export type GenerationError = {
   id: string;
   pipelineId: string;
-  assetType: AssetType;
+  assetType: StoredAssetType;
   createdAt: string;
   attempt: number;
   model: string | null;

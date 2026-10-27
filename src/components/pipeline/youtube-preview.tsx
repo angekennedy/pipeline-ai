@@ -54,11 +54,13 @@ export function ThumbnailPreview({
   title,
   durationMinutes,
   size,
+  imageUrl,
 }: {
   concept: ThumbnailConcept;
   title: string | null;
   durationMinutes: number;
   size: "feed" | "suggested";
+  imageUrl?: string; // image générée, texte compris : l'incrustation simulée n'est alors pas dessinée
 }) {
   const channel = useTranslations("Preview")("channel");
   const { text, placement, colorHex, strokeHex, fontStyle } = concept.textOverlay;
@@ -72,12 +74,17 @@ export function ThumbnailPreview({
           PLACEMENT[placement],
         )}
       >
-        <span
-          className={cn("max-w-[85%] leading-none break-words", FONT[fontStyle], feed ? "text-3xl" : "text-sm")}
-          style={{ color: colorHex, WebkitTextStroke: `${feed ? 1.5 : 0.75}px ${strokeHex}`, paintOrder: "stroke fill" }}
-        >
-          {text}
-        </span>
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- lien signé temporaire, hors de l'optimiseur d'images
+          <img src={imageUrl} alt={text} className="absolute inset-0 size-full object-cover" />
+        ) : (
+          <span
+            className={cn("max-w-[85%] leading-none break-words", FONT[fontStyle], feed ? "text-3xl" : "text-sm")}
+            style={{ color: colorHex, WebkitTextStroke: `${feed ? 1.5 : 0.75}px ${strokeHex}`, paintOrder: "stroke fill" }}
+          >
+            {text}
+          </span>
+        )}
         <span
           className={cn(
             "absolute rounded bg-black/80 font-medium text-white",

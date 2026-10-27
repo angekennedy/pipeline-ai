@@ -38,7 +38,7 @@ describe.each(ASSET_TYPES)("prompt %s", (type) => {
   });
 
   it("produit les mêmes octets quel que soit l'ordre des clés du contexte", () => {
-    const reversed = Object.fromEntries(Object.entries(validBrief).reverse()) as Brief;
+    const reversed = Object.fromEntries(Object.entries(validBrief).reverse()) as unknown as Brief;
     expect(prompts[type].build(context({ brief: reversed }))).toEqual(prompts[type].build(context()));
   });
 

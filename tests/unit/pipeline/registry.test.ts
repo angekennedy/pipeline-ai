@@ -47,7 +47,7 @@ describe("registry", () => {
     ["seo", 8, "standard", 2],
     ["voiceover", 8, "standard", 2],
     ["voiceover", 25, "standard", 4],
-    ["thumbnails", 60, "premium", 1],
+    ["thumbnails", 60, "premium", 1], // concepts seuls ; 15 avec les images HD des plans payants
   ] as const)("%s, %i min, %s : %i crédits", (type, durationMinutes, tier, credits) => {
     expect(registry[type].credits(brief({ durationMinutes }), tier)).toBe(credits);
   });

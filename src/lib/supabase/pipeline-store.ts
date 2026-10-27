@@ -9,6 +9,7 @@ import {
   type PipelineStatus,
   type PipelineStore,
   type SourceVersions,
+  type StoredAssetType,
   type StoredVersion,
 } from "@/lib/pipeline/store";
 import type { Database, Json, Tables } from "./database.types";
@@ -68,7 +69,7 @@ export class SupabasePipelineStore implements PipelineStore {
     };
   }
 
-  async getCurrentVersion(pipelineId: string, assetType: AssetType) {
+  async getCurrentVersion(pipelineId: string, assetType: StoredAssetType) {
     const asset = optional(
       await this.db.from("pipeline_assets").select("current_version_id").eq("pipeline_id", pipelineId).eq("type", assetType).maybeSingle(),
       "Lecture de l'asset",
@@ -99,7 +100,7 @@ export class SupabasePipelineStore implements PipelineStore {
     return row ? { ...toStored(row), pipelineId: row.asset.pipeline_id, assetType: row.asset.type } : null;
   }
 
-  async upsertGeneration(input: { pipelineId: string; assetType: AssetType; idempotencyKey: string; credits: number; userFeedback?: string }) {
+  async upsertGeneration(input: { pipelineId: string; assetType: StoredAssetType; idempotencyKey: string; credits: number; userFeedback?: string }) {
     const row = required(
       await this.db.rpc("upsert_generation", {
         p_pipeline: input.pipelineId,
@@ -146,6 +147,10 @@ export class SupabasePipelineStore implements PipelineStore {
       }),
       "Échec de la génération",
     );
+  }
+
+  async touchGeneration(generationId: string) {
+    return required(await this.db.rpc("touch_generation", { p_generation: generationId }), "Bail de la génération");
   }
 
   // Statut terminal : finalize_pipeline pose le statut et libère, dans la même transaction, les

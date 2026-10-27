@@ -123,6 +123,7 @@ Tout se fait d'abord en **mode test** (bascule « Mode test » en haut du tablea
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Vercel | Oui (build) |
 | `SUPABASE_SECRET_KEY`, `OPENAI_API_KEY` | Vercel | Oui (build) |
+| `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, `SHOTSTACK_API_KEY` (et `SHOTSTACK_ENV`, `ELEVENLABS_MODEL_ID`) | Vercel | Non : sans elles, la vidéo est indisponible |
 | `INNGEST_SIGNING_KEY`, `INNGEST_EVENT_KEY` | Vercel (intégration Inngest) | Oui sur Vercel |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `.env.local`, Vercel | Oui sur Vercel ; sans elles en local, la facturation est indisponible |
 | `NEXT_PUBLIC_SENTRY_DSN` | Vercel | Non : Sentry inactif sans DSN |

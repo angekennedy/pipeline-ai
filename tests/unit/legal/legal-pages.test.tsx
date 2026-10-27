@@ -48,7 +48,7 @@ describe("documents légaux", () => {
     expect(links[0]).toHaveTextContent("Responsable des renseignements personnels");
     expect(links[0]).toHaveAttribute("href", "#controller");
     const processors = screen.getByRole("region", { name: "Prestataires et communication hors du Québec" });
-    expect(within(processors).getAllByRole("listitem").map((item) => item.textContent?.split(" :")[0])).toEqual(["Supabase", "OpenAI", "Stripe", "Vercel", "Inngest", "Sentry", "PostHog"]);
+    expect(within(processors).getAllByRole("listitem").map((item) => item.textContent?.split(" :")[0])).toEqual(["Supabase", "OpenAI", "ElevenLabs", "Shotstack", "Stripe", "Vercel", "Inngest", "Sentry", "PostHog"]);
   });
 
   it("présente les sujets refusés de la charte, alignés sur la modération", async () => {

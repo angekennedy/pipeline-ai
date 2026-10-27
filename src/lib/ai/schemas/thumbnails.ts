@@ -33,7 +33,9 @@ const concept = (text: z.ZodType<string>) =>
     aspectRatio: z.literal("16:9"),
   });
 
-export const ThumbnailConceptSchema = concept(OverlayText);
+// `imagePath` : image générée à partir du concept, dans le stockage des médias (pipeline-media),
+// ajoutée par le pipeline après la sortie du modèle. Absente sur les anciennes versions.
+export const ThumbnailConceptSchema = concept(OverlayText).extend({ imagePath: z.string().max(300).optional() });
 
 // Contrat stocké (et éditions manuelles) : chaque texte tient en 4 mots.
 export const ThumbnailsSchema = z.object({

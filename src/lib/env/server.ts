@@ -1,24 +1,36 @@
 import "server-only";
 import { z } from "zod";
 
+// Clé d'API envoyée dans un en-tête HTTP, qui n'accepte que du Latin-1 : une apostrophe courbe collée
+// depuis un éditeur ferait échouer chaque appel. Espaces de bord retirés, ASCII imprimable exigé. Le
+// message d'erreur ne reprend jamais la valeur.
+const apiKey = (console: string) =>
+  z
+    .string()
+    .trim()
+    .min(1)
+    // i18n-ignore : message de démarrage, lu dans les logs de build, jamais affiché aux utilisateurs.
+    .regex(/^[\x21-\x7E]+$/, `Caractère invalide (apostrophe courbe, espace ou caractère accentué ?) : recopiez la clé depuis ${console}`);
+
 // Secrets serveur. Ne jamais préfixer ces variables par NEXT_PUBLIC_.
 const ServerEnvSchema = z
   .object({
     SUPABASE_SECRET_KEY: z.string().min(1),
-    // Envoyée dans l'en-tête `authorization`, qui n'accepte que du Latin-1 : une apostrophe courbe
-    // collée depuis un éditeur ferait échouer chaque appel. Espaces de bord retirés, ASCII imprimable
-    // exigé. Le message d'erreur ne reprend jamais la valeur.
-    OPENAI_API_KEY: z
-      .string()
-      .trim()
-      .min(1)
-      // i18n-ignore : message de démarrage, lu dans les logs de build, jamais affiché aux utilisateurs.
-      .regex(/^[\x21-\x7E]+$/, "Caractère invalide (apostrophe courbe, espace ou caractère accentué ?) : recopiez la clé depuis platform.openai.com"),
+    OPENAI_API_KEY: apiKey("platform.openai.com"),
     // Surcharges facultatives des modèles par défaut de src/lib/ai/models.ts.
     MODEL_SCRIPT_STANDARD: z.string().min(1).optional(),
     MODEL_SCRIPT_PREMIUM: z.string().min(1).optional(),
     MODEL_LIGHT: z.string().min(1).optional(),
     MODEL_EVAL_JUDGE: z.string().min(1).optional(),
+    MODEL_IMAGE: z.string().min(1).optional(),
+    // Vidéo MP4 (voix ElevenLabs, rendu Shotstack). Toutes absentes : l'option vidéo est indisponible,
+    // le reste fonctionne. SHOTSTACK_ENV : `stage` (bac à sable, filigrane) ou `v1` (production) ;
+    // par défaut `v1` en production Vercel, `stage` ailleurs.
+    ELEVENLABS_API_KEY: apiKey("elevenlabs.io").optional(),
+    ELEVENLABS_VOICE_ID: z.string().trim().regex(/^[A-Za-z0-9]+$/).optional(),
+    ELEVENLABS_MODEL_ID: z.string().trim().min(1).default("eleven_multilingual_v2"),
+    SHOTSTACK_API_KEY: apiKey("dashboard.shotstack.io").optional(),
+    SHOTSTACK_ENV: z.enum(["stage", "v1"]).optional(),
     // Inngest Cloud, lues directement par le SDK. En local, `INNGEST_DEV=1` les remplace.
     INNGEST_SIGNING_KEY: z.string().min(1).optional(),
     INNGEST_EVENT_KEY: z.string().min(1).optional(),

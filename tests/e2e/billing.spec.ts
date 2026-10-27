@@ -53,7 +53,7 @@ test("la page des tarifs présente les plans, les packs et la grille de crédits
     await expect(page.getByRole("heading", { level: 2, name: plan, exact: true })).toBeVisible();
   }
   await expect(page.getByRole("region", { name: "Packs de crédits" })).toBeVisible();
-  await expect(page.getByText(/Vidéo de 10 min, Standard/)).toContainText("21 crédits");
+  await expect(page.getByText(/Vidéo de 10 min, Standard/)).toContainText("35 crédits"); // plan payant, miniatures en images HD
 });
 
 // Sans STRIPE_SECRET_KEY (CI) : la page reste utile, sans bouton de paiement. Le paiement réel en mode

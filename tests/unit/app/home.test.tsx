@@ -25,7 +25,7 @@ describe("page d'accueil", () => {
     const { container } = render(await Home());
     const assets = within(screen.getByRole("region", { name: "Cinq livrables par vidéo" })).getAllByRole("heading", { level: 3 });
     expect(assets.map((h) => h.textContent)).toEqual(["Script", "Titres", "SEO", "Voix off", "Miniatures"]);
-    expect(screen.getByText(/21 crédits pour une vidéo de 10 min en Standard/)).toBeInTheDocument();
+    expect(screen.getByText(/35 crédits pour une vidéo de 10 min en Standard/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Voir les tarifs" })).toHaveAttribute("href", "/pricing");
 
     const questions = within(screen.getByRole("region", { name: "Questions fréquentes" })).getAllByText(/\?$/);
