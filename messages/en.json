@@ -480,7 +480,8 @@
     "duplicate": "Duplicate the brief",
     "preset": "Preset {name}",
     "demoNotice": "Demo: sample content, no real generation is started.",
-    "exampleNotice": "Real example, unedited: script written by {script}, derived assets by {derived}. Measured generation cost: {cost}, in {seconds} s."
+    "exampleNotice": "Real example, unedited: script written by {script}, derived assets by {derived}. Measured generation cost: {cost}, in {seconds} s.",
+    "adminDiagnostics": "Diagnostics (admin)"
   },
   "Billing": {
     "ledger": {
@@ -832,6 +833,21 @@
       "counts": "{responses, plural, one {# response} other {# responses}}: {promoters} promoters (9-10), {passives} passives (7-8), {detractors} detractors (0-6).",
       "comments": "Latest comments",
       "comment": "{score}/10: {comment}"
+    },
+    "errors": {
+      "title": "Latest generation errors",
+      "none": "No failed generation.",
+      "unknown": "unknown",
+      "noMessage": "no message recorded",
+      "attempt": "attempt {attempt}",
+      "col": {
+        "date": "Date",
+        "pipeline": "Pipeline",
+        "asset": "Asset",
+        "code": "Code",
+        "model": "Model",
+        "message": "Exact message"
+      }
     }
   },
   "Legal": {

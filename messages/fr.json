@@ -480,7 +480,8 @@
     "duplicate": "Dupliquer le brief",
     "preset": "Preset {name}",
     "demoNotice": "Démonstration : contenu d'exemple, aucune génération réelle n'est lancée.",
-    "exampleNotice": "Exemple réel, sans retouche : script rédigé par {script}, dérivés par {derived}. Coût de génération mesuré : {cost}, en {seconds} s."
+    "exampleNotice": "Exemple réel, sans retouche : script rédigé par {script}, dérivés par {derived}. Coût de génération mesuré : {cost}, en {seconds} s.",
+    "adminDiagnostics": "Diagnostic (administrateur)"
   },
   "Billing": {
     "ledger": {
@@ -832,6 +833,21 @@
       "counts": "{responses, plural, one {# réponse} other {# réponses}} : {promoters} promoteurs (9-10), {passives} passifs (7-8), {detractors} détracteurs (0-6).",
       "comments": "Derniers commentaires",
       "comment": "{score}/10 : {comment}"
+    },
+    "errors": {
+      "title": "Dernières erreurs de génération",
+      "none": "Aucune génération en échec.",
+      "unknown": "inconnu",
+      "noMessage": "aucun message enregistré",
+      "attempt": "tentative {attempt}",
+      "col": {
+        "date": "Date",
+        "pipeline": "Pipeline",
+        "asset": "Asset",
+        "code": "Code",
+        "model": "Modèle",
+        "message": "Message exact"
+      }
     }
   },
   "Legal": {
