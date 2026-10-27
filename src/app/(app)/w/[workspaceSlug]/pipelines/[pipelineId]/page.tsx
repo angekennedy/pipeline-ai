@@ -3,9 +3,14 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { GenerationErrors } from "@/components/admin/generation-errors";
 import { ExportMenu } from "@/components/pipeline/export-menu";
 import { LivePipeline, StaticPipeline } from "@/components/pipeline/pipeline-screen";
+import { recentGenerationErrors } from "@/lib/admin/generation-errors";
+import { isPlatformAdmin } from "@/lib/auth/admin";
+import { requireUser } from "@/lib/auth/session";
 import { loadPipelineView } from "@/lib/pipeline/load-view";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { buttonVariants } from "@/components/ui/button";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
@@ -25,6 +30,9 @@ export default async function PipelinePage({ params }: PageProps<"/w/[workspaceS
   const view = await loadPipelineView(await createClient(), workspace.id, pipelineId);
   if (!view) notFound();
   const { brief } = view;
+  // Message exact des échecs, pour les administrateurs de la plateforme seulement (service role).
+  const user = await requireUser(`/w/${workspaceSlug}`);
+  const errors = isPlatformAdmin(user.email) ? await recentGenerationErrors(createAdminClient(), { pipelineId }) : [];
   const t = await getTranslations("PipelinePage");
 
   return (
@@ -54,6 +62,14 @@ export default async function PipelinePage({ params }: PageProps<"/w/[workspaceS
         <div className="mt-6">
           <ExportMenu pipelineId={view.id} />
         </div>
+      )}
+      {errors.length > 0 && (
+        <section aria-labelledby="admin-diagnostics" className="mt-8 grid gap-2">
+          <h2 id="admin-diagnostics" className="text-lg font-semibold">
+            {t("adminDiagnostics")}
+          </h2>
+          <GenerationErrors errors={errors} />
+        </section>
       )}
     </main>
   );

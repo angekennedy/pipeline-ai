@@ -11,8 +11,10 @@ vi.mock("next/navigation", () => ({ notFound: () => notFound() }));
 const responses: Record<string, unknown> = {};
 const rpc = vi.fn(async (name: string) => ({ data: responses[name], error: null }));
 let comments: { score: number; comment: string; updated_at: string }[] = [];
-const from = () => {
-  const builder = { select: () => builder, not: () => builder, order: () => builder, limit: async () => ({ data: comments, error: null }) };
+let failedGenerations: Record<string, unknown>[] = [];
+const from = (table: string) => {
+  const data = table === "generations" ? failedGenerations : comments;
+  const builder = { select: () => builder, not: () => builder, eq: () => builder, order: () => builder, limit: async () => ({ data, error: null }) };
   return builder;
 };
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc, from }) }));
@@ -50,6 +52,7 @@ beforeEach(() => {
     nps_summary: [{ responses: 10, promoters: 6, passives: 2, detractors: 2 }],
   });
   comments = [{ score: 9, comment: "Les titres sont excellents", updated_at: "2026-10-26T09:00:00.000Z" }];
+  failedGenerations = [];
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -96,5 +99,35 @@ describe("page d'administration", () => {
     expect(nps).toHaveTextContent("Score NPS : 40"); // (6 − 2) / 10
     expect(nps).toHaveTextContent("10 réponses : 6 promoteurs (9-10), 2 passifs (7-8), 2 détracteurs (0-6).");
     expect(within(nps).getByText("9/10 : Les titres sont excellents")).toBeInTheDocument();
+  });
+
+  it("affiche le message exact des dernières générations en échec", async () => {
+    failedGenerations = [
+      {
+        id: "gen-1",
+        pipeline_id: "9a8b7c6d-2b6a-4f8e-9c0d-1a2b3c4d5e6f",
+        asset_type: "script",
+        created_at: "2026-10-27T18:45:00.000Z",
+        attempt: 4,
+        model: null,
+        prompt_version: "script@3",
+        error_code: "PROVIDER_ERROR",
+        error_message: "404 The model `gpt-4o` does not exist or you do not have access to it.",
+      },
+    ];
+    render(await page());
+    const errors = screen.getByRole("region", { name: "Dernières erreurs de génération" });
+    const [header, line] = within(errors).getAllByRole("row");
+    expect(within(header!).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Date", "Pipeline", "Asset", "Code", "Modèle", "Message exact"]);
+    expect(within(line!).getByText("9a8b7c6d")).toBeInTheDocument();
+    expect(within(line!).getByText("PROVIDER_ERROR")).toBeInTheDocument();
+    expect(line).toHaveTextContent("script@3");
+    expect(line).toHaveTextContent("tentative 4");
+    expect(within(line!).getByText("404 The model `gpt-4o` does not exist or you do not have access to it.")).toBeInTheDocument();
+  });
+
+  it("indique qu'aucune génération n'a échoué", async () => {
+    render(await page());
+    expect(screen.getByRole("region", { name: "Dernières erreurs de génération" })).toHaveTextContent("Aucune génération en échec.");
   });
 });

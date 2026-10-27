@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { COST, PERCENT, SHORT_DATE_TIME } from "@/i18n/format";
+import { GenerationErrors } from "@/components/admin/generation-errors";
 import { checkAlerts, loadEconomics, totals, type Alert } from "@/lib/admin/economics";
+import { recentGenerationErrors } from "@/lib/admin/generation-errors";
 import { isPlatformAdmin } from "@/lib/auth/admin";
 import { betaSettings, npsSummary, recentNpsComments } from "@/lib/beta";
 import { requireUser } from "@/lib/auth/session";
@@ -36,9 +38,10 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
 
   const db = createAdminClient();
   const now = new Date();
-  const [rows, alerts, beta, nps, comments, t, labels, format] = await Promise.all([
+  const [rows, alerts, errors, beta, nps, comments, t, labels, format] = await Promise.all([
     loadEconomics(db, new Date(now.getTime() - days * DAY), LIMIT),
     checkAlerts(db, now),
+    recentGenerationErrors(db),
     betaSettings(db),
     npsSummary(db),
     recentNpsComments(db),
@@ -116,6 +119,13 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
             ))}
           </ul>
         )}
+      </section>
+
+      <section aria-labelledby="generation-errors" className="grid gap-2">
+        <h2 id="generation-errors" className="text-lg font-semibold">
+          {t("errors.title")}
+        </h2>
+        <GenerationErrors errors={errors} showPipeline />
       </section>
 
       <section aria-labelledby="beta" className="grid gap-3">
