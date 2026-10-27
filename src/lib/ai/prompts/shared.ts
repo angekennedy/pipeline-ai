@@ -69,8 +69,9 @@ export function definePrompt(template: {
 
 // Blocs de contexte communs. Le preset est omis quand le pipeline n'en a pas.
 export function channelAndBrief(ctx: PromptContext): string[] {
-  // L'identifiant de chaîne ne sert à rien au modèle (une clé undefined n'est pas sérialisée).
-  const brief = { ...ctx.brief, channelId: undefined };
+  // Ni l'identifiant de chaîne ni les options de médias ne servent au modèle (une clé undefined n'est pas
+  // sérialisée) : le prompt reste identique avec ou sans vidéo et images.
+  const brief = { ...ctx.brief, channelId: undefined, video: undefined, thumbnailImages: undefined };
   return [...(ctx.channel ? [renderUntrusted("channel_preset", ctx.channel)] : []), renderUntrusted("brief", brief)];
 }
 

@@ -46,6 +46,8 @@ const TEXT_ATTRIBUTES = new Set(["aria-label", "title", "placeholder", "alt", "l
 // Journaux (console.warn…), alertes Sentry (captureMessage) et messages d'une ligne marquée `i18n-ignore` : même raison.
 const SKIP_CALLS = new Set([
   "t", "cn", "cva", "querySelector", "querySelectorAll", "Error", "require", "import", "super", "addIssue", "rpc", "failure", "unwrap", "throwReservationError",
+  "ElevenLabsError", "ShotstackError", "VideoRenderError", // erreurs des fournisseurs de la vidéo, comme Error
+
   "log", "info", "warn", "error", "captureMessage",
 ]);
 // Fichiers rendus hors du fournisseur next-intl : la page d'erreur globale porte ses deux langues,

@@ -51,7 +51,7 @@ describe("BriefForm", () => {
     expect(screen.getByLabelText("Public visé (facultatif)")).toHaveValue("Curieux");
     expect(screen.getByLabelText("Consignes supplémentaires (facultatif)")).toHaveValue("Citer Hérodote");
     expect(screen.getByLabelText(/Premium/)).toBeChecked();
-    expect(screen.getAllByText(/35 crédits/).length).toBeGreaterThan(0); // Premium 10 min : script 28, titres 1, SEO 2, voix off 3, miniatures 1
+    expect(screen.getAllByText(/49 crédits/).length).toBeGreaterThan(0); // Premium 10 min : script 28, titres 1, SEO 2, voix off 3, miniatures 15
   });
 
   it("repasse en Standard un brief Premium dupliqué sur un plan qui ne l'inclut pas", () => {
@@ -99,7 +99,7 @@ describe("BriefForm", () => {
     expect(screen.getByLabelText("Durée cible (minutes)")).toHaveValue(3);
     expect(screen.getByLabelText("Public visé (facultatif)")).toHaveValue("");
     expect(screen.getByLabelText(/Standard/)).toBeChecked();
-    expect(screen.getByRole("region", { name: /Coût/ })).toHaveTextContent(`Coût : ${pipelineCredits({ durationMinutes: 3 }, "standard")} crédits`);
+    expect(screen.getByRole("region", { name: /Coût/ })).toHaveTextContent(`Coût : ${pipelineCredits({ durationMinutes: 3, thumbnailImages: true }, "standard")} crédits`); // Studio : miniatures en images HD
 
     await user.click(screen.getByRole("button", { name: "Générer le pipeline" }));
     const data = createPipeline.mock.calls[0]![1] as FormData;
@@ -151,18 +151,40 @@ describe("BriefForm", () => {
 
   it("affiche le coût avant le lancement et le recalcule selon la durée et la formule", async () => {
     const user = userEvent.setup();
-    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={creditSummary("studio", 30)} />);
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={creditSummary("studio", 40)} />);
     const estimate = screen.getByRole("region", { name: /Coût/ });
-    expect(estimate).toHaveTextContent("Coût : 18 crédits"); // 8 min en Standard
-    expect(estimate).toHaveTextContent("Solde après le lancement : 12 crédits.");
+    expect(estimate).toHaveTextContent("Coût : 32 crédits"); // 8 min en Standard
+    expect(estimate).toHaveTextContent("Solde après le lancement : 8 crédits.");
 
     const duration = screen.getByLabelText("Durée cible (minutes)");
     await user.clear(duration);
     await user.type(duration, "10");
     await user.click(screen.getByLabelText(/Premium/));
     const updated = screen.getByRole("region", { name: /Coût/ });
-    expect(updated).toHaveTextContent("Coût : 35 crédits");
-    expect(updated).toHaveTextContent("Il vous manque 5 crédits (30 crédits disponibles).");
+    expect(updated).toHaveTextContent("Coût : 49 crédits");
+    expect(updated).toHaveTextContent("Il vous manque 9 crédits (40 crédits disponibles).");
+  });
+
+  it("propose la vidéo sur un plan payant configuré, et ajoute son coût à l'estimation", async () => {
+    const user = userEvent.setup();
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={studio} videoAvailable />);
+    const option = screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ });
+    expect(option).toBeEnabled();
+    expect(screen.getByText(/60 crédits par minute de vidéo/)).toBeInTheDocument();
+    await user.click(option);
+    const estimate = screen.getByRole("region", { name: /Coût/ });
+    expect(estimate).toHaveTextContent(`Coût : ${pipelineCredits({ durationMinutes: 8, video: true, thumbnailImages: true }, "standard")} crédits`);
+    expect(estimate).toHaveTextContent("Vidéo 480");
+  });
+
+  it("grise la vidéo sur Free, avec le plan qui l'inclut, et quand elle n'est pas configurée", () => {
+    const { unmount } = render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} videoAvailable />);
+    expect(screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ })).toBeDisabled();
+    expect(screen.getByText("(plan Creator ou supérieur)")).toBeInTheDocument();
+    unmount();
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={studio} />);
+    expect(screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ })).toBeDisabled();
+    expect(screen.getByText("(indisponible pour le moment)")).toBeInTheDocument();
   });
 
   it("masque le coût tant que la durée est invalide", async () => {

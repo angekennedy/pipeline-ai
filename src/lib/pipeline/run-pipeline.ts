@@ -19,12 +19,15 @@ export type AssetOutcome =
 export type PipelineOutcome = {
   status: Extract<PipelineStatus, "completed" | "partial" | "failed">;
   assets: Record<AssetType, AssetOutcome>;
+  video?: AssetOutcome; // présent quand le brief demande la vidéo et que le script a réussi
 };
 
-function finalStatus(assets: Record<AssetType, AssetOutcome>): PipelineOutcome["status"] {
+function finalStatus(assets: Record<AssetType, AssetOutcome>, video?: AssetOutcome): PipelineOutcome["status"] {
   if (assets.script.status !== "succeeded") return "failed";
-  return Object.values(assets).every((asset) => asset.status === "succeeded") ? "completed" : "partial";
+  return [...Object.values(assets), ...(video ? [video] : [])].every((asset) => asset.status === "succeeded") ? "completed" : "partial";
 }
+
+const reasonOf = (reason: unknown) => (reason instanceof Error ? reason.message : String(reason));
 
 // Exécute le DAG : les assets d'une étape partent en parallèle, un asset dont une dépendance n'a pas
 // réussi est sauté. Un échec du script laisse donc tous les dérivés de côté. Chaque étape renvoie un
@@ -36,11 +39,14 @@ export async function runPipelineSteps(
     store,
     generate,
     publish,
+    video,
   }: {
     step: StepRunner;
     store: PipelineStore;
     generate: (type: AssetType) => Promise<string>;
     publish?: PipelineEventPublisher;
+    // Vidéo MP4 (lib/video), en fin de pipeline : ses propres étapes, renvoie l'id de version.
+    video?: () => Promise<string>;
   },
 ): Promise<PipelineOutcome> {
   // Publication dans les étapes : une étape mémoïsée n'est pas rejouée, l'événement non plus.
@@ -59,16 +65,29 @@ export async function runPipelineSteps(
       assets[runnable[i]!] =
         result.status === "fulfilled"
           ? { status: "succeeded", versionId: result.value }
-          : { status: "failed", error: result.reason instanceof Error ? result.reason.message : String(result.reason) };
+          : { status: "failed", error: reasonOf(result.reason) };
     });
   }
 
-  const status = finalStatus(assets);
+  // Vidéo après les miniatures. La voix off n'est pas indispensable : à défaut, la narration du script est lue.
+  let videoOutcome: AssetOutcome | undefined;
+  if (video && assets.script.status === "succeeded") {
+    const requested = await step.run("video:requested", async () => (await store.getPipeline(pipelineId)).brief.video === true);
+    if (requested) {
+      try {
+        videoOutcome = { status: "succeeded", versionId: await video() };
+      } catch (error) {
+        videoOutcome = { status: "failed", error: reasonOf(error) };
+      }
+    }
+  }
+
+  const status = finalStatus(assets, videoOutcome);
   // Statut terminal : le store libère les crédits non capturés (assets échoués ou sautés). Chaque
   // asset réussi a déjà capturé son coût, dans la transaction de sa version.
   await step.run("finalize", async () => {
     await store.setPipelineStatus(pipelineId, status);
     await safePublish(publish, { type: "pipeline.status", status });
   });
-  return { status, assets };
+  return { status, assets, ...(videoOutcome && { video: videoOutcome }) };
 }

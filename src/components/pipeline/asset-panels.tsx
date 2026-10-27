@@ -184,7 +184,18 @@ export function VoiceoverPanel({ voiceover }: { voiceover: Voiceover }) {
 }
 
 // `durationMinutes` : badge de durée de l'aperçu, celui que YouTube superpose en bas à droite.
-export function ThumbnailsPanel({ thumbnails, titles, durationMinutes }: { thumbnails: Thumbnails; titles: Titles | null; durationMinutes: number }) {
+// `media` : liens signés des images générées, par chemin (load-view) ; sans image, l'aperçu reste schématique.
+export function ThumbnailsPanel({
+  thumbnails,
+  titles,
+  durationMinutes,
+  media = {},
+}: {
+  thumbnails: Thumbnails;
+  titles: Titles | null;
+  durationMinutes: number;
+  media?: Record<string, string>;
+}) {
   const { t, all } = usePanelTranslations();
   return (
     <div>
@@ -195,15 +206,21 @@ export function ThumbnailsPanel({ thumbnails, titles, durationMinutes }: { thumb
         {thumbnails.concepts.map((concept, i) => {
           const { text, placement, fontStyle } = concept.textOverlay;
           const title = titles?.variants[concept.pairedTitleIndex]?.title;
+          const imageUrl = concept.imagePath ? media[concept.imagePath] : undefined;
           return (
             <li key={i} className="rounded-xl border p-3">
               <h2 className="font-medium">{t("concept", { index: i + 1 })}</h2>
               {title && <p className="text-sm text-muted-foreground">{t("conceptFor", { title })}</p>}
               {/* Aperçu mobile : fil d'accueil et colonne des suggestions, texte incrusté sur fond neutre. */}
               <div className="my-3 flex flex-wrap items-start gap-3" role="group" aria-label={t("conceptPreview", { index: i + 1 })}>
-                <ThumbnailPreview concept={concept} title={title ?? null} durationMinutes={durationMinutes} size="feed" />
-                <ThumbnailPreview concept={concept} title={title ?? null} durationMinutes={durationMinutes} size="suggested" />
+                <ThumbnailPreview concept={concept} title={title ?? null} durationMinutes={durationMinutes} size="feed" imageUrl={imageUrl} />
+                <ThumbnailPreview concept={concept} title={title ?? null} durationMinutes={durationMinutes} size="suggested" imageUrl={imageUrl} />
               </div>
+              {imageUrl && (
+                <a href={imageUrl} download className="mb-2 inline-block text-sm font-medium underline underline-offset-4">
+                  {t("downloadImage", { index: i + 1 })}
+                </a>
+              )}
               {placement === "bottom-right" && (
                 <p className="mb-2 text-sm text-amber-700 dark:text-amber-400">{t("badgeOverlap")}</p>
               )}

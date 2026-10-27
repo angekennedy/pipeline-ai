@@ -17,6 +17,8 @@ export type Plan = {
   priceEurCents: number; // par mois, 0 pour Free
   maxDurationMinutes: number;
   premium: boolean; // accès au script Premium
+  video: boolean; // vidéo MP4 complète (option du brief), miroir de private.plan_allows_video
+  thumbnailImages: boolean; // miniatures générées en images HD (15 crédits au lieu de 1)
   channelPresets: number;
   seats: number;
   lookupKey: string | null; // prix mensuel Stripe, null pour Free
@@ -31,6 +33,8 @@ export const PLANS: Record<PlanKey, Plan> = {
     priceEurCents: 0,
     maxDurationMinutes: 10,
     premium: false,
+    video: false,
+    thumbnailImages: false,
     channelPresets: 1,
     seats: 1,
     lookupKey: null,
@@ -43,6 +47,8 @@ export const PLANS: Record<PlanKey, Plan> = {
     priceEurCents: 1900,
     maxDurationMinutes: 60,
     premium: false,
+    video: true,
+    thumbnailImages: true,
     channelPresets: 3,
     seats: 1,
     lookupKey: "plan_creator_monthly",
@@ -55,6 +61,8 @@ export const PLANS: Record<PlanKey, Plan> = {
     priceEurCents: 4900,
     maxDurationMinutes: 60,
     premium: false,
+    video: true,
+    thumbnailImages: true,
     channelPresets: 10,
     seats: 1,
     lookupKey: "plan_pro_monthly",
@@ -67,6 +75,8 @@ export const PLANS: Record<PlanKey, Plan> = {
     priceEurCents: 14900,
     maxDurationMinutes: 60,
     premium: true,
+    video: true,
+    thumbnailImages: true,
     channelPresets: 50,
     seats: 5,
     lookupKey: "plan_studio_monthly",

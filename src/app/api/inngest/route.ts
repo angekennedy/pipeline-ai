@@ -3,7 +3,14 @@ import { checkAlerts, reportAlerts } from "@/lib/admin/economics";
 import { releaseRegeneration, sweepStaleReservations } from "@/lib/billing/reservation";
 import { getStripe } from "@/lib/billing/stripe";
 import { stripeReader, syncStripeEvent } from "@/lib/billing/stripe-sync";
+import { getOpenAI } from "@/lib/ai/client";
+import { imageModel } from "@/lib/ai/models";
+import { serverEnv } from "@/lib/env/server";
 import { inngest } from "@/lib/jobs/client";
+import { shotstackEnv, videoAvailable } from "@/lib/media/config";
+import { ElevenLabsClient } from "@/lib/media/elevenlabs";
+import { ShotstackClient } from "@/lib/media/shotstack";
+import { supabaseMediaStorage } from "@/lib/media/storage";
 import { createMonitorEconomicsFunction } from "@/lib/jobs/functions/monitor-economics";
 import { createRegenerateAssetFunction } from "@/lib/jobs/functions/regenerate-asset";
 import { createRunPipelineFunction } from "@/lib/jobs/functions/run-pipeline";
@@ -22,10 +29,27 @@ export const maxDuration = 300;
 let admin: ReturnType<typeof createAdminClient> | undefined;
 const db = () => (admin ??= createAdminClient());
 
+const images = () => ({ openai: getOpenAI(), storage: supabaseMediaStorage(db()), model: imageModel() });
+
+// Vidéo : null tant que la voix ou le rendu ne sont pas configurés (media/config).
+const video = () => {
+  if (!videoAvailable()) return null;
+  const env = shotstackEnv();
+  return {
+    ...images(),
+    store: new SupabasePipelineStore(db()),
+    voice: new ElevenLabsClient(serverEnv.ELEVENLABS_API_KEY!),
+    render: new ShotstackClient(serverEnv.SHOTSTACK_API_KEY!, env),
+    config: { voiceId: serverEnv.ELEVENLABS_VOICE_ID!, voiceModel: serverEnv.ELEVENLABS_MODEL_ID, imageModel: imageModel(), sandbox: env === "stage" },
+  };
+};
+
 const deps: JobDeps = {
   store: () => new SupabasePipelineStore(db()),
   publisher: (pipelineId) => createBroadcastPublisher(db(), pipelineId),
   releaseRegeneration: (key) => releaseRegeneration(db(), key),
+  images,
+  video,
 };
 
 export const { GET, POST, PUT } = serve({

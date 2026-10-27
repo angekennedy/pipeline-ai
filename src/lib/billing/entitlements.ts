@@ -9,6 +9,7 @@ export type PlanRestriction =
   | { reason: "subscription_past_due"; plan: PlanKey }
   | { reason: "duration"; plan: PlanKey; limit: number }
   | { reason: "premium"; plan: PlanKey }
+  | { reason: "video"; plan: PlanKey }
   | { reason: "channel_presets"; plan: PlanKey; limit: number };
 
 // Refus d'une action par le plan : l'équivalent d'un 403, avec un message qui dit quoi faire.
@@ -40,6 +41,8 @@ export function restrictionMessage(restriction: PlanRestriction, t: Translator<"
       return t("duration", { plan, limit: restriction.limit, upgrade: upgradeFor((p) => p.maxDurationMinutes > restriction.limit) ?? "" });
     case "premium":
       return t("premium", { plan, upgrade: upgradeFor((p) => p.premium) ?? "" });
+    case "video":
+      return t("video", { plan, upgrade: upgradeFor((p) => p.video) ?? "" });
     case "channel_presets":
       return t("channel_presets", { plan, limit: restriction.limit });
   }
@@ -48,7 +51,7 @@ export function restrictionMessage(restriction: PlanRestriction, t: Translator<"
 // Restriction qui empêche de lancer ce pipeline, dans l'ordre où la base les vérifie.
 export function pipelineRestriction(
   planKey: PlanKey,
-  brief: Pick<Brief, "durationMinutes">,
+  brief: Pick<Brief, "durationMinutes" | "video">,
   tier: ModelTier,
   { pastDue = false }: { pastDue?: boolean } = {},
 ): PlanRestriction | null {
@@ -56,5 +59,6 @@ export function pipelineRestriction(
   if (pastDue) return { reason: "subscription_past_due", plan: planKey };
   if (brief.durationMinutes > plan.maxDurationMinutes) return { reason: "duration", plan: planKey, limit: plan.maxDurationMinutes };
   if (tier === "premium" && !plan.premium) return { reason: "premium", plan: planKey };
+  if (brief.video && !plan.video) return { reason: "video", plan: planKey };
   return null;
 }

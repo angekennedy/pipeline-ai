@@ -25,7 +25,8 @@ export default async function Home() {
   const { view, meta } = example(exampleId)!;
   const { script, titles, seo } = view.assets;
   const recommended = titles.content!.variants[titles.content!.recommendedIndex]!.title;
-  const tenMinutes = pipelineCredits({ durationMinutes: 10 }, "standard");
+  // Sur un plan payant, miniatures en images HD comprises.
+  const tenMinutes = pipelineCredits({ durationMinutes: 10, thumbnailImages: true }, "standard");
 
   const faq = FAQ.map((key) => ({ question: t(`faq.${key}.q`), answer: t(`faq.${key}.a`) }));
   const faqJsonLd = {

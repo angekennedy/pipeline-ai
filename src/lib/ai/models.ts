@@ -25,3 +25,6 @@ const OVERRIDES: Record<ModelKey, string | undefined> = {
 export function modelFor(key: ModelKey) {
   return { id: OVERRIDES[key] ?? DEFAULTS[key] };
 }
+
+// Images (miniatures, plans de la vidéo). gpt-image-1 a été retiré le 23 octobre 2026.
+export const imageModel = () => serverEnv.MODEL_IMAGE ?? "gpt-image-2";

@@ -1,4 +1,4 @@
-import { strToU8, zipSync } from "fflate";
+import { strToU8, Zip, ZipDeflate, ZipPassThrough, zipSync } from "fflate";
 import type { Translator } from "@/i18n/types";
 import type { PipelineView } from "@/lib/pipeline/view";
 import { scriptToSrt } from "./srt";
@@ -103,7 +103,8 @@ export function pipelineToSrt(view: PipelineView): string | null {
 const TEXT = "text/plain; charset=utf-8";
 
 // Contenu de l'archive : un fichier par usage, et un LISEZ-MOI avec le rappel de déclaration.
-export function exportBundle(view: PipelineView, t: Translator, exportedAt = new Date()): ExportFile[] {
+// `attached` : fichiers ajoutés à l'archive en plus de ceux-ci (médias), listés dans le LISEZ-MOI.
+export function exportBundle(view: PipelineView, t: Translator, exportedAt = new Date(), attached: string[] = []): ExportFile[] {
   const script = ready(view, "script");
   const titles = ready(view, "titles");
   const seo = ready(view, "seo");
@@ -124,8 +125,65 @@ export function exportBundle(view: PipelineView, t: Translator, exportedAt = new
     thumbnails ? { name: "miniatures.txt", type: TEXT, body: `${thumbnailsToText(thumbnails, titles, t)}\n` } : null,
   ];
   const present = files.filter((file): file is ExportFile => file !== null);
-  const readme = [view.brief.topic, "", aiDisclosure(t), "", t("Export.files"), ...present.map((file) => `- ${file.name}`), ""].join("\n");
+  const readme = [view.brief.topic, "", aiDisclosure(t), "", t("Export.files"), ...[...present.map((file) => file.name), ...attached].map((name) => `- ${name}`), ""].join("\n");
   return [{ name: "LISEZ-MOI.txt", type: TEXT, body: readme }, ...present];
+}
+
+// Médias joints à l'archive : images des miniatures et, quand la vidéo est prête, ce qui a servi à la
+// monter. Le MP4 reste un lien : trop lourd pour l'archive, il est hébergé par Shotstack.
+export type MediaEntry = { name: string; path: string };
+
+const pad = (n: number, width: number) => String(n).padStart(width, "0");
+
+export function mediaEntries(view: PipelineView): MediaEntry[] {
+  const thumbnails = ready(view, "thumbnails");
+  const video = view.video?.status === "ready" ? view.video.content : null;
+  return [
+    ...(thumbnails?.concepts ?? []).flatMap((concept, i) => (concept.imagePath ? [{ name: `miniatures/miniature-${i + 1}.jpg`, path: concept.imagePath }] : [])),
+    ...(video
+      ? [
+          { name: "video/sous-titres-video.srt", path: video.captionsPath },
+          ...video.voice.map((voice) => ({ name: `video/voix-off/scene-${pad(voice.sceneIndex, 2)}.mp3`, path: voice.path })),
+          ...video.shots.map((shot, i) => ({ name: `video/images/plan-${pad(i + 1, 3)}.jpg`, path: shot.imagePath })),
+        ]
+      : []),
+  ];
+}
+
+// Archive en flux, pour les pipelines avec médias : chaque média est lu puis écrit à son tour, sans
+// tout garder en mémoire. Images et MP3, déjà compressés, sont stockés tels quels.
+export function pipelineToZipStream(
+  view: PipelineView,
+  t: Translator,
+  readMedia: (path: string) => Promise<Uint8Array>,
+  exportedAt = new Date(),
+): ReadableStream<Uint8Array> {
+  const media = mediaEntries(view);
+  const video = view.video?.status === "ready" ? view.video.content : null;
+  const extra: ExportFile[] = video ? [{ name: "video/lien-video.txt", type: TEXT, body: `${t("Export.videoLink", { url: video.url })}\n` }] : [];
+  const files = exportBundle(view, t, exportedAt, [...extra.map((file) => file.name), ...media.map((entry) => entry.name)]);
+  return new ReadableStream({
+    async start(controller) {
+      const zip = new Zip((error, chunk, final) => {
+        if (error) return controller.error(error);
+        controller.enqueue(chunk);
+        if (final) controller.close();
+      });
+      const add = (name: string, data: Uint8Array, compress: boolean) => {
+        const entry = compress ? new ZipDeflate(name, { level: 6 }) : new ZipPassThrough(name);
+        entry.mtime = exportedAt;
+        zip.add(entry);
+        entry.push(data, true);
+      };
+      try {
+        for (const file of [...files, ...extra]) add(file.name, typeof file.body === "string" ? strToU8(file.body) : file.body, true);
+        for (const entry of media) add(entry.name, await readMedia(entry.path), entry.name.endsWith(".srt"));
+        zip.end();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+  });
 }
 
 export function pipelineToZip(view: PipelineView, t: Translator, exportedAt = new Date()): Uint8Array {

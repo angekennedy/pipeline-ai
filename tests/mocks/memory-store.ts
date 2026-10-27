@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import type { AssetType } from "@/lib/ai/schemas";
 import type {
   CommitInput,
   GenerationFailure,
@@ -9,13 +8,14 @@ import type {
   PipelineStatus,
   PipelineStore,
   SourceVersions,
+  StoredAssetType,
   StoredVersion,
   VersionSource,
 } from "@/lib/pipeline/store";
 
 type Generation = GenerationRecord & {
   pipelineId: string;
-  assetType: AssetType;
+  assetType: StoredAssetType;
   credits: number;
   userFeedback?: string;
   telemetry?: GenerationTelemetry;
@@ -24,7 +24,7 @@ type Generation = GenerationRecord & {
 
 type Version = StoredVersion & {
   pipelineId: string;
-  assetType: AssetType;
+  assetType: StoredAssetType;
   schemaVersion: string;
   generationId: string | null;
   createdBy: string | null;
@@ -48,7 +48,7 @@ export class MemoryPipelineStore implements PipelineStore {
   // Version déjà présente (par exemple un script), sans passer par generateAsset.
   seedVersion(
     pipelineId: string,
-    assetType: AssetType,
+    assetType: StoredAssetType,
     content: unknown,
     { source = "ai", sourceVersions = {} }: { source?: VersionSource; sourceVersions?: SourceVersions } = {},
   ): string {
@@ -93,13 +93,13 @@ export class MemoryPipelineStore implements PipelineStore {
     return structuredClone(pipeline);
   }
 
-  async getCurrentVersion(pipelineId: string, assetType: AssetType) {
+  async getCurrentVersion(pipelineId: string, assetType: StoredAssetType) {
     const id = this.current.get(`${pipelineId}:${assetType}`);
     const version = this.versions.find((v) => v.id === id);
     return version ? this.toStored(version) : null;
   }
 
-  async listVersions(pipelineId: string, assetType: AssetType) {
+  async listVersions(pipelineId: string, assetType: StoredAssetType) {
     return this.versions
       .filter((v) => v.pipelineId === pipelineId && v.assetType === assetType)
       .sort((a, b) => b.version - a.version)
@@ -111,7 +111,7 @@ export class MemoryPipelineStore implements PipelineStore {
     return version ? { ...this.toStored(version), pipelineId: version.pipelineId, assetType: version.assetType } : null;
   }
 
-  async upsertGeneration(input: { pipelineId: string; assetType: AssetType; idempotencyKey: string; credits: number; userFeedback?: string }) {
+  async upsertGeneration(input: { pipelineId: string; assetType: StoredAssetType; idempotencyKey: string; credits: number; userFeedback?: string }) {
     const existing = this.generations.get(input.idempotencyKey);
     if (existing) return { ...existing };
     const generation: Generation = { ...input, id: randomUUID(), status: "queued", attempt: 0, versionId: null };
@@ -132,6 +132,12 @@ export class MemoryPipelineStore implements PipelineStore {
 
   async markFailed(generationId: string, failure: GenerationFailure) {
     Object.assign(this.byId(generationId), { status: "failed", failure });
+  }
+
+  readonly touches: string[] = []; // bails repoussés (générations longues)
+  async touchGeneration(generationId: string) {
+    this.touches.push(generationId);
+    return this.byId(generationId).status === "running";
   }
 
   async setPipelineStatus(pipelineId: string, status: PipelineStatus) {

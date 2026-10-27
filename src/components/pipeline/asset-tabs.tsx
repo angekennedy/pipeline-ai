@@ -109,7 +109,11 @@ function ReadyAsset({ view, type }: { view: PipelineView; type: AssetType }) {
     case "voiceover":
       return assets.voiceover.content && <VoiceoverPanel voiceover={assets.voiceover.content} />;
     case "thumbnails":
-      return assets.thumbnails.content && <ThumbnailsPanel thumbnails={assets.thumbnails.content} titles={assets.titles.content} durationMinutes={view.brief.durationMinutes} />;
+      return (
+        assets.thumbnails.content && (
+          <ThumbnailsPanel thumbnails={assets.thumbnails.content} titles={assets.titles.content} durationMinutes={view.brief.durationMinutes} media={view.media} />
+        )
+      );
   }
 }
 

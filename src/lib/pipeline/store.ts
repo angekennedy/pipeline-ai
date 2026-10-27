@@ -16,6 +16,10 @@ export type PipelineRecord = {
 
 export type { PipelineStatus } from "./status";
 
+// Assets stockés en base : les cinq assets texte du registre, plus la vidéo MP4 (lib/video), qui a
+// son propre déroulé en plusieurs étapes mais le même cycle de génération, de version et de crédits.
+export type StoredAssetType = AssetType | "video";
+
 export type GenerationStatus = "queued" | "running" | "succeeded" | "failed";
 
 export type GenerationRecord = {
@@ -57,7 +61,7 @@ export type GenerationTelemetry = {
 
 export type CommitInput = {
   pipelineId: string;
-  assetType: AssetType;
+  assetType: StoredAssetType;
   content: unknown;
   schemaVersion: string;
   source: VersionSource;
@@ -86,13 +90,13 @@ export class GenerationInProgressError extends Error {
 
 export interface PipelineStore {
   getPipeline(pipelineId: string): Promise<PipelineRecord>;
-  getCurrentVersion(pipelineId: string, assetType: AssetType): Promise<StoredVersion | null>;
+  getCurrentVersion(pipelineId: string, assetType: StoredAssetType): Promise<StoredVersion | null>;
   listVersions(pipelineId: string, assetType: AssetType): Promise<StoredVersion[]>; // la plus récente d'abord
-  getVersion(versionId: string): Promise<(StoredVersion & { pipelineId: string; assetType: AssetType }) | null>;
+  getVersion(versionId: string): Promise<(StoredVersion & { pipelineId: string; assetType: StoredAssetType }) | null>;
   // Crée la génération, ou renvoie celle qui porte déjà cette clé (`unique(idempotency_key)`).
   upsertGeneration(input: {
     pipelineId: string;
-    assetType: AssetType;
+    assetType: StoredAssetType;
     idempotencyKey: string;
     credits: number;
     userFeedback?: string; // consigne de régénération (`generations.user_feedback`, non fiable)
@@ -103,5 +107,7 @@ export interface PipelineStore {
   // et sa télémétrie. Renvoie l'id de la version créée.
   commitAssetVersion(input: CommitInput): Promise<string>;
   markFailed(generationId: string, failure: GenerationFailure): Promise<void>;
+  // Génération longue (vidéo) : repousse le bail entre deux étapes. false si elle n'est plus en cours.
+  touchGeneration(generationId: string): Promise<boolean>;
   setPipelineStatus(pipelineId: string, status: PipelineStatus): Promise<void>;
 }

@@ -24,6 +24,13 @@ describe("pipelineRestriction", () => {
   it("vérifie la durée avant le palier, comme la base", () => {
     expect(pipelineRestriction("free", minutes(30), "premium")?.reason).toBe("duration");
   });
+
+  it("réserve la vidéo aux plans payants, après la durée et le palier", () => {
+    expect(pipelineRestriction("free", { durationMinutes: 3, video: true }, "standard")).toEqual({ reason: "video", plan: "free" });
+    expect(pipelineRestriction("free", { durationMinutes: 3, video: false }, "standard")).toBeNull();
+    expect(pipelineRestriction("creator", { durationMinutes: 60, video: true }, "standard")).toBeNull();
+    expect(pipelineRestriction("free", { durationMinutes: 30, video: true }, "standard")?.reason).toBe("duration");
+  });
 });
 
 describe("messages de refus", () => {
@@ -35,6 +42,9 @@ describe("messages de refus", () => {
       "Le plan Free est limité à 1 preset de chaîne. Supprimez-en un, ou passez à un plan supérieur.",
     );
     expect(restrictionMessage({ reason: "subscription_past_due", plan: "pro" }, restrictionFr)).toMatch(/paiement .* a échoué.*restent consultables/);
+    expect(restrictionMessage({ reason: "video", plan: "free" }, restrictionFr)).toBe(
+      "La vidéo complète n'est pas incluse dans le plan Free. Décochez l'option vidéo, ou passez au plan Creator.",
+    );
   });
 
   it("porte le statut 403 et le code PLAN_RESTRICTED, avec un message technique", () => {

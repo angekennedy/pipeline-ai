@@ -41,6 +41,12 @@ describe("parseBriefForm", () => {
     expect(result).toMatchObject({ ok: true, tier: "premium", brief: { targetAudience: "Lycéens", extraNotes: "Pas de théorie extraterrestre" } });
   });
 
+  it("lit la case vidéo : cochée, elle demande la vidéo ; absente, rien", () => {
+    expect(parseBriefForm(form({ ...valid, video: "on" }))).toMatchObject({ ok: true, brief: { video: true } });
+    const without = parseBriefForm(form(valid));
+    expect(without.ok && "video" in without.brief && without.brief.video !== undefined).toBe(false);
+  });
+
   it("utilise la formule standard par défaut", () => {
     const data = form(valid);
     data.delete("tier");
@@ -89,7 +95,7 @@ describe("parseBriefForm", () => {
     const parsed = parseBriefForm(form({ ...valid, targetAudience: "Curieux", tier: "premium" }));
     if (!parsed.ok) throw new Error("brief invalide");
     const values = briefToFormValues(parsed.brief, parsed.tier);
-    expect(values).toEqual({ ...valid, targetAudience: "Curieux", tier: "premium", channelId: "" });
+    expect(values).toEqual({ ...valid, targetAudience: "Curieux", tier: "premium", channelId: "", video: "" });
     expect(parseBriefForm(form(values as Record<string, string>))).toMatchObject({ ok: true, brief: parsed.brief, tier: "premium" });
   });
 });

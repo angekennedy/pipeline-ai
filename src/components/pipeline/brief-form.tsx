@@ -7,6 +7,7 @@ import { createPipeline, type CreatePipelineState } from "@/app/(app)/w/[workspa
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
 import type { CreditSummary } from "@/lib/billing/balance";
 import { restrictionMessage } from "@/lib/billing/entitlements";
+import { VIDEO_CREDITS_PER_MINUTE } from "@/lib/billing/credit-rules";
 import { PLANS, PLAN_KEYS } from "@/lib/billing/plans";
 import { briefPrefill, type ChannelOption } from "@/lib/channels/form";
 import type { BriefFormField, BriefFormValues } from "@/lib/pipeline/brief-form";
@@ -25,6 +26,8 @@ const SELECT_CLASS =
 
 // Premier plan qui inclut le script Premium, nommé à côté de l'option quand elle est grisée.
 const PREMIUM_PLAN = PLAN_KEYS.map((key) => PLANS[key]).find((plan) => plan.premium)?.name;
+// Premier plan qui inclut la vidéo, même usage.
+const VIDEO_PLAN = PLAN_KEYS.map((key) => PLANS[key]).find((plan) => plan.video)?.name;
 
 function Field({
   name,
@@ -61,6 +64,7 @@ function Field({
 // `initialValues` préremplit le formulaire (duplication d'un brief depuis le tableau de bord).
 // `channels` : presets du workspace ; en choisir un préremplit le brief.
 // `showSamples` : briefs d'exemple en un clic (onboarding, tâche 5.4), pour un formulaire vierge.
+// `videoAvailable` : voix et rendu vidéo configurés sur le serveur (media/config).
 export function BriefForm({
   workspaceSlug,
   credits,
@@ -68,6 +72,7 @@ export function BriefForm({
   initialValues = {},
   channels = [],
   showSamples = false,
+  videoAvailable = false,
 }: {
   workspaceSlug: string;
   credits: CreditSummary;
@@ -75,6 +80,7 @@ export function BriefForm({
   initialValues?: BriefFormValues;
   channels?: ChannelOption[];
   showSamples?: boolean;
+  videoAvailable?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<CreatePipelineState, FormData>(createPipeline, { fieldErrors: {}, values: initialValues });
   const t = useTranslations("BriefForm");
@@ -90,12 +96,16 @@ export function BriefForm({
   const plan = PLANS[credits.planKey];
   // Premium n'est retenu que si le plan l'inclut : l'option grisée ne serait pas envoyée.
   const tierOf = (input: BriefFormValues): ModelTier => (input.tier === "premium" && plan.premium ? "premium" : "standard");
+  // Même règle pour la vidéo : la case grisée ne serait pas envoyée.
+  const canVideo = plan.video && videoAvailable;
+  const videoOf = (input: BriefFormValues) => canVideo && input.video === "on";
 
   // Durée et formule suivies en direct pour afficher le coût. Chaque réponse de la Server Action
   // réinitialise le formulaire avec la saisie renvoyée : on s'y recale, et le modal s'ouvre si la
   // réservation a échoué faute de crédits.
   const [duration, setDuration] = useState(values.durationMinutes ?? "8");
   const [tier, setTier] = useState<ModelTier>(tierOf(values));
+  const [video, setVideo] = useState(videoOf(values));
   const [dialogOpen, setDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -106,10 +116,12 @@ export function BriefForm({
     if (!form) return;
     for (const [field, value] of Object.entries(input)) {
       const element = form.elements.namedItem(field);
-      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement || element instanceof RadioNodeList) element.value = value ?? "";
+      if (element instanceof HTMLInputElement && element.type === "checkbox") element.checked = value === "on";
+      else if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement || element instanceof RadioNodeList) element.value = value ?? "";
     }
     if (input.durationMinutes) setDuration(input.durationMinutes);
     if (input.tier) setTier(tierOf(input));
+    if (input.video !== undefined) setVideo(videoOf(input));
   }
   function applyPreset(channelId: string) {
     const option = channels.find((channel) => channel.id === channelId);
@@ -125,6 +137,7 @@ export function BriefForm({
     setAnswered(state);
     setDuration(values.durationMinutes ?? "8");
     setTier(tierOf(values));
+    setVideo(videoOf(values));
     setDialogOpen(Boolean(state.insufficient));
   }
 
@@ -276,6 +289,33 @@ export function BriefForm({
         {errors.tier && <p className="text-sm text-destructive">{errors.tier}</p>}
       </fieldset>
 
+      <fieldset className="grid gap-1.5">
+        <legend className="mb-1 text-sm font-medium">{t("video")}</legend>
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="video"
+            value="on"
+            className="mt-0.5"
+            defaultChecked={videoOf(values)}
+            disabled={!canVideo}
+            onChange={(event) => setVideo(event.target.checked)}
+            aria-describedby="video-hint"
+          />
+          <span>
+            {t("videoOption")}
+            {!plan.video ? (
+              <span className="ml-1 text-muted-foreground">{t("videoPlan", { plan: VIDEO_PLAN ?? "" })}</span>
+            ) : (
+              !videoAvailable && <span className="ml-1 text-muted-foreground">{t("videoUnavailable")}</span>
+            )}
+          </span>
+        </label>
+        <p id="video-hint" className="text-xs text-muted-foreground">
+          {t("videoHint", { credits: VIDEO_CREDITS_PER_MINUTE })}
+        </p>
+      </fieldset>
+
       {state.launchError && (
         <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
           {t("launchError")}
@@ -303,7 +343,7 @@ export function BriefForm({
         </div>
       )}
 
-      <CostEstimate durationMinutes={Number(duration.trim() || Number.NaN)} tier={tier} available={credits.available} />
+      <CostEstimate durationMinutes={Number(duration.trim() || Number.NaN)} tier={tier} video={video} thumbnailImages={plan.thumbnailImages} available={credits.available} />
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>

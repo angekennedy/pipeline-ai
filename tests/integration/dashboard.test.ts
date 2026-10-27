@@ -99,6 +99,7 @@ describe("duplication d'un brief", () => {
         extraNotes: "",
         tier: "premium",
         channelId: "",
+        video: "",
       },
     });
   });

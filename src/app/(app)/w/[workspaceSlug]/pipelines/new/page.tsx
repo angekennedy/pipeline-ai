@@ -5,6 +5,7 @@ import type { Language } from "@/lib/ai/schemas";
 import { z } from "zod";
 import { BriefForm } from "@/components/pipeline/brief-form";
 import { channelOption } from "@/lib/channels/form";
+import { videoAvailable } from "@/lib/media/config";
 import { listChannels } from "@/lib/channels/store";
 import { loadBriefValues } from "@/lib/pipeline/list";
 import { isSampleBrief, sampleBriefValues } from "@/lib/pipeline/sample-briefs";
@@ -64,6 +65,7 @@ export default async function NewPipelinePage({ params, searchParams }: PageProp
             initialValues={source?.values ?? sample ?? undefined}
             channels={channels.map(channelOption)}
             showSamples={!source && !sample}
+            videoAvailable={videoAvailable()}
           />
         </>
       ) : (

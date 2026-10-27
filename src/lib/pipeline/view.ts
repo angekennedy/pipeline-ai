@@ -2,6 +2,7 @@ import { ASSET_TYPES, type AssetType, type Brief } from "@/lib/ai/schemas";
 import type { PipelineLiveState } from "@/lib/realtime/pipeline-state";
 import type { AssetContent, ModelTier } from "./registry";
 import type { PipelineStatus } from "./status";
+import type { VideoManifest } from "@/lib/video/manifest";
 import type { VersionSource } from "./store";
 
 // Pipeline tel que la page le lit en base : version courante de chaque asset, ou son état.
@@ -20,6 +21,13 @@ export type AssetView<K extends AssetType> = {
 
 export type PipelineAssets = { [K in AssetType]: AssetView<K> };
 
+// Vidéo MP4, quand le brief la demande : pas d'historique ni d'édition, une version par pipeline.
+export type VideoView = {
+  status: AssetViewStatus;
+  content: VideoManifest | null; // renseigné quand status = ready
+  error: { code: string } | null;
+};
+
 export type PipelineView = {
   id: string;
   brief: Brief;
@@ -29,6 +37,9 @@ export type PipelineView = {
   assets: PipelineAssets;
   staleCredits: number; // coût de « Régénérer les dérivés » obsolètes, 0 s'il n'y en a pas
   channelName?: string; // preset de chaîne figé au lancement (`channel_snapshot`)
+  video?: VideoView;
+  // Liens signés (1 h) des médias affichés, par chemin dans le stockage : images des miniatures.
+  media?: Record<string, string>;
 };
 
 const mapAssets = (fn: (type: AssetType) => AssetView<AssetType>) =>

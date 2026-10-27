@@ -4,7 +4,8 @@ import { Check } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { PRICE } from "@/i18n/format";
 import { ASSET_TYPES } from "@/lib/ai/schemas";
-import { assetCredits, pipelineCredits } from "@/lib/billing/costs";
+import { assetCredits, pipelineCredits, videoCredits } from "@/lib/billing/costs";
+import { VIDEO_CREDITS_PER_MINUTE } from "@/lib/billing/credit-rules";
 import { CREDIT_PACKS, PLAN_KEYS, PLANS, type Plan } from "@/lib/billing/plans";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -13,21 +14,23 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Grille de crédits (ARCHITECTURE §5.1), en clair : la formule de chaque asset (Pricing.rule) et
-// quelques exemples.
-const TEN_MINUTES = pipelineCredits({ durationMinutes: 10 }, "standard");
+// quelques exemples, sur un plan payant (miniatures en images HD).
+const PAID = { thumbnailImages: true } as const;
+const tenMinutes = (plan: Plan) => pipelineCredits({ durationMinutes: 10, thumbnailImages: plan.thumbnailImages }, "standard");
 const EXAMPLES = [
-  { key: "tenStandard", credits: TEN_MINUTES },
-  { key: "tenPremium", credits: pipelineCredits({ durationMinutes: 10 }, "premium") },
-  { key: "thirtyStandard", credits: pipelineCredits({ durationMinutes: 30 }, "standard") },
+  { key: "tenStandard", credits: pipelineCredits({ durationMinutes: 10, ...PAID }, "standard") },
+  { key: "tenPremium", credits: pipelineCredits({ durationMinutes: 10, ...PAID }, "premium") },
+  { key: "thirtyStandard", credits: pipelineCredits({ durationMinutes: 30, ...PAID }, "standard") },
 ] as const;
 
 export default async function PricingPage() {
   const [t, all, format] = await Promise.all([getTranslations("Pricing"), getTranslations(), getFormatter()]);
   const credits = (count: number) => all("Common.credits", { count });
   const features = (plan: Plan) => [
-    t("feature.videos", { count: Math.floor(plan.credits / TEN_MINUTES) }),
+    t("feature.videos", { count: Math.floor(plan.credits / tenMinutes(plan)) }),
     t("feature.duration", { max: plan.maxDurationMinutes }),
     plan.premium ? t("feature.premium") : t("feature.standard"),
+    ...(plan.video ? [t("feature.media")] : []),
     t("feature.presets", { count: plan.channelPresets }),
     t("feature.seats", { count: plan.seats }),
   ];
@@ -118,9 +121,16 @@ export default async function PricingPage() {
                   {all(`Labels.assets.${type}`)}
                 </th>
                 <td className="py-2">{t(`rule.${type}`)}</td>
-                <td className="py-2 text-right tabular-nums">{assetCredits({ durationMinutes: 10 }, "standard")[type]}</td>
+                <td className="py-2 text-right tabular-nums">{assetCredits({ durationMinutes: 10, ...PAID }, "standard")[type]}</td>
               </tr>
             ))}
+            <tr className="border-t">
+              <th scope="row" className="py-2 text-left font-normal">
+                {all("Labels.assets.video")}
+              </th>
+              <td className="py-2">{t("rule.video", { credits: VIDEO_CREDITS_PER_MINUTE })}</td>
+              <td className="py-2 text-right tabular-nums">{videoCredits({ durationMinutes: 10, video: true })}</td>
+            </tr>
           </tbody>
         </table>
         <ul className="mt-4 grid gap-1 text-sm text-muted-foreground">
