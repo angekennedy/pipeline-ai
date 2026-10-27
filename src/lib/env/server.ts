@@ -5,7 +5,15 @@ import { z } from "zod";
 const ServerEnvSchema = z
   .object({
     SUPABASE_SECRET_KEY: z.string().min(1),
-    OPENAI_API_KEY: z.string().min(1),
+    // Envoyée dans l'en-tête `authorization`, qui n'accepte que du Latin-1 : une apostrophe courbe
+    // collée depuis un éditeur ferait échouer chaque appel. Espaces de bord retirés, ASCII imprimable
+    // exigé. Le message d'erreur ne reprend jamais la valeur.
+    OPENAI_API_KEY: z
+      .string()
+      .trim()
+      .min(1)
+      // i18n-ignore : message de démarrage, lu dans les logs de build, jamais affiché aux utilisateurs.
+      .regex(/^[\x21-\x7E]+$/, "Caractère invalide (apostrophe courbe, espace ou caractère accentué ?) : recopiez la clé depuis platform.openai.com"),
     // Surcharges facultatives des modèles par défaut de src/lib/ai/models.ts.
     MODEL_SCRIPT_STANDARD: z.string().min(1).optional(),
     MODEL_SCRIPT_PREMIUM: z.string().min(1).optional(),

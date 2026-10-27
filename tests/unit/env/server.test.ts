@@ -17,6 +17,24 @@ describe("serverEnv", () => {
     });
   });
 
+  it("retire les espaces autour de OPENAI_API_KEY", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "  sk-proj-test\n");
+    await expect(loadServerEnv()).resolves.toMatchObject({ OPENAI_API_KEY: "sk-proj-test" });
+  });
+
+  it.each([
+    ["une apostrophe courbe", "sk-proj-ab’cd"],
+    ["un espace interne", "sk-proj-ab cd"],
+    ["un caractère accentué", "sk-proj-abécd"],
+  ])("refuse une OPENAI_API_KEY avec %s, sans afficher la valeur", async (_, value) => {
+    vi.stubEnv("OPENAI_API_KEY", value);
+    const error = await loadServerEnv().catch((e: Error) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/OPENAI_API_KEY/);
+    expect((error as Error).message).toMatch(/Caractère invalide/);
+    expect((error as Error).message).not.toContain(value);
+  });
+
   it("laisse les surcharges de modèles facultatives", async () => {
     const env = await loadServerEnv();
     expect(env.MODEL_SCRIPT_STANDARD).toBeUndefined();
