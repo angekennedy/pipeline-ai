@@ -20,7 +20,7 @@ export function createRunPipelineFunction({ store, anthropic, publisher }: JobDe
       id: "run-pipeline",
       triggers: [pipelineRequested],
       idempotency: "event.data.pipelineId", // un double envoi ne lance qu'une exécution
-      concurrency: [{ key: "event.data.workspaceId", limit: 2 }, { limit: 50 }], // équité, puis plafond global
+      concurrency: [{ key: "event.data.workspaceId", limit: 2 }, { limit: 5 }], // équité, puis plafond global (limite du plan Inngest)
       retries: 3,
       cancelOn: [{ event: pipelineCanceled.name, match: "data.pipelineId" }],
       onFailure: markPipelineFailed(store),
