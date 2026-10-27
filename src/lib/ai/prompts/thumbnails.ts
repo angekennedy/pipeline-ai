@@ -19,7 +19,7 @@ function requireTitles(ctx: PromptContext): Titles {
 }
 
 export const thumbnailsPrompt = definePrompt({
-  version: "thumbnails@3",
+  version: "thumbnails@4",
   instructions: INSTRUCTIONS,
   context: (ctx) => [
     ...withScript(ctx),

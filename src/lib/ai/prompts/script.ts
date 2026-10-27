@@ -45,7 +45,7 @@ const INSTRUCTIONS = `You are an experienced scriptwriter for faceless YouTube c
 {"index":1,"purpose":"hook","title":"The impossible block","narration":"Two and a half tons. That is the weight of a single block, lifted nearly 150 metres high, without a single pulley.","visualDirection":"Slow drone push-in on the Great Pyramid at sunrise, then a close-up of a weathered limestone block.","bRollKeywords":["great pyramid","drone","limestone block"],"onScreenText":"2.5 tons","estimatedSeconds":10}`;
 
 export const scriptPrompt = definePrompt({
-  version: "script@2",
+  version: "script@3",
   instructions: INSTRUCTIONS,
   context: channelAndBrief,
   task(ctx) {

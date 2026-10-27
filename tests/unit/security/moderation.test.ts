@@ -3,7 +3,7 @@ import type { Brief } from "@/lib/ai/schemas";
 import { LlmRefusalError } from "@/lib/ai/structured";
 import { validBrief } from "../../fixtures/assets";
 
-// Aucun appel réel : la vérification par Haiku passe par un `callStructured` simulé.
+// Aucun appel réel : la vérification par le modèle passe par un `callStructured` simulé.
 const callStructured = vi.fn();
 vi.mock("@/lib/ai/structured", async (original) => ({
   ...(await original<typeof import("@/lib/ai/structured")>()),
@@ -62,7 +62,7 @@ describe("moderateBrief", () => {
     expect(callStructured).not.toHaveBeenCalled();
   });
 
-  it("fait trancher Haiku quand un mot-clé apparaît : un sujet historique passe", async () => {
+  it("fait trancher le modèle léger quand un mot-clé apparaît : un sujet historique passe", async () => {
     const history = brief({ topic: "La montée du nazisme en Allemagne, 1920-1933" });
     expect(await moderateBrief(history)).toEqual({ allowed: true });
     expect(callStructured).toHaveBeenCalledOnce();
@@ -73,7 +73,7 @@ describe("moderateBrief", () => {
     expect(request.messages[0]!.content).toMatch(/^<brief>\n[\s\S]*La montée du nazisme[\s\S]*\n<\/brief>$/);
   });
 
-  it("refuse avec la catégorie donnée par Haiku, ou celle du mot-clé à défaut", async () => {
+  it("refuse avec la catégorie donnée par le modèle, ou celle du mot-clé à défaut", async () => {
     callStructured.mockResolvedValueOnce({ data: { allowed: false, category: "sexual" } });
     expect(await moderateBrief(brief({ topic: "Les meilleurs sites porn" }))).toEqual({ allowed: false, category: "sexual" });
     callStructured.mockResolvedValueOnce({ data: { allowed: false, category: "none" } });

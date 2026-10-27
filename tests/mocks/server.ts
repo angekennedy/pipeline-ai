@@ -1,4 +1,4 @@
 import { setupServer } from "msw/node";
-import { anthropicHandlers } from "./anthropic";
+import { openaiHandlers } from "./openai";
 
-export const server = setupServer(...anthropicHandlers);
+export const server = setupServer(...openaiHandlers);

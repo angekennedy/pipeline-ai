@@ -1,17 +1,17 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { OpenAIClient } from "@/lib/ai/openai";
 import { InngestTestEngine } from "@inngest/test";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Brief } from "@/lib/ai/schemas";
 import { createRegenerateAssetFunction } from "@/lib/jobs/functions/regenerate-asset";
 import type { PipelineEvent } from "@/lib/realtime/events";
-import { anthropicSequence, jsonReplyStream, refusalStream } from "../../mocks/anthropic";
+import { openaiSequence, jsonReplyStream, refusalStream } from "../../mocks/openai";
 import { MemoryPipelineStore } from "../../mocks/memory-store";
 import { server } from "../../mocks/server";
 import { validBrief, validScript, validSeo, validThumbnails, validTitles, validVoiceover } from "../../fixtures/assets";
 
 const PIPELINE_ID = "7d0e6f4a-3c1b-4e8a-9f2d-5b6c7a8e9f01";
 const WORKSPACE_ID = "1f2e3d4c-5b6a-4987-8a1b-2c3d4e5f6a7b";
-const client = new Anthropic({ apiKey: "test-key", maxRetries: 0 });
+const client = new OpenAIClient({ apiKey: "test-key", maxRetries: 0 });
 
 let store: MemoryPipelineStore;
 let events: PipelineEvent[];
@@ -28,7 +28,7 @@ beforeEach(() => {
 });
 
 const createFn = () =>
-  createRegenerateAssetFunction({ store: () => store, anthropic: client, publisher: () => async (event) => void events.push(event) });
+  createRegenerateAssetFunction({ store: () => store, openai: client, publisher: () => async (event) => void events.push(event) });
 
 const run = (data: Record<string, unknown>) =>
   new InngestTestEngine({
@@ -37,14 +37,14 @@ const run = (data: Record<string, unknown>) =>
   }).execute();
 
 function mock(...replies: Array<() => Response>) {
-  const sequence = anthropicSequence(...replies);
+  const sequence = openaiSequence(...replies);
   server.use(sequence.handler);
   return sequence.calls;
 }
 
 describe("fonction Inngest regenerate-asset", () => {
   it("régénère l'asset demandé et renvoie les assets devenus obsolètes", async () => {
-    mock(() => jsonReplyStream(validTitles, { model: "claude-haiku-5-5" }));
+    mock(() => jsonReplyStream(validTitles, { model: "gpt-4o-mini-2024-07-18" }));
     const { result } = await run({ assetType: "titles", regenerationKey: "regen:abcdef12", feedback: "Plus courts" });
 
     expect(result).toEqual({ versionIds: [expect.any(String)], stale: ["thumbnails"] });
@@ -85,8 +85,8 @@ describe("fonction Inngest regenerate-asset", () => {
 describe("régénération des dérivés", () => {
   it("régénère les titres puis les miniatures, qui partent des nouveaux titres", async () => {
     const calls = mock(
-      () => jsonReplyStream({ ...validTitles, variants: validTitles.variants.map((v) => ({ ...v, title: `${v.title} (v2)` })) }, { model: "claude-haiku-5-5" }),
-      () => jsonReplyStream(validThumbnails, { model: "claude-haiku-5-5" }),
+      () => jsonReplyStream({ ...validTitles, variants: validTitles.variants.map((v) => ({ ...v, title: `${v.title} (v2)` })) }, { model: "gpt-4o-mini-2024-07-18" }),
+      () => jsonReplyStream(validThumbnails, { model: "gpt-4o-mini-2024-07-18" }),
     );
     const { result } = await run({
       assetType: "titles",

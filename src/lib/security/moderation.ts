@@ -5,7 +5,7 @@ import { callStructured, LlmRefusalError } from "@/lib/ai/structured";
 import { renderUntrusted } from "./untrusted";
 
 // Modération du brief avant tout débit (ARCHITECTURE §6) : des listes de mots-clés par niche
-// refusée, puis, seulement si l'un d'eux apparaît, une vérification légère par Haiku. Un brief sans
+// refusée, puis, seulement si l'un d'eux apparaît, une vérification légère par gpt-4o-mini. Un brief sans
 // mot-clé ne coûte aucun appel. Le mot-clé seul ne suffit pas à refuser : une chaîne d'histoire
 // parle de nazisme, une chaîne santé de vaccins.
 
@@ -15,7 +15,7 @@ export type ModerationCategory = (typeof MODERATION_CATEGORIES)[number];
 // Formes sans accents et en minuscules, en français et en anglais. Un mot-clé correspond au début
 // d'un mot : « terroris » couvre terrorisme, terroriste, terrorism. Un espace ou un tiret du
 // mot-clé est facultatif : « anti-vax » couvre aussi antivax et anti vax. Un mot-clé de trop ne coûte qu'un
-// appel à Haiku, un mot-clé manquant laisse passer le brief sans vérification : la liste est large.
+// appel léger, un mot-clé manquant laisse passer le brief sans vérification : la liste est large.
 const KEYWORDS: Record<ModerationCategory, string[]> = {
   medical_misinformation: [
     "anti-vax", "anti-vaccin", "vaccin", "vaccine", "autism", "cancer",
@@ -81,7 +81,7 @@ export class ModerationUnavailableError extends Error {
 
 export type Classify = (brief: Brief) => Promise<Verdict>;
 
-const classifyWithHaiku: Classify = async (brief) => {
+const classifyWithModel: Classify = async (brief) => {
   const { data } = await callStructured({
     modelKey: "light",
     system: SYSTEM,
@@ -97,14 +97,14 @@ const classifyWithHaiku: Classify = async (brief) => {
   return data;
 };
 
-export async function moderateBrief(brief: Brief, { classify = classifyWithHaiku }: { classify?: Classify } = {}): Promise<ModerationVerdict> {
+export async function moderateBrief(brief: Brief, { classify = classifyWithModel }: { classify?: Classify } = {}): Promise<ModerationVerdict> {
   const flagged = flaggedCategories(brief);
   if (flagged.length === 0) return { allowed: true };
   let verdict: Verdict;
   try {
     verdict = await classify(brief);
   } catch (error) {
-    // Les classifieurs de sécurité de l'API refusent eux-mêmes certains briefs : c'est un refus.
+    // Le modèle refuse lui-même certains briefs (refus ou filtre de contenu) : c'est un refus.
     if (error instanceof LlmRefusalError) return { allowed: false, category: flagged[0]! };
     throw new ModerationUnavailableError(error);
   }

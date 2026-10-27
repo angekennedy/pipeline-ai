@@ -14,7 +14,7 @@ export const markPipelineFailed =
     await store().setPipelineStatus(event.data.event.data.pipelineId, "failed");
   };
 
-export function createRunPipelineFunction({ store, anthropic, publisher }: JobDeps) {
+export function createRunPipelineFunction({ store, openai, publisher }: JobDeps) {
   return inngest.createFunction(
     {
       id: "run-pipeline",
@@ -35,7 +35,7 @@ export function createRunPipelineFunction({ store, anthropic, publisher }: JobDe
         store: store(),
         publish,
         generate: (type) =>
-          generateAsset(pipelineId, type, { store: store(), client: anthropic, publish }).catch((error: unknown) => {
+          generateAsset(pipelineId, type, { store: store(), client: openai, publish }).catch((error: unknown) => {
             throw toStepError(error);
           }),
       });

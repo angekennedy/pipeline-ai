@@ -16,7 +16,7 @@ export type Plan = {
   renewal: "once" | "monthly"; // Free : crédits offerts une seule fois
   priceEurCents: number; // par mois, 0 pour Free
   maxDurationMinutes: number;
-  premium: boolean; // script rédigé par Claude Opus
+  premium: boolean; // accès au script Premium
   channelPresets: number;
   seats: number;
   lookupKey: string | null; // prix mensuel Stripe, null pour Free

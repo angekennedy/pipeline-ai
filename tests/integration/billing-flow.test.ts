@@ -7,11 +7,11 @@ import { generateAsset } from "@/lib/pipeline/generate-asset";
 import { runPipelineSteps, type StepRunner } from "@/lib/pipeline/run-pipeline";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { validBrief } from "../fixtures/assets";
-import { fakeAnthropic } from "./fake-anthropic";
+import { fakeOpenAI } from "./fake-openai";
 import { admin, cleanup, createUser, createWorkspace, unwrap, withPg, type TestUser } from "./helpers";
 
 // Cycle des crédits d'un pipeline (migration 0007, ARCHITECTURE §5.2), de bout en bout : vraie
-// orchestration (runPipelineSteps, generateAsset) sur le vrai store Supabase. Seule l'API Anthropic
+// orchestration (runPipelineSteps, generateAsset) sur le vrai store Supabase. Seule l'API OpenAI
 // est simulée, par un client dont le fetch renvoie les réponses streamées des mocks.
 
 const brief = validBrief as Brief; // 8 min : 18 crédits en standard
@@ -35,7 +35,7 @@ async function newPipeline(balance = 100) {
 }
 
 const run = (pipelineId: string, refused: AssetType[] = []) => {
-  const client = fakeAnthropic(refused);
+  const client = fakeOpenAI(refused);
   return runPipelineSteps(pipelineId, { step, store, generate: (type) => generateAsset(pipelineId, type, { store, client }) });
 };
 
@@ -96,7 +96,7 @@ describe("capture et libération des crédits", () => {
 
   it("une génération qui se termine après l'annulation est enregistrée sans être facturée", async () => {
     const { workspaceId, pipelineId } = await newPipeline();
-    const client = fakeAnthropic();
+    const client = fakeOpenAI();
     await generateAsset(pipelineId, "script", { store, client });
     await store.setPipelineStatus(pipelineId, "canceled"); // l'utilisateur annule : reliquat libéré
     await generateAsset(pipelineId, "titles", { store, client }); // étape déjà partie

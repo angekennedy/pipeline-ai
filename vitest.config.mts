@@ -19,7 +19,7 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
       SUPABASE_SECRET_KEY: "test-secret-key",
-      ANTHROPIC_API_KEY: "test-anthropic-key",
+      OPENAI_API_KEY: "test-openai-key",
     },
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}"], // intégration : vitest.integration.config.mts

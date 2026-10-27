@@ -1,15 +1,15 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { OpenAIClient } from "@/lib/ai/openai";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ASSET_TYPES, type AssetType, type Brief, type Script } from "@/lib/ai/schemas";
 import { generateAsset } from "@/lib/pipeline/generate-asset";
 import { staleAssetsOf } from "@/lib/pipeline/staleness";
 import { AssetValidationError, VersionNotFoundError, editAsset, restoreVersion } from "@/lib/pipeline/versions";
-import { anthropicSequence, jsonReplyStream } from "../../mocks/anthropic";
+import { openaiSequence, jsonReplyStream } from "../../mocks/openai";
 import { MemoryPipelineStore } from "../../mocks/memory-store";
 import { server } from "../../mocks/server";
 import { validBrief, validScript, validSeo, validThumbnails, validTitles, validVoiceover } from "../../fixtures/assets";
 
-const client = new Anthropic({ apiKey: "test-key", maxRetries: 0 });
+const client = new OpenAIClient({ apiKey: "test-key", maxRetries: 0 });
 const PIPELINE_ID = "7d0e6f4a-3c1b-4e8a-9f2d-5b6c7a8e9f01";
 const USER_ID = "user-1";
 
@@ -38,7 +38,7 @@ const regenerate = (type: AssetType, key: string, feedback?: string) =>
 describe("régénération", () => {
   it("régénérer les titres ne touche à aucun autre asset ; seules les miniatures deviennent obsolètes", async () => {
     const titles = { ...validTitles, recommendedIndex: 2 };
-    mock(() => jsonReplyStream(titles, { model: "claude-haiku-5-5" }));
+    mock(() => jsonReplyStream(titles, { model: "gpt-4o-mini-2024-07-18" }));
     const before = await current();
     const versionId = await regenerate("titles", "regen:n1");
 
@@ -59,7 +59,7 @@ describe("régénération", () => {
   it("un dérivé régénéré après le script redevient à jour", async () => {
     mock(
       () => jsonReplyStream(validScript),
-      () => jsonReplyStream(validSeo, { model: "claude-haiku-5-5" }),
+      () => jsonReplyStream(validSeo, { model: "gpt-4o-mini-2024-07-18" }),
     );
     const script = await regenerate("script", "regen:n3");
     await regenerate("seo", "regen:n4");
@@ -69,7 +69,7 @@ describe("régénération", () => {
   });
 
   it("transmet la consigne de l'utilisateur au modèle comme donnée, et la garde sur la génération", async () => {
-    const calls = mock(() => jsonReplyStream(validTitles, { model: "claude-haiku-5-5" }));
+    const calls = mock(() => jsonReplyStream(validTitles, { model: "gpt-4o-mini-2024-07-18" }));
     await regenerate("titles", "regen:n5", "Plus courts, sans point d'interrogation");
 
     expect(JSON.stringify(calls[0]!.body.messages)).toContain("<user_feedback>\\nPlus courts, sans point d'interrogation\\n</user_feedback>");
@@ -77,7 +77,7 @@ describe("régénération", () => {
   });
 
   it("une même demande de régénération rejouée n'appelle le modèle qu'une fois", async () => {
-    const calls = mock(() => jsonReplyStream(validTitles, { model: "claude-haiku-5-5" }));
+    const calls = mock(() => jsonReplyStream(validTitles, { model: "gpt-4o-mini-2024-07-18" }));
     const first = await regenerate("titles", "regen:n6");
     expect(await regenerate("titles", "regen:n6")).toBe(first);
     expect(calls).toHaveLength(1);
@@ -147,7 +147,7 @@ describe("restoreVersion", () => {
 });
 
 function mock(...replies: Array<() => Response>) {
-  const sequence = anthropicSequence(...replies);
+  const sequence = openaiSequence(...replies);
   server.use(sequence.handler);
   return sequence.calls;
 }

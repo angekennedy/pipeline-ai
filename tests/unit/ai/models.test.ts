@@ -9,23 +9,11 @@ async function load() {
 describe("modelFor", () => {
   afterEach(() => vi.unstubAllEnvs());
 
-  it("utilise Sonnet pour le script standard, Opus en Premium, Haiku pour les dérivés", async () => {
+  it("utilise gpt-4o pour le script, Standard et Premium, gpt-4o-mini pour les dérivés", async () => {
     const { modelFor } = await load();
-    expect(modelFor("script.standard").id).toBe("claude-sonnet-5-5");
-    expect(modelFor("script.premium").id).toBe("claude-opus-5-5");
-    expect(modelFor("light").id).toBe("claude-haiku-5-5");
-  });
-
-  it("fixe explicitement un niveau d'effort pour chaque modèle", async () => {
-    const { MODEL_KEYS, modelFor } = await load();
-    for (const key of MODEL_KEYS) expect(["low", "medium", "high"]).toContain(modelFor(key).effort);
-  });
-
-  it("active le repli serveur sur refus pour Opus et Sonnet 5.5, pas pour Haiku", async () => {
-    const { modelFor } = await load();
-    expect(modelFor("script.standard").serverFallback).toBe(true);
-    expect(modelFor("script.premium").serverFallback).toBe(true);
-    expect(modelFor("light").serverFallback).toBe(false);
+    expect(modelFor("script.standard").id).toBe("gpt-4o");
+    expect(modelFor("script.premium").id).toBe("gpt-4o");
+    expect(modelFor("light").id).toBe("gpt-4o-mini");
   });
 
   it("a un tarif pour chaque modèle par défaut", async () => {
@@ -34,8 +22,9 @@ describe("modelFor", () => {
   });
 
   it("accepte une surcharge par variable d'environnement", async () => {
-    vi.stubEnv("MODEL_LIGHT", "claude-sonnet-5-5");
+    vi.stubEnv("MODEL_SCRIPT_PREMIUM", "gpt-4.1");
     const { modelFor } = await load();
-    expect(modelFor("light")).toMatchObject({ id: "claude-sonnet-5-5", serverFallback: true });
+    expect(modelFor("script.premium")).toEqual({ id: "gpt-4.1" });
+    expect(modelFor("script.standard").id).toBe("gpt-4o");
   });
 });

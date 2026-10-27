@@ -11,7 +11,7 @@ import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { findMembership } from "@/lib/workspaces/access";
 import { validBrief } from "../fixtures/assets";
 import { tFr } from "../fixtures/i18n";
-import { fakeAnthropic } from "./fake-anthropic";
+import { fakeOpenAI } from "./fake-openai";
 import { admin, cleanup, createUser, unwrap, type TestUser } from "./helpers";
 
 // Routes /w/[workspaceSlug] (tâche 2.3) : le layout et la page d'un pipeline s'appuient sur
@@ -42,8 +42,8 @@ beforeAll(async () => {
     tier: "standard",
     idempotencyKey: randomUUID(),
   }));
-  // Génération réelle, Anthropic simulé : les titres sont refusés, les miniatures qui en dépendent sautées.
-  const client = fakeAnthropic(["titles"]);
+  // Génération réelle, OpenAI simulé : les titres sont refusés, les miniatures qui en dépendent sautées.
+  const client = fakeOpenAI(["titles"]);
   await runPipelineSteps(pipelineA, { step, store, generate: (type) => generateAsset(pipelineA, type, { store, client }) });
 });
 afterAll(cleanup);

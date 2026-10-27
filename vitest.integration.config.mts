@@ -19,7 +19,7 @@ function localSupabase(): Record<string, string> {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE_KEY,
     SUPABASE_SECRET_KEY: SECRET_KEY,
     SUPABASE_DB_URL: DB_URL,
-    ANTHROPIC_API_KEY: "test-anthropic-key", // jamais appelée : requise par serverEnv
+    OPENAI_API_KEY: "test-openai-key", // jamais appelée : requise par serverEnv
   };
 }
 

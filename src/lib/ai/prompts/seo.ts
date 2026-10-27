@@ -9,7 +9,7 @@ const INSTRUCTIONS = `You are a YouTube SEO specialist. You write the descriptio
 - chapterTitles: at least 3 chapters. The first starts at scene 1, and startsAtSceneIndex strictly increases. Use the scenes' estimatedSeconds so each chapter lasts at least 10 seconds. Titles of at most 60 characters, descriptive, without numbering or timestamps: those are computed automatically.`;
 
 export const seoPrompt = definePrompt({
-  version: "seo@1",
+  version: "seo@2",
   instructions: INSTRUCTIONS,
   context: withScript,
   task: (ctx) =>

@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 // Évaluations : appels réels et payants à l'API. Pas de MSW, pas de couverture, délais longs.
-// La clé vient de .env.local (ANTHROPIC_API_KEY), jamais du dépôt.
+// La clé vient de .env.local (OPENAI_API_KEY), jamais du dépôt.
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
 export default defineConfig({

@@ -33,7 +33,7 @@ vi.mock("next-intl/server", async () => {
 });
 
 // Démarré dès le chargement, avant l'import des fichiers de test : un client créé au niveau
-// module (comme le SDK Anthropic, qui capture `fetch` à la construction) est alors déjà intercepté.
+// module (comme un client qui capturerait `fetch` à la construction) est alors déjà intercepté.
 // Toute requête réseau non mockée fait échouer le test : aucun appel réel à une API.
 server.listen({ onUnhandledFrame: "error" });
 

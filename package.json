@@ -23,7 +23,6 @@
     "preflight": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/preflight.mts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.2.0",
     "@base-ui/react": "^1.9.0",
     "@inngest/middleware-sentry": "^1.0.0",
     "@sentry/nextjs": "^11.9.0",

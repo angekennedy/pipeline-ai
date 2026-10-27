@@ -31,7 +31,7 @@ describe("registry", () => {
     });
   });
 
-  it("choisit le modèle du script selon le plan, Haiku pour les dérivés", () => {
+  it("choisit le modèle du script selon le plan, le modèle léger pour les dérivés", () => {
     expect(registry.script.modelKey("standard")).toBe("script.standard");
     expect(registry.script.modelKey("premium")).toBe("script.premium");
     for (const type of ["titles", "seo", "voiceover", "thumbnails"] as const) {

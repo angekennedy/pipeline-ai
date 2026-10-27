@@ -5,7 +5,7 @@ import { z } from "zod";
 const ServerEnvSchema = z
   .object({
     SUPABASE_SECRET_KEY: z.string().min(1),
-    ANTHROPIC_API_KEY: z.string().min(1),
+    OPENAI_API_KEY: z.string().min(1),
     // Surcharges facultatives des modèles par défaut de src/lib/ai/models.ts.
     MODEL_SCRIPT_STANDARD: z.string().min(1).optional(),
     MODEL_SCRIPT_PREMIUM: z.string().min(1).optional(),

@@ -3,7 +3,7 @@ import { DATE } from "@/i18n/format";
 import { HOST, LEGAL_ENTITY, isLegalComplete, type LegalEntity, type LegalPage } from "@/lib/legal";
 
 // Date de la version en vigueur des documents légaux.
-export const LEGAL_UPDATED = "2026-10-26";
+export const LEGAL_UPDATED = "2026-10-27";
 
 type Section = { title: string; body: string };
 

@@ -4,7 +4,7 @@ import { validBrief, validScript, validSeo, validThumbnails, validTitles, validV
 import { userIdFor } from "./auth";
 
 // Pipeline terminé en base, pour les parcours qui partent d'un résultat (édition, régénération,
-// exports) : sans Anthropic, les versions viennent des fixtures, écrites par les vraies RPC.
+// exports) : sans appel au modèle, les versions viennent des fixtures, écrites par les vraies RPC.
 function admin() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
 }

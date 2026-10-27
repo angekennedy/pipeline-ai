@@ -343,8 +343,8 @@
     "notes": "Consignes supplémentaires (facultatif)",
     "notesHint": "Points à aborder ou à éviter, sources à privilégier.",
     "tier": "Formule",
-    "standard": "Standard : script rédigé par Claude Sonnet",
-    "premium": "Premium : script rédigé par Claude Opus, plus de crédits",
+    "standard": "Standard : script de référence",
+    "premium": "Premium : script plus approfondi, plus de crédits",
     "premiumPlan": "(inclus dans le plan {plan})",
     "launching": "Lancement…",
     "submit": "Générer le pipeline",
@@ -564,8 +564,8 @@
     "feature": {
       "videos": "Environ {count} vidéos de 10 min",
       "duration": "Vidéos jusqu'à {max} min",
-      "premium": "Script Premium (Claude Opus)",
-      "standard": "Script Standard (Claude Sonnet)",
+      "premium": "Script Premium",
+      "standard": "Script Standard",
       "presets": "{count, plural, one {# preset de chaîne} other {# presets de chaîne}}",
       "seats": "{count, plural, one {# siège} other {# sièges}}"
     },
@@ -680,7 +680,7 @@
       },
       "models": {
         "q": "Quels modèles écrivent les contenus ?",
-        "a": "Claude Sonnet écrit le script en Standard, Claude Opus en Premium (plan Studio). Claude Haiku produit les quatre autres livrables."
+        "a": "Les contenus sont générés par les modèles d'OpenAI, pour le script Standard comme pour le Premium (plan Studio) et les quatre autres livrables."
       },
       "failures": {
         "q": "Que se passe-t-il si une génération échoue ?",
@@ -916,11 +916,11 @@
         },
         "ai": {
           "title": "Génération par l'IA",
-          "body": "Pour générer vos contenus, votre brief, votre preset de chaîne et vos consignes sont envoyés à l'API d'Anthropic (modèles Claude). Selon les conditions commerciales d'Anthropic, ces données ne servent pas à entraîner ses modèles. N'indiquez pas de données personnelles sensibles dans un brief."
+          "body": "Pour générer vos contenus, votre brief, votre preset de chaîne et vos consignes sont envoyés à l'API d'OpenAI (modèles GPT). Selon les conditions d'OpenAI pour son API, ces données ne servent pas à entraîner ses modèles ; OpenAI peut les conserver jusqu'à 30 jours pour détecter les abus. N'indiquez pas de données personnelles sensibles dans un brief."
         },
         "processors": {
           "title": "Prestataires et communication hors du Québec",
-          "body": "- Supabase : base de données et authentification, hébergées en Oregon (États-Unis).\n- Anthropic : génération des contenus (États-Unis).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application, dont les fonctions s'exécutent en Oregon (États-Unis).\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques (Union européenne).\n- PostHog : mesure d'audience (Union européenne).\n\nVos renseignements sont donc conservés et traités à l'extérieur du Québec, principalement aux États-Unis, où ils sont soumis aux lois locales. Chaque prestataire est lié par une entente écrite qui protège ces renseignements. Pour les personnes situées dans l'Union européenne, les transferts vers les États-Unis reposent sur les clauses contractuelles types de la Commission européenne ou sur le cadre de protection des données UE–États-Unis."
+          "body": "- Supabase : base de données et authentification, hébergées en Oregon (États-Unis).\n- OpenAI : génération des contenus (États-Unis).\n- Stripe : paiement et facturation.\n- Vercel : hébergement de l'application, dont les fonctions s'exécutent en Oregon (États-Unis).\n- Inngest : exécution des générations en arrière-plan (États-Unis).\n- Sentry : suivi des erreurs techniques (Union européenne).\n- PostHog : mesure d'audience (Union européenne).\n\nVos renseignements sont donc conservés et traités à l'extérieur du Québec, principalement aux États-Unis, où ils sont soumis aux lois locales. Chaque prestataire est lié par une entente écrite qui protège ces renseignements. Pour les personnes situées dans l'Union européenne, les transferts vers les États-Unis reposent sur les clauses contractuelles types de la Commission européenne ou sur le cadre de protection des données UE–États-Unis."
         },
         "retention": {
           "title": "Durées de conservation",

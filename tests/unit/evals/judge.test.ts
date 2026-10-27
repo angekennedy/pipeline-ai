@@ -1,13 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { OpenAIClient } from "@/lib/ai/openai";
 import { describe, expect, it } from "vitest";
 import { JUDGE_CRITERIA, buildJudgePrompt, judgePipeline } from "../../../evals/lib/judge";
 import type { PipelineOutput } from "../../../evals/lib/checks";
 import type { Brief, Script } from "@/lib/ai/schemas";
-import { anthropicSequence, jsonReplyStream } from "../../mocks/anthropic";
+import { openaiSequence, jsonReplyStream } from "../../mocks/openai";
 import { server } from "../../mocks/server";
 import { validBrief, validScript, validSeo, validThumbnails, validTitles, validVoiceover } from "../../fixtures/assets";
 
-const client = new Anthropic({ apiKey: "test-key", maxRetries: 0 });
+const client = new OpenAIClient({ apiKey: "test-key", maxRetries: 0 });
 
 const output = (overrides: Partial<PipelineOutput> = {}): PipelineOutput => ({
   brief: validBrief as Brief,
@@ -41,27 +41,27 @@ describe("buildJudgePrompt", () => {
 
 describe("judgePipeline", () => {
   it("appelle le modèle juge et renvoie la moyenne des critères, chacun avec sa justification", async () => {
-    const sequence = anthropicSequence(() => jsonReplyStream(verdict([5, 5, 4, 4, 5, 3, 2]), { model: "claude-fable-5-1" }));
+    const sequence = openaiSequence(() => jsonReplyStream(verdict([5, 5, 4, 4, 5, 3, 2]), { model: "gpt-4o-2024-08-06" }));
     server.use(sequence.handler);
     const result = await judgePipeline(output(), { client });
 
-    expect(sequence.calls[0]!.body.model).toBe("claude-fable-5-1");
+    expect(sequence.calls[0]!.body.model).toBe("gpt-4o");
     expect(result.grade.judge).toBe(4);
     expect(result.grade.hook).toBe(5);
     expect(result.grade.brief).toBe(5);
     expect(result.explanation.judge).toBe("Bon script, accroche efficace.");
     expect(result.explanation.accuracy).toBe("Justification accuracy");
-    expect(result).toMatchObject({ model: "claude-fable-5-1", usage: { inputTokens: 100, outputTokens: 200 } });
+    expect(result).toMatchObject({ model: "gpt-4o-2024-08-06", usage: { inputTokens: 100, outputTokens: 200 } });
   });
 
   it("plafonne la note globale par la fidélité au brief : un script hors sujet reste mauvais", async () => {
-    server.use(anthropicSequence(() => jsonReplyStream(verdict([1, 5, 5, 5, 5, 5, 5]), { model: "claude-fable-5-1" })).handler);
+    server.use(openaiSequence(() => jsonReplyStream(verdict([1, 5, 5, 5, 5, 5, 5]), { model: "gpt-4o-2024-08-06" })).handler);
     const result = await judgePipeline(output(), { client });
     expect(result.grade.judge).toBe(1); // moyenne 4,43, plafonnée à la note « brief »
   });
 
     it("sans script, ne paie pas d'appel : note 0", async () => {
-    const sequence = anthropicSequence(() => jsonReplyStream(verdict([5, 5, 5, 5, 5, 5, 5])));
+    const sequence = openaiSequence(() => jsonReplyStream(verdict([5, 5, 5, 5, 5, 5, 5])));
     server.use(sequence.handler);
     const result = await judgePipeline(output({ assets: {} }), { client });
     expect(sequence.calls).toHaveLength(0);
