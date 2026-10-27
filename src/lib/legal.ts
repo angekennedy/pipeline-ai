@@ -20,7 +20,7 @@ export const LEGAL_ENTITY: LegalEntity = {
   address: "914, rue Desaulniers, porte 11, Saint-Jean-sur-Richelieu (Québec) J3A 1B1",
   registration: "1180053242",
   taxNumbers: "720037357 RT0001, 1231926913 TQ0001",
-  phone: null,
+  phone: "438-468-8474",
   privacyOfficer: "Ange Kennedy Keloute",
   email: "kelouteange@gmail.com",
 };
