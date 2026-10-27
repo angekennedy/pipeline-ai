@@ -544,7 +544,7 @@
     },
     "consent": "By proceeding to payment, you accept the <terms>terms of use and sale</terms> and the <privacy>privacy policy</privacy>.",
     "stripeConsent": "By paying, you accept Pipeline AI's terms: {url}",
-    "taxes": "Prices in euros, including VAT."
+    "taxes": "Prices in euros, taxes included."
   },
   "Plans": {
     "pitch": {
@@ -595,7 +595,7 @@
     },
     "example": "{label}: <credits></credits>",
     "regeneration": "Regenerating an asset costs the same as generating it. A manual edit or a restore is free.",
-    "taxes": "Prices in euros, including VAT."
+    "taxes": "Prices in euros, taxes included."
   },
   "CreditBadge": {
     "label": "{credits} available, {plan} plan. Billing and credits",
@@ -839,16 +839,13 @@
     "draft": "Draft document: some details are still missing, and this text has yet to be reviewed by a lawyer.",
     "toc": "Contents",
     "missing": {
-      "publisher": "[to be completed: publisher's legal name]",
-      "legalForm": "[to be completed: legal form and share capital]",
+      "publisher": "[to be completed: company name]",
       "address": "[to be completed: registered address]",
-      "registration": "[to be completed: company and VAT numbers]",
-      "director": "[to be completed: publication director]",
-      "email": "[to be completed: contact email]",
-      "jurisdiction": "[to be completed: governing law and courts]",
-      "mediator": "[to be completed: consumer mediator]",
-      "databaseRegion": "[to be completed: database hosting region]",
-      "errorRetention": "[to be completed: retention period]"
+      "registration": "[to be completed: Québec enterprise number (NEQ)]",
+      "taxNumbers": "[to be completed: GST and QST numbers]",
+      "phone": "[to be completed: phone number]",
+      "privacyOfficer": "[to be completed: person in charge of the protection of personal information]",
+      "email": "[to be completed: contact email]"
     },
     "footer": {
       "nav": "Legal information",
@@ -870,11 +867,11 @@
         },
         "credits": {
           "title": "Credits, plans and payment",
-          "body": "Each deliverable costs a number of credits that depends on the video's length and tier, shown before every run. Credits are reserved at launch; only successfully generated deliverables are charged, the others are released automatically.\n\n- The Free plan grants credits once, at sign-up.\n- Paid plans are monthly subscriptions, renewed automatically until cancelled, which you can do at any time from the Billing page. Cancellation takes effect at the end of the paid period.\n- Credit packs are one-off purchases.\n- Prices are shown in euros, including VAT; prices and plan contents: Pricing page. Payment is processed by Stripe.\n\nCredits cannot be refunded in cash or transferred. Unused credits carry over to the next month, up to one monthly allocation; any excess expires at renewal."
+          "body": "Each deliverable costs a number of credits that depends on the video's length and tier, shown before every run. Credits are reserved at launch; only successfully generated deliverables are charged, the others are released automatically.\n\n- The Free plan grants credits once, at sign-up.\n- Paid plans are monthly subscriptions, renewed automatically until cancelled, which you can do at any time from the Billing page. Cancellation takes effect at the end of the paid period.\n- Credit packs are one-off purchases.\n- Prices are shown in euros, taxes included: the sales taxes that apply where you live (GST and QST in Canada, VAT in the European Union) are included in the displayed price. Prices and plan contents: Pricing page. Payment is processed by Stripe.\n\nCredits cannot be refunded in cash or transferred. Unused credits carry over to the next month, up to one monthly allocation; any excess expires at renewal."
         },
         "withdrawal": {
-          "title": "Right of withdrawal",
-          "body": "If you are a consumer, you have 14 days to withdraw from a purchase. As the service is supplied immediately, starting a generation during this period counts as a request for immediate performance: you lose your right of withdrawal for the credits used."
+          "title": "Cancellation and withdrawal",
+          "body": "If you live in Québec, the Consumer Protection Act lets you cancel a distance contract in the cases and within the time limits it sets out, in particular if we did not send you the information or the contract it requires, or if the service is not supplied.\n\nIf you live in the European Union, you have 14 days to withdraw from a purchase. As the service is supplied immediately, starting a generation during this period counts as a request for immediate performance: you lose your right of withdrawal for the credits used."
         },
         "content": {
           "title": "Generated content",
@@ -898,7 +895,7 @@
         },
         "law": {
           "title": "Governing law and disputes",
-          "body": "Governing law and jurisdiction: {jurisdiction}.\n\nIn case of dispute, first write to {email}. If you are a consumer, you may also refer the matter to the consumer mediator free of charge: {mediator}."
+          "body": "These terms are governed by the laws of Québec and the federal laws of Canada that apply there. The courts of the judicial district of Longueuil have jurisdiction, subject to the rules that allow consumers to bring proceedings before the court where they live and to keep the mandatory protections of their place of residence.\n\nIn case of dispute, first write to {email}. If you live in Québec, you may also contact the Office de la protection du consommateur (opc.gouv.qc.ca)."
         }
       }
     },
@@ -906,32 +903,32 @@
       "title": "Privacy policy",
       "sections": {
         "controller": {
-          "title": "Data controller",
-          "body": "The data controller is {publisher}, {address}. For any question about your data: {email}."
+          "title": "Who is responsible for your personal information",
+          "body": "{publisher}, {address}, is responsible for the personal information collected by Pipeline AI.\n\nThe person in charge of the protection of personal information is {privacyOfficer}. For any question about your information or to exercise your rights: {email}."
         },
         "data": {
           "title": "Data we process",
           "body": "- Account: email address, display name, interface language.\n- Workspaces: name, members and roles, channel presets.\n- Content: your briefs, regeneration instructions and the generated content, with its version history.\n- Billing: Stripe customer ID and subscriptions, credit movements. Your card details are processed by Stripe and never reach us.\n- Security: non-reversible fingerprints of your email address and IP address, used to limit the number of requests, erased after 24 hours at most.\n- Closed beta: the email address of invited people, with an optional note, until the invitation is removed.\n- Feedback: your 0-to-10 score and optional comment, if you answer the satisfaction question.\n- Technical errors: error reports without IP address, cookies or request content.\n- Usage analytics: three steps (sign-up, pipeline creation, payment), tied to a non-reversible pseudonymous identifier, with the video's tier and length or the offer purchased. No email, IP address, content or cookie."
         },
         "purposes": {
-          "title": "Purposes and legal bases",
-          "body": "- Providing the service and billing: performance of the contract.\n- Keeping accounting records: legal obligation.\n- Preventing abuse and securing the service (rate limits, brief moderation, spending alerts): legitimate interest.\n- Measuring use of the service to improve it, without profiling: legitimate interest.\n\nNo data is sold or used for advertising."
+          "title": "Purposes, consent and legal bases",
+          "body": "- Providing the service and billing: performance of the contract.\n- Keeping accounting records: legal obligation.\n- Preventing abuse and securing the service (rate limits, brief moderation, spending alerts): legitimate interest.\n- Measuring use of the service to improve it, without profiling: legitimate interest.\n\nWe only collect the information needed for these purposes. By creating an account, you consent to its use for these purposes, as Québec law requires; for people in the European Union, the GDPR legal bases are those listed above. No data is sold or used for advertising."
         },
         "ai": {
           "title": "AI generation",
           "body": "To generate your content, your brief, channel preset and instructions are sent to Anthropic's API (Claude models). Under Anthropic's commercial terms, this data is not used to train its models. Do not include sensitive personal data in a brief."
         },
         "processors": {
-          "title": "Processors",
-          "body": "- Supabase: database and authentication, hosted in the {databaseRegion} region.\n- Anthropic: content generation (United States).\n- Stripe: payment and billing.\n- Vercel: application hosting.\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking.\n- PostHog: usage analytics (European Union).\n\nTransfers outside the European Union are covered by the European Commission's standard contractual clauses or by the EU–US Data Privacy Framework."
+          "title": "Service providers and communication outside Québec",
+          "body": "- Supabase: database and authentication, hosted in Oregon (United States).\n- Anthropic: content generation (United States).\n- Stripe: payment and billing.\n- Vercel: application hosting, with functions running in Oregon (United States).\n- Inngest: running generations in the background (United States).\n- Sentry: technical error tracking (European Union).\n- PostHog: usage analytics (European Union).\n\nYour information is therefore stored and processed outside Québec, mainly in the United States, where it is subject to local laws. Each provider is bound by a written agreement that protects this information. For people in the European Union, transfers to the United States rely on the European Commission's standard contractual clauses or on the EU–US Data Privacy Framework."
         },
         "retention": {
           "title": "Retention",
-          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 10 years, as required by law.\n- Security fingerprints: 24 hours at most.\n- Satisfaction feedback: until the account is deleted.\n- Usage analytics: according to PostHog's retention period, with no possible link to your identity.\n- Error reports: {errorRetention}."
+          "body": "- Account, workspaces and content: until the account is deleted, erased at that point.\n- Accounting records: 6 years after the end of the tax year concerned, as required by tax law.\n- Security fingerprints: 24 hours at most.\n- Satisfaction feedback: until the account is deleted.\n- Usage analytics: according to PostHog's retention period, with no possible link to your identity.\n- Error reports: 30 days."
         },
         "rights": {
           "title": "Your rights",
-          "body": "You can access, correct and erase your data, request its portability, object to processing or ask for it to be restricted. Your display name is changed in the settings, where the account can also be deleted, and every pipeline can be exported to Markdown, JSON or ZIP.\n\nFor any other request: {email}. You may also lodge a complaint with your data protection authority (in France, the CNIL: cnil.fr)."
+          "body": "You can access your information, have it corrected or deleted, withdraw your consent and obtain a copy of it in a structured, commonly used format. If you are in the European Union, you can also object to processing or ask for it to be restricted. Your display name is changed in the settings, where the account can also be deleted, and every pipeline can be exported to Markdown, JSON or ZIP.\n\nFor any other request: {email}. We reply within 30 days. You may also file a complaint with the Commission d'accès à l'information du Québec (cai.gouv.qc.ca) or, in the European Union, with your data protection authority (in France, the CNIL: cnil.fr)."
         },
         "cookies": {
           "title": "Cookies",
@@ -973,7 +970,7 @@
       "sections": {
         "publisher": {
           "title": "Publisher",
-          "body": "{publisher}, {legalForm}.\n\nRegistered office: {address}.\n\nCompany and VAT numbers: {registration}.\n\nPublication director: {director}.\n\nContact: {email}."
+          "body": "{publisher}, business corporation.\n\nRegistered office: {address}.\n\nQuébec enterprise number (NEQ): {registration}.\n\nGST and QST numbers: {taxNumbers}.\n\nResponsible for publication and for the protection of personal information: {privacyOfficer}.\n\nContact: {email}, {phone}."
         },
         "host": {
           "title": "Host",
