@@ -168,18 +168,19 @@ describe("BriefForm", () => {
   it("propose la vidéo sur un plan payant configuré, et ajoute son coût à l'estimation", async () => {
     const user = userEvent.setup();
     render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={studio} videoAvailable />);
-    const option = screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ });
+    const option = screen.getByRole("checkbox", { name: /Préparer aussi la vidéo complète/ });
     expect(option).toBeEnabled();
-    expect(screen.getByText(/60 crédits par minute de vidéo/)).toBeInTheDocument();
+    expect(screen.getByText(/60 crédits par minute de vidéo, débités à ce moment-là/)).toBeInTheDocument();
     await user.click(option);
+    // La vidéo n'est pas réservée au lancement : elle l'est quand l'utilisateur la lance, après le script.
     const estimate = screen.getByRole("region", { name: /Coût/ });
-    expect(estimate).toHaveTextContent(`Coût : ${pipelineCredits({ durationMinutes: 8, video: true, thumbnailImages: true }, "standard")} crédits`);
-    expect(estimate).toHaveTextContent("Vidéo 480");
+    expect(estimate).toHaveTextContent(`Coût : ${pipelineCredits({ durationMinutes: 8, thumbnailImages: true }, "standard")} crédits`);
+    expect(estimate).toHaveTextContent("Vidéo : environ 480 crédits en plus, réservés seulement quand vous la lancerez");
   });
 
   it("ouvre toutes les fonctionnalités à un workspace interne, sans compter le solde", () => {
     render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={creditSummary("free", 0, 0, true)} videoAvailable />);
-    expect(screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ })).toBeEnabled();
+    expect(screen.getByRole("checkbox", { name: /Préparer aussi la vidéo complète/ })).toBeEnabled();
     expect(screen.getByLabelText(/Premium/)).toBeEnabled();
     const estimate = screen.getByRole("region", { name: /Coût/ });
     expect(estimate).toHaveTextContent("Workspace interne : crédits complétés automatiquement.");
@@ -188,11 +189,11 @@ describe("BriefForm", () => {
 
   it("grise la vidéo sur Free, avec le plan qui l'inclut, et quand elle n'est pas configurée", () => {
     const { unmount } = render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} videoAvailable />);
-    expect(screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: /Préparer aussi la vidéo complète/ })).toBeDisabled();
     expect(screen.getByText("(plan Creator ou supérieur)")).toBeInTheDocument();
     unmount();
     render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={studio} />);
-    expect(screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: /Préparer aussi la vidéo complète/ })).toBeDisabled();
     expect(screen.getByText("(indisponible pour le moment)")).toBeInTheDocument();
   });
 

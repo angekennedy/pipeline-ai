@@ -1,7 +1,6 @@
 import type { OpenAIClient } from "@/lib/ai/openai";
 import { imageCostUsdMicros, RENDER_USD_MICROS_PER_SECOND, VOICE_USD_MICROS_PER_CHARACTER } from "@/lib/ai/pricing";
 import type { Brief, Script, Voiceover } from "@/lib/ai/schemas";
-import { videoCredits } from "@/lib/billing/credit-rules";
 import { cuesToSrt, type Cue } from "@/lib/export/srt";
 import { spokenText } from "@/lib/export/spoken";
 import type { ElevenLabsClient } from "@/lib/media/elevenlabs";
@@ -18,8 +17,9 @@ import { buildEdit } from "./timeline";
 
 // Vidéo MP4 complète, en étapes Inngest mémoïsées : chaque étape tient dans une invocation (5 min)
 // et repousse le bail de la génération ; le rendu Shotstack, qui peut durer longtemps pour une vidéo
-// d'une heure, est suivi par des pauses (`sleep`) qui ne consomment pas de concurrence. Les crédits
-// suivent le cycle des autres assets : réservés à la création, capturés au commit, libérés en échec.
+// d'une heure, est suivi par des pauses (`sleep`) qui ne consomment pas de concurrence. Lancée par
+// l'utilisateur après relecture du script (lib/jobs/request-video), elle suit la version courante du
+// script : crédits réservés au lancement sous la clé `regen:`, capturés au commit, libérés en échec.
 
 export type VideoStepRunner = StepRunner & { sleep: (id: string, ms: number) => Promise<void> };
 
@@ -66,9 +66,12 @@ type Started =
 
 type VoiceResult = { sceneIndex: number; path: string; wordsPath: string; duration: number; characters: number };
 
-export async function runVideoSteps(pipelineId: string, step: VideoStepRunner, deps: VideoDeps): Promise<string> {
+// `request` : clé de la génération (celle de la réservation) et crédits réservés.
+export type VideoRequest = { key: string; credits: number };
+
+export async function runVideoSteps(pipelineId: string, request: VideoRequest, step: VideoStepRunner, deps: VideoDeps): Promise<string> {
   const { store } = deps;
-  const started = await step.run("video:start", () => start(pipelineId, store));
+  const started = await step.run("video:start", () => start(pipelineId, request, store));
   if (started.done !== null) return started.done;
   const { generationId, workspaceId, scenes } = started;
   const path = (...segments: string[]) => mediaPath(workspaceId, pipelineId, "video", generationId, ...segments);
@@ -177,22 +180,21 @@ export async function runVideoSteps(pipelineId: string, step: VideoStepRunner, d
   }
 }
 
-async function start(pipelineId: string, store: PipelineStore): Promise<Started> {
+async function start(pipelineId: string, request: VideoRequest, store: PipelineStore): Promise<Started> {
   const pipeline = await store.getPipeline(pipelineId);
-  const generation = await store.upsertGeneration({
-    pipelineId,
-    assetType: "video",
-    idempotencyKey: `pipe:${pipelineId}:video`,
-    credits: videoCredits(pipeline.brief),
-  });
+  const generation = await store.upsertGeneration({ pipelineId, assetType: "video", idempotencyKey: request.key, credits: request.credits });
   if (generation.status === "succeeded" && generation.versionId) return { done: generation.versionId };
 
   const [script, voiceover] = await Promise.all([store.getCurrentVersion(pipelineId, "script"), store.getCurrentVersion(pipelineId, "voiceover")]);
   if (!script) throw new MissingDependencyError(["script"]);
   await store.markRunning(generation.id, generation.attempt + 1);
 
-  // Texte lu : le segment de voix off de la scène (indications de lecture retirées), à défaut sa narration.
-  const segments = new Map((voiceover?.content as Voiceover | undefined)?.segments.map((s) => [s.sceneIndex, s.text]) ?? []);
+  // Texte lu : le segment de voix off de la scène (indications de lecture retirées), à défaut sa
+  // narration. Une voix off écrite pour une version précédente du script est ignorée : la vidéo lit
+  // le script tel que l'utilisateur l'a laissé.
+  const scriptOrigin = script.restoredFrom ?? script.id;
+  const current = voiceover?.sourceVersions.script === scriptOrigin ? voiceover : null;
+  const segments = new Map((current?.content as Voiceover | undefined)?.segments.map((s) => [s.sceneIndex, s.text]) ?? []);
   const scenes = (script.content as Script).scenes.map((scene) => ({
     index: scene.index,
     spoken: spokenText(segments.get(scene.index) ?? scene.narration),
@@ -206,7 +208,7 @@ async function start(pipelineId: string, store: PipelineStore): Promise<Started>
     workspaceId: pipeline.workspaceId,
     brief: { style: pipeline.brief.style, tone: pipeline.brief.tone },
     scenes,
-    sourceVersions: { script: script.restoredFrom ?? script.id, ...(voiceover && { voiceover: voiceover.restoredFrom ?? voiceover.id }) },
+    sourceVersions: { script: scriptOrigin, ...(current && { voiceover: current.restoredFrom ?? current.id }) },
     startedAt: Date.now(),
   };
 }

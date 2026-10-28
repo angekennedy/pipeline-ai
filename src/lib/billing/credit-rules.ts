@@ -14,8 +14,10 @@ export const CREDIT_RULES: Record<AssetType, (brief: CostedBrief, tier: ModelTie
   thumbnails: (brief) => (brief.thumbnailImages ? 15 : 1),
 };
 
-// Vidéo MP4 complète, quand le brief la demande : ≈ 1 $ par minute (4 images haute qualité, voix
-// ElevenLabs, rendu Shotstack), facturé avec une marge d'environ ×3 au prix du crédit Creator.
-// Provisoire : à recalibrer d'après les coûts mesurés (/admin).
+// Vidéo MP4 complète : ≈ 1 $ par minute (4 images haute qualité, voix ElevenLabs, rendu Shotstack),
+// facturé avec une marge d'environ ×3 au prix du crédit Creator. Provisoire : à recalibrer d'après
+// les coûts mesurés (/admin). Réservée quand l'utilisateur lance la vidéo, d'après la longueur du
+// script à ce moment-là (lib/video/length) ; `videoCredits` en donne l'estimation avant le pipeline.
 export const VIDEO_CREDITS_PER_MINUTE = 60;
-export const videoCredits = (brief: Pick<Brief, "durationMinutes" | "video">) => (brief.video ? VIDEO_CREDITS_PER_MINUTE * brief.durationMinutes : 0);
+export const videoCreditsFor = (minutes: number) => VIDEO_CREDITS_PER_MINUTE * Math.max(1, minutes);
+export const videoCredits = (brief: Pick<Brief, "durationMinutes" | "video">) => (brief.video ? videoCreditsFor(brief.durationMinutes) : 0);

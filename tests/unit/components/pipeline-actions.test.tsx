@@ -108,6 +108,29 @@ describe("ScriptEditor", () => {
     expect(onDone).toHaveBeenCalledOnce();
   });
 
+  it("ajoute, déplace et supprime des scènes, et envoie leur nouvel ordre", async () => {
+    const user = userEvent.setup();
+    saveScript.mockResolvedValue({ fieldErrors: {} });
+    const count = (validScript as Script).scenes.length;
+    render(<ScriptEditor script={validScript as Script} actions={actions} onDone={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Ajouter une scène après la scène 1" }));
+    expect(screen.getAllByLabelText("Narration")).toHaveLength(count + 1);
+    const added = screen.getAllByLabelText("Narration")[1]!;
+    expect(added).toHaveValue("");
+    await user.type(added, "Une scène ajoutée, écrite par le client.");
+    await user.click(screen.getByRole("button", { name: "Monter la scène 2" }));
+    // Le texte tapé suit la scène déplacée.
+    expect(screen.getAllByLabelText("Narration")[0]).toHaveValue("Une scène ajoutée, écrite par le client.");
+    await user.click(screen.getByRole("button", { name: `Supprimer la scène ${count + 1}` }));
+    await user.click(screen.getByRole("button", { name: "Enregistrer une nouvelle version" }));
+
+    const data = saveScript.mock.calls[0]![1] as FormData;
+    const order = ["new", ...Array.from({ length: count - 1 }, (_, i) => String(i + 1))];
+    expect(data.get("sceneOrder")).toBe(order.join(","));
+    expect(data.get(sceneFieldName(1, "narration"))).toBe("Une scène ajoutée, écrite par le client.");
+  });
+
   it("affiche les erreurs par champ sans se fermer", async () => {
     const user = userEvent.setup();
     const onDone = vi.fn();
@@ -117,7 +140,7 @@ describe("ScriptEditor", () => {
 
     const narration = (await screen.findAllByLabelText("Narration"))[0]!;
     expect(narration).toHaveAttribute("aria-invalid", "true");
-    expect(narration).toHaveAccessibleDescription("La narration fait au moins 20 caractères.");
+    expect(narration).toHaveAccessibleDescription(/La narration fait au moins 20 caractères\./);
     expect(screen.getByRole("alert")).toHaveTextContent("Corrigez les champs signalés.");
     expect(onDone).not.toHaveBeenCalled();
   });

@@ -21,11 +21,14 @@ export type AssetView<K extends AssetType> = {
 
 export type PipelineAssets = { [K in AssetType]: AssetView<K> };
 
-// Vidéo MP4, quand le brief la demande : pas d'historique ni d'édition, une version par pipeline.
+// Vidéo MP4, lancée par l'utilisateur après relecture du script : pas d'historique ni d'édition.
+// `pending` : pas encore lancée. Une nouvelle vidéo remplace la précédente.
 export type VideoView = {
   status: AssetViewStatus;
   content: VideoManifest | null; // renseigné quand status = ready
-  error: { code: string } | null;
+  error: { code: string } | null; // dernier lancement en échec (la vidéo précédente reste affichée)
+  credits: number | null; // coût d'une vidéo du script courant ; null sans script
+  scriptChanged: boolean; // le script a changé depuis cette vidéo
 };
 
 export type PipelineView = {

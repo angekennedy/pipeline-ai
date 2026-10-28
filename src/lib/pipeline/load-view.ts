@@ -6,6 +6,8 @@ import type { AssetContent, ModelTier } from "./registry";
 import { regenerationCredits, staleAssets, type CurrentVersions } from "./staleness";
 import type { PipelineStatus, SourceVersions, VersionSource } from "./store";
 import { MEDIA_BUCKET } from "@/lib/media/storage";
+import { videoCreditsFor } from "@/lib/billing/credit-rules";
+import { videoMinutesOf } from "@/lib/video/length";
 import { VideoManifestSchema } from "@/lib/video/manifest";
 import type { AssetView, AssetViewStatus, PipelineAssets, PipelineView, VideoView } from "./view";
 
@@ -30,7 +32,7 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
       .select("id, version, source, content, source_versions, restored_from, created_at, asset:pipeline_assets!asset_versions_asset_id_fkey!inner(pipeline_id, type)")
       .eq("asset.pipeline_id", pipelineId)
       .order("version", { ascending: false }),
-    db.from("generations").select("asset_type, error_code, created_at").eq("pipeline_id", pipelineId).eq("status", "failed").order("created_at", { ascending: false }),
+    db.from("generations").select("asset_type, error_code, created_at, finished_at").eq("pipeline_id", pipelineId).eq("status", "failed").order("created_at", { ascending: false }),
     // Régénérations demandées et pas encore terminées : l'asset s'affiche en cours.
     db.from("generations").select("asset_type").eq("pipeline_id", pipelineId).like("idempotency_key", "regen:%").in("status", ["queued", "running"]),
   ]);
@@ -65,16 +67,23 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
   const stale = staleAssets(current);
   for (const type of stale) views[type].stale = true;
 
+  // Vidéo : affichée quand le brief la prévoit ou qu'une vidéo a déjà été lancée.
   let video: VideoView | undefined;
-  if (brief.video) {
-    const row = assetRows.find((a) => a.type === "video");
-    const version = versionRows.find((v) => v.id === row?.current_version_id) ?? null;
-    const videoStatus = assetStatus(row?.status, Boolean(version), TERMINAL.has(status));
+  const videoRow = assetRows.find((a) => a.type === "video");
+  if (brief.video || videoRow) {
+    const version = versionRows.find((v) => v.id === videoRow?.current_version_id) ?? null;
     const manifest = version ? VideoManifestSchema.safeParse(version.content) : null;
+    // Échec du dernier lancement : plus récent que la vidéo affichée, s'il y en a une.
+    const failure = failureRows.find((g) => g.asset_type === "video" && (!version || (g.finished_at ?? g.created_at) > version.created_at));
+    const videoStatus: AssetViewStatus = regenerating.has("video") || videoRow?.status === "running" ? "running" : version ? "ready" : failure ? "failed" : "pending";
+    const script = views.script.content as AssetContent["script"] | null;
+    const scriptOrigin = current.script ? (current.script.restoredFrom ?? current.script.id) : null;
     video = {
       status: videoStatus,
-      content: videoStatus === "ready" && manifest?.success ? manifest.data : null,
-      error: videoStatus === "failed" ? failureView(failureRows.find((g) => g.asset_type === "video")?.error_code ?? null) : null,
+      content: version && manifest?.success ? manifest.data : null,
+      error: failure ? failureView(failure.error_code) : null,
+      credits: script ? videoCreditsFor(videoMinutesOf(script, brief.language)) : null,
+      scriptChanged: Boolean(version && scriptOrigin && (version.source_versions as SourceVersions).script !== scriptOrigin),
     };
   }
   const thumbnails = views.thumbnails.content as AssetContent["thumbnails"] | null;

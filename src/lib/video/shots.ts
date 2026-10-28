@@ -1,8 +1,10 @@
 import type { Brief, Scene } from "@/lib/ai/schemas";
 
-// Découpage de la vidéo en plans : une image toutes les ~15 s, avec un zoom lent et un fondu entre
-// deux plans. Le nombre de plans d'une scène suit la durée réelle de sa voix off ; chaque plan
-// illustre la partie de la narration qu'il accompagne.
+// Découpage de la vidéo en plans, avec un zoom lent et un fondu entre deux plans. Une direction
+// visuelle écrite sur plusieurs lignes donne un plan par ligne, dans l'ordre : l'utilisateur décide
+// lui-même des images de la scène, réparties sur sa narration. Sur une seule ligne, une image toutes
+// les ~15 s, selon la durée réelle de la voix ; chaque plan illustre la partie de la narration qu'il
+// accompagne.
 
 export const SHOT_SECONDS = 15;
 // Respiration entre deux scènes, en secondes : la voix suivante démarre après ce silence.
@@ -45,11 +47,26 @@ const STYLE_HINT: Record<Brief["style"], string> = {
   "true-crime": "moody cinematic still, low-key lighting",
 };
 
-export function shotPrompt(brief: Pick<Brief, "style" | "tone">, scene: Pick<Scene, "visualDirection" | "bRollKeywords">, focus: string, shot: number): string {
-  const keyword = scene.bRollKeywords.length ? scene.bRollKeywords[shot % scene.bRollKeywords.length] : null;
+// Lignes de la direction visuelle, une par plan voulu.
+export const visualLines = (direction: string) =>
+  direction
+    .split("\n")
+    .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "").trim())
+    .filter(Boolean);
+
+// `direction` : la ligne propre au plan ; absente, la direction de toute la scène, complétée d'un
+// mot-clé B-roll. Une ligne écrite par l'utilisateur est le sujet de l'image : pas de mot-clé ajouté.
+export function shotPrompt(
+  brief: Pick<Brief, "style" | "tone">,
+  scene: Pick<Scene, "visualDirection" | "bRollKeywords">,
+  focus: string,
+  shot: number,
+  direction?: string,
+): string {
+  const keyword = !direction && scene.bRollKeywords.length ? scene.bRollKeywords[shot % scene.bRollKeywords.length] : null;
   return [
     `${STYLE_HINT[brief.style]} for a faceless YouTube video, ${brief.tone} mood, 16:9 landscape.`,
-    `Scene direction: ${scene.visualDirection}`,
+    direction ? `Show exactly this: ${direction}` : `Scene direction: ${scene.visualDirection}`,
     keyword && `Main subject: ${keyword}.`,
     `It illustrates this narration: "${focus.slice(0, 400)}"`,
     "Photorealistic, high detail, professional color grading, sharp focus.",
@@ -69,13 +86,14 @@ export function planShots(
     if (!scene) throw new Error(`Scène ${sceneIndex} absente du script`);
     // Le silence après la scène reste sur sa dernière image.
     const span = duration + SCENE_GAP_SECONDS;
-    const count = Math.max(1, Math.round(duration / SHOT_SECONDS));
+    const lines = visualLines(scene.visualDirection);
+    const count = lines.length > 1 ? lines.length : Math.max(1, Math.round(duration / SHOT_SECONDS));
     const parts = narrationParts(scene.narration, count);
     return parts.map((focus, i) => ({
       sceneIndex,
       start: round(start + (span * i) / count),
       length: round(span / count),
-      prompt: shotPrompt(brief, scene, focus, i),
+      prompt: shotPrompt(brief, scene, focus, i, lines.length > 1 ? lines[i] : undefined),
     }));
   });
 }

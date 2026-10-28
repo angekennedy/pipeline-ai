@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { planShots, SCENE_GAP_SECONDS, sceneTimings, shotPrompt } from "@/lib/video/shots";
+import { planShots, SCENE_GAP_SECONDS, sceneTimings, shotPrompt, visualLines } from "@/lib/video/shots";
 
 const brief = { style: "documentary", tone: "mysterious" } as const;
 const scene = (index: number, narration: string) => ({ index, narration, visualDirection: `Plan large de la scène ${index}`, bRollKeywords: ["pyramide", "désert"] });
@@ -30,6 +30,25 @@ describe("découpage en plans", () => {
     expect(prompt).toContain("Main subject: désert.");
     expect(prompt).toContain('"La rampe cachée change tout."');
     expect(prompt).toMatch(/No text.*no on-camera presenter/);
+  });
+
+  it("donne une image par ligne de la direction visuelle, dans l'ordre, quelle que soit la durée", () => {
+    const written = { ...scene(1, "Le bloc arrive. On le hisse. Il est posé."), visualDirection: "- Plan drone sur la pyramide\n\n2. Gros plan sur un bloc de calcaire\n• Ouvriers tirant une corde" };
+    const shots = planShots(brief, [written], sceneTimings([{ sceneIndex: 1, duration: 60 }]));
+    expect(shots).toHaveLength(3);
+    expect(shots.map((shot) => shot.prompt.split("\n")[1])).toEqual([
+      "Show exactly this: Plan drone sur la pyramide",
+      "Show exactly this: Gros plan sur un bloc de calcaire",
+      "Show exactly this: Ouvriers tirant une corde",
+    ]);
+    // La ligne écrite est le sujet : pas de mot-clé B-roll ajouté.
+    expect(shots[0]!.prompt).not.toContain("Main subject");
+    expect(shots[2]!.start + shots[2]!.length).toBeCloseTo(60 + SCENE_GAP_SECONDS, 2);
+  });
+
+  it("garde le découpage automatique pour une direction sur une seule ligne", () => {
+    expect(visualLines("  Plan large du désert  ")).toEqual(["Plan large du désert"]);
+    expect(planShots(brief, [scene(1, "Une phrase.")], sceneTimings([{ sceneIndex: 1, duration: 46 }]))).toHaveLength(3);
   });
 
   it("refuse une voix sans scène correspondante dans le script", () => {

@@ -11,6 +11,7 @@ import { MemoryPipelineStore } from "../../mocks/memory-store";
 
 const PIPELINE_ID = "6f0c2b1e-8d4a-4c3b-9e2f-1a2b3c4d5e6f";
 const WORKSPACE_ID = "0b6c1e2d-3f4a-4b5c-8d9e-0f1a2b3c4d5e";
+const REQUEST = { key: "regen:1a2b3c4d-video", credits: 60 };
 
 let store: MemoryPipelineStore;
 let storage: MemoryMediaStorage;
@@ -46,14 +47,19 @@ beforeEach(() => {
   steps = [];
   sleeps = [];
   store.addPipeline({ id: PIPELINE_ID, workspaceId: WORKSPACE_ID, brief: { ...validBrief, durationMinutes: 1, video: true } as Brief, channel: null, tier: "standard" });
-  store.seedVersion(PIPELINE_ID, "script", validScript);
-  store.seedVersion(PIPELINE_ID, "voiceover", { ...validVoiceover, segments: [1, 2, 3, 4].map((sceneIndex) => ({ ...validVoiceover.segments[0]!, sceneIndex, text: `Scène ${sceneIndex} [pause:600ms] du récit.` })) });
+  const scriptId = store.seedVersion(PIPELINE_ID, "script", validScript);
+  store.seedVersion(
+    PIPELINE_ID,
+    "voiceover",
+    { ...validVoiceover, segments: [1, 2, 3, 4].map((sceneIndex) => ({ ...validVoiceover.segments[0]!, sceneIndex, text: `Scène ${sceneIndex} [pause:600ms] du récit.` })) },
+    { sourceVersions: { script: scriptId } },
+  );
 });
 
 describe("runVideoSteps", () => {
   it("produit voix, images, sous-titres et rendu, puis enregistre la vidéo et son coût", async () => {
     const render = new FakeRender({ pollsBeforeDone: 2 });
-    const versionId = await runVideoSteps(PIPELINE_ID, runner(), deps(render));
+    const versionId = await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(render));
 
     // Une voix par scène, lue sans les indications de pause, avec le texte voisin pour l'intonation.
     expect(voice.requests.map((r) => r.text)).toEqual([1, 2, 3, 4].map((n) => `Scène ${n}… du récit.`));
@@ -80,7 +86,7 @@ describe("runVideoSteps", () => {
     expect(JSON.stringify(edit)).toContain("https://storage.test/");
 
     // Coût : images (usage × tarif) + voix (caractères) + rendu (secondes), crédits de la vidéo capturés.
-    const generation = store.generation(`pipe:${PIPELINE_ID}:video`);
+    const generation = store.generation(REQUEST.key);
     expect(generation).toMatchObject({ status: "succeeded", credits: 60, versionId });
     const characters = voice.requests.reduce((sum, r) => sum + r.text.length, 0);
     expect(generation.telemetry!.costUsdMicros).toBe(images.prompts.length * (100 * 5 + 6000 * 30) + characters * 80 + Math.round(42 * Math.round(200_000 / 60)));
@@ -89,20 +95,28 @@ describe("runVideoSteps", () => {
   });
 
   it("enregistre l'échec du rendu sur la génération, sans version", async () => {
-    await expect(runVideoSteps(PIPELINE_ID, runner(), deps(new FakeRender({ fail: "asset introuvable" })))).rejects.toThrow(/asset introuvable/);
-    expect(store.generation(`pipe:${PIPELINE_ID}:video`)).toMatchObject({ status: "failed", failure: { code: "INTERNAL", message: expect.stringContaining("asset introuvable") } });
+    await expect(runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender({ fail: "asset introuvable" })))).rejects.toThrow(/asset introuvable/);
+    expect(store.generation(REQUEST.key)).toMatchObject({ status: "failed", failure: { code: "INTERNAL", message: expect.stringContaining("asset introuvable") } });
     expect(store.versions.filter((v) => v.assetType === "video")).toHaveLength(0);
     expect(steps.at(-1)).toBe("video:fail");
   });
 
   it("relance l'étape finale tant que le MP4 n'est pas hébergé", async () => {
-    await expect(runVideoSteps(PIPELINE_ID, runner(), deps(new FakeRender({ hostedUrl: null })))).rejects.toThrow(/pas encore hébergé/);
+    await expect(runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender({ hostedUrl: null })))).rejects.toThrow(/pas encore hébergé/);
   });
 
   it("ne refait rien quand la vidéo est déjà terminée", async () => {
-    const first = await runVideoSteps(PIPELINE_ID, runner(), deps(new FakeRender()));
+    const first = await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender()));
     const calls = voice.requests.length;
-    expect(await runVideoSteps(PIPELINE_ID, runner(), deps(new FakeRender()))).toBe(first);
+    expect(await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender()))).toBe(first);
     expect(voice.requests).toHaveLength(calls);
+  });
+
+  it("lit la narration du script quand la voix off date d'une version précédente du script", async () => {
+    const edited = { ...validScript, scenes: validScript.scenes.map((scene) => ({ ...scene, narration: `Narration réécrite de la scène ${scene.index}, lue telle quelle.` })) };
+    const editedId = store.seedVersion(PIPELINE_ID, "script", edited, { source: "user_edit" });
+    const versionId = await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender()));
+    expect(voice.requests.map((r) => r.text)).toEqual(edited.scenes.map((scene) => scene.narration));
+    expect(store.versions.find((v) => v.id === versionId)!.sourceVersions).toEqual({ script: editedId });
   });
 });

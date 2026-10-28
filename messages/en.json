@@ -158,19 +158,29 @@
     "title": "Title",
     "narration": "Narration",
     "visualDirection": "Visual direction",
+    "narrationHint": "Read word for word by the video's voice-over.",
+    "visualDirectionHint": "One line per image: the video shows them in this order, spread over the scene's narration. On a single line, one image about every 15 seconds.",
     "onScreenText": "On-screen text (optional)",
+    "up": "Move up",
+    "down": "Move down",
+    "add": "Add a scene after",
+    "remove": "Delete",
+    "moveUp": "Move scene {index} up",
+    "moveDown": "Move scene {index} down",
+    "addAfter": "Add a scene after scene {index}",
+    "removeScene": "Delete scene {index}",
     "callToAction": "Call to action",
     "saving": "Saving…",
     "save": "Save a new version",
     "cancel": "Cancel",
-    "note": "Free. The titles, SEO, voiceover and thumbnails will become outdated.",
+    "note": "Free. The titles, SEO, voiceover and thumbnails will become outdated; the video will follow this version.",
     "errors": {
       "workingTitle": "The working title is at most 100 characters.",
       "hookSummary": "The hook summary is at most 300 characters.",
       "callToAction": "The call to action is at most 300 characters.",
       "title": "The scene title is at most 80 characters.",
       "narration": "The narration is at least 20 characters.",
-      "visualDirection": "The visual direction is at most 400 characters.",
+      "visualDirection": "The visual direction is at most 1,000 characters.",
       "onScreenText": "The on-screen text is at most 60 characters.",
       "fix": "Fix the highlighted fields.",
       "busy": "The pipeline is still running: wait for generation to finish.",
@@ -321,7 +331,8 @@
     "missing": "You are short {missing} ({available} available).",
     "after": "Balance after launch: {remaining}.",
     "note": "Credits are reserved at launch and only successful assets are charged: the rest is returned.",
-    "unlimited": "Internal workspace: credits topped up automatically."
+    "unlimited": "Internal workspace: credits topped up automatically.",
+    "videoLater": "Video: about {credits} more, reserved only when you launch it, after reviewing and adjusting the script."
   },
   "InsufficientCredits": {
     "title": "Not enough credits",
@@ -369,10 +380,10 @@
       "video": "The video isn't available right now. Untick the option to launch the pipeline."
     },
     "video": "Video",
-    "videoOption": "Also create the full video (1080p MP4): images, voice-over, captions and transitions",
+    "videoOption": "Also prepare the full video (1080p MP4): images, voice-over, captions and transitions",
     "videoPlan": "({plan} plan or higher)",
     "videoUnavailable": "(currently unavailable)",
-    "videoHint": "{credits} credits per minute of video, on top of the pipeline. Ready to publish on YouTube."
+    "videoHint": "The script comes first: you review and adjust it, then launch the video, which follows it as written. {credits} credits per minute of video, charged at that point."
   },
   "ChannelForm": {
     "identity": "Channel identity",
@@ -692,7 +703,7 @@
       },
       "video": {
         "q": "Does Pipeline AI make the video itself?",
-        "a": "Yes, as an option on paid plans: a 1080p MP4 video with the generated images, an ElevenLabs voice-over, synced captions and simple transitions, ready to publish. Without the option, it delivers the script, titles, SEO, voice-over text and thumbnails."
+        "a": "Yes, as an option on paid plans: a 1080p MP4 video with the generated images, an ElevenLabs voice-over, synced captions and simple transitions, ready to publish. The script comes first: you review and adjust it your way, then the video follows it as written. Without the option, it delivers the script, titles, SEO, voice-over text and thumbnails."
       },
       "models": {
         "q": "Which models write the content?",
@@ -1057,9 +1068,17 @@
   },
   "Video": {
     "title": "MP4 video",
-    "pending": "The video will be created after the thumbnails.",
+    "afterScript": "Once the script is ready, review and adjust it, then launch the video: it will follow your version.",
+    "review": "Review the script and adjust it your way (Script tab, “Edit”): the video will follow its current version exactly. The narration is read word for word, and each line of a scene's visual direction becomes one image, in order.",
+    "noScript": "No video possible: the script didn't succeed.",
+    "generate": "Generate the video",
+    "retry": "Retry the video",
+    "regenerate": "Generate a new video",
+    "launched": "Video launched. The page updates on its own.",
+    "alreadyRunning": "A video for this pipeline is already in progress.",
+    "unavailable": "The video isn't available right now.",
+    "scriptChanged": "The script changed since this video: generate a new one to follow the latest version.",
     "running": "Creating the video: images, voice-over, captions, then editing. Allow up to {minutes} min; the page updates when it's done.",
-    "skipped": "Video not created: the script didn't succeed. Its credits were returned to you.",
     "refunded": "The video's credits were returned to you.",
     "noPlayer": "Your browser can't play this video: download it instead.",
     "sandbox": "Test render (Shotstack sandbox): the video has a watermark. Don't publish it.",
@@ -1067,4 +1086,5 @@
     "details": "1080p · about {minutes} min",
     "disclosure": "Before publishing, tick “Altered or synthetic content” in YouTube Studio: this video's voice and images are AI-generated."
   }
+
 }

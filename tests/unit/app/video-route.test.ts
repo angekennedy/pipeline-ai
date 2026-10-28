@@ -47,7 +47,7 @@ const withVideo = (video?: PipelineView["video"]): PipelineView => ({
 beforeEach(() => {
   user = { id: "user-1" };
   visible = { workspace_id: "ws-1" };
-  view = withVideo({ status: "ready", content: manifest(), error: null });
+  view = withVideo({ status: "ready", content: manifest(), error: null, credits: 60, scriptChanged: false });
   server.use(http.get(MP4, () => new HttpResponse("mp4-bytes", { headers: { "content-type": "video/mp4", "content-length": "9" } })));
 });
 
@@ -72,14 +72,14 @@ describe("GET /api/pipelines/[id]/video", () => {
   });
 
   it("répond 409 tant que la vidéo n'est pas prête", async () => {
-    view = withVideo({ status: "running", content: null, error: null });
+    view = withVideo({ status: "running", content: null, error: null, credits: 60, scriptChanged: false });
     expect((await get()).status).toBe(409);
     view = withVideo();
     expect((await get()).status).toBe(409);
   });
 
   it("ne relaie que les hôtes de Shotstack", async () => {
-    view = withVideo({ status: "ready", content: manifest("https://exemple.test/video.mp4"), error: null });
+    view = withVideo({ status: "ready", content: manifest("https://exemple.test/video.mp4"), error: null, credits: 60, scriptChanged: false });
     await expect(get()).rejects.toThrow(/hôte inattendu/);
     expect(isShotstackUrl("https://cdn.shotstack.io/x.mp4")).toBe(true);
     expect(isShotstackUrl("https://shotstack-api-v1-output.s3-ap-southeast-2.amazonaws.com/x.mp4")).toBe(true);

@@ -27,7 +27,7 @@ function view({ video = true, images = true } = {}): PipelineView {
   };
   const content = { script: validScript as Script, titles: validTitles as Titles, seo: validSeo as Seo, voiceover: validVoiceover as Voiceover, thumbnails };
   for (const [type, value] of Object.entries(content)) base.assets[type as keyof typeof content] = { ...base.assets[type as keyof typeof content], status: "ready", content: value as never };
-  return { ...base, status: "completed", ...(video && { video: { status: "ready", content: manifest, error: null } }) };
+  return { ...base, status: "completed", ...(video && { video: { status: "ready", content: manifest, error: null, credits: 60, scriptChanged: false } }) };
 }
 
 const read = async (stream: ReadableStream<Uint8Array>) => new Uint8Array(await new Response(stream).arrayBuffer());
