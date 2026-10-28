@@ -11,6 +11,7 @@ import {
   LlmTruncatedError,
   LlmValidationError,
   callStructured,
+  coerceEnums,
   jsonSchemaOf,
 } from "@/lib/ai/structured";
 import { OPENAI_CHAT_URL, openaiSequence, jsonReplyStream, refusalStream } from "../../mocks/openai";
@@ -91,6 +92,30 @@ describe("callStructured", () => {
     const ctx = { brief: validBrief, channel: null, script: validScript, titles: validTitles } as PromptContext;
     const output = registry[type].outputSchema?.(ctx);
     if (output) expect(JSON.stringify(jsonSchemaOf(output))).not.toMatch(/"pattern":/);
+  });
+
+  it("ramène une valeur de liste mal écrite à la valeur autorisée, sans réparation", async () => {
+    const Overlay = z.object({ placement: z.enum(["top-left", "bottom-right", "center"]), concepts: z.array(z.object({ font: z.enum(["bold-sans", "serif-impact"]) })) });
+    mock(() => jsonReplyStream({ placement: "Top Left", concepts: [{ font: "bold_sans" }, { font: "Impact Serif" }] }));
+    await expect(callStructured(request({ schema: Overlay }), { client })).resolves.toMatchObject({
+      data: { placement: "top-left", concepts: [{ font: "bold-sans" }, { font: "serif-impact" }] },
+      repairs: 0,
+    });
+  });
+
+  it("laisse une valeur sans équivalent partir en réparation", async () => {
+    const Overlay = z.object({ placement: z.enum(["top-left", "center"]) });
+    const calls = mock(
+      () => jsonReplyStream({ placement: "top-center" }),
+      () => jsonReplyStream({ placement: "center" }),
+    );
+    await expect(callStructured(request({ schema: Overlay }), { client })).resolves.toMatchObject({ data: { placement: "center" }, repairs: 1 });
+    expect(calls).toHaveLength(2);
+  });
+
+  it("suit les références $defs du JSON Schema", () => {
+    const schema = { $defs: { pos: { enum: ["top-left", "center"] } }, properties: { a: { $ref: "#/$defs/pos" } } };
+    expect(coerceEnums(schema, { a: "CENTER" })).toEqual({ a: "center" });
   });
 
   it("utilise gpt-4o-mini pour les livrables légers", async () => {

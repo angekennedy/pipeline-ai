@@ -10,6 +10,8 @@ const INSTRUCTIONS = `You are a YouTube thumbnail art director. You design thumb
 - negativePrompt: at most 400 characters, in English (for example text, watermark, logo, blur, extra fingers).
 - composition: at most 300 characters. focalEmotion: at most 40 characters.
 - textOverlay.text: 2 or 3 words is best, 4 at most, and 30 characters at most. Every word separated by a space counts, including short words such as "de", "à", "the" or "of". Examples of the right length: "NO PULLEYS", "VANISHED?", "THE LOST CODE". Never the title itself, and never a promise the script does not deliver. Place it in the empty area. colorHex and strokeHex are #RRGGBB colours with strong contrast; use <channel_preset> brandRules.thumbnailPalette when it is given.
+- textOverlay.placement is exactly one of: "top-left", "top-right", "bottom-left", "bottom-right", "center". Avoid "bottom-right": YouTube covers it with the duration badge.
+- textOverlay.fontStyle is exactly one of: "bold-sans", "condensed", "handwritten", "serif-impact".
 - aspectRatio: always "16:9".
 - No likeness of real people, no trademarks or logos, and no imagery that misrepresents the video.`;
 
@@ -19,7 +21,7 @@ function requireTitles(ctx: PromptContext): Titles {
 }
 
 export const thumbnailsPrompt = definePrompt({
-  version: "thumbnails@4",
+  version: "thumbnails@5",
   instructions: INSTRUCTIONS,
   context: (ctx) => [
     ...withScript(ctx),

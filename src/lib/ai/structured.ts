@@ -75,14 +75,53 @@ function formatIssues(issues: SchemaIssue[]) {
   return issues.map((issue) => `${issue.path.map(String).join(".") || "(racine)"}: ${issue.message}`).join("; ");
 }
 
-function validate<T>(schema: z.ZodType<T>, text: string): { ok: true; data: T } | { ok: false; issues: SchemaIssue[] } {
+type JsonSchema = {
+  $ref?: string;
+  $defs?: Record<string, JsonSchema>;
+  enum?: unknown[];
+  anyOf?: JsonSchema[];
+  oneOf?: JsonSchema[];
+  allOf?: JsonSchema[];
+  items?: JsonSchema;
+  properties?: Record<string, JsonSchema>;
+};
+
+// Forme comparable d'une valeur de liste : casse, espaces et tirets bas ignorés, mots dans l'ordre
+// alphabétique (« Left Top » = « top-left »).
+const canonical = (text: string) =>
+  text
+    .trim()
+    .toLowerCase()
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .sort()
+    .join("-");
+
+// Le mode non strict ne garantit pas les listes fermées (enum) : une valeur écrite autrement
+// (« Top Left », « top_left ») est ramenée à la valeur autorisée qui lui correspond, avant Zod.
+// Une valeur sans équivalent reste telle quelle et part en réparation.
+export function coerceEnums(schema: JsonSchema, value: unknown, root: JsonSchema = schema): unknown {
+  const ref = schema.$ref?.match(/^#\/\$defs\/(.+)$/)?.[1];
+  if (ref && root.$defs?.[ref]) return coerceEnums(root.$defs[ref], value, root);
+  for (const sub of [...(schema.allOf ?? []), ...(schema.anyOf ?? []), ...(schema.oneOf ?? [])]) value = coerceEnums(sub, value, root);
+  if (schema.enum && typeof value === "string" && !schema.enum.includes(value)) {
+    return schema.enum.find((option) => typeof option === "string" && canonical(option) === canonical(value)) ?? value;
+  }
+  if (Array.isArray(value) && schema.items) return value.map((item) => coerceEnums(schema.items!, item, root));
+  if (value && typeof value === "object" && !Array.isArray(value) && schema.properties) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, schema.properties![key] ? coerceEnums(schema.properties![key], item, root) : item]));
+  }
+  return value;
+}
+
+function validate<T>(schema: z.ZodType<T>, text: string, jsonSchema: JsonSchema): { ok: true; data: T } | { ok: false; issues: SchemaIssue[] } {
   let json: unknown;
   try {
     json = JSON.parse(text);
   } catch {
     return { ok: false, issues: [{ path: [], message: "Invalid JSON" }] };
   }
-  const result = schema.safeParse(json);
+  const result = schema.safeParse(coerceEnums(jsonSchema, json));
   return result.success
     ? { ok: true, data: result.data }
     : { ok: false, issues: result.error.issues.map(({ path, message }) => ({ path, message })) };
@@ -158,7 +197,7 @@ export async function callStructured<T>(
       throw new LlmTruncatedError(maxTokens, costUsdMicros);
     }
 
-    const result = validate(request.schema, reply.text);
+    const result = validate(request.schema, reply.text, schema);
     if (result.ok) return { data: result.data, model: reply.model || model, usage, costUsdMicros, attempts, repairs };
 
     if (repairs >= MAX_REPAIRS) throw new LlmValidationError(result.issues, costUsdMicros);
