@@ -138,10 +138,11 @@ describe("ScriptEditor", () => {
     render(<ScriptEditor script={validScript as Script} actions={actions} onDone={onDone} />);
     await user.click(screen.getByRole("button", { name: "Enregistrer une nouvelle version" }));
 
-    const narration = (await screen.findAllByLabelText("Narration"))[0]!;
+    // La réponse de l'action arrive après le clic : attendre son message avant de lire les champs.
+    expect(await screen.findByRole("alert")).toHaveTextContent("Corrigez les champs signalés.");
+    const narration = screen.getAllByLabelText("Narration")[0]!;
     expect(narration).toHaveAttribute("aria-invalid", "true");
     expect(narration).toHaveAccessibleDescription(/La narration fait au moins 20 caractères\./);
-    expect(screen.getByRole("alert")).toHaveTextContent("Corrigez les champs signalés.");
     expect(onDone).not.toHaveBeenCalled();
   });
 });

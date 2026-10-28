@@ -13,6 +13,7 @@ import {
   callStructured,
   coerceEnums,
   jsonSchemaOf,
+  unwrapRoot,
 } from "@/lib/ai/structured";
 import { OPENAI_CHAT_URL, openaiSequence, jsonReplyStream, refusalStream } from "../../mocks/openai";
 import { server } from "../../mocks/server";
@@ -113,6 +114,12 @@ describe("callStructured", () => {
     expect(calls).toHaveLength(2);
   });
 
+  it("ramène un nom de champ écrit autrement au nom attendu, sans écraser un champ présent", () => {
+    const schema = { properties: { workingTitle: {}, callToAction: {} } };
+    expect(coerceEnums(schema, { working_title: "A", "Call To Action": "B" })).toEqual({ workingTitle: "A", callToAction: "B" });
+    expect(coerceEnums(schema, { workingTitle: "A", working_title: "doublon" })).toEqual({ workingTitle: "A", working_title: "doublon" });
+  });
+
   it("suit les références $defs du JSON Schema", () => {
     const schema = { $defs: { pos: { enum: ["top-left", "center"] } }, properties: { a: { $ref: "#/$defs/pos" } } };
     expect(coerceEnums(schema, { a: "CENTER" })).toEqual({ a: "center" });
@@ -154,6 +161,31 @@ describe("callStructured", () => {
       () => jsonReplyStream(valid),
     );
     await expect(callStructured(request(), { client })).resolves.toMatchObject({ repairs: 1 });
+  });
+
+  it("reprend l'objet emballé dans une clé, encodé en chaîne, dans une liste ou sous le schéma recopié, sans réparation", async () => {
+    for (const wrapped of [{ script: valid }, { output: { result: valid } }, JSON.stringify(JSON.stringify(valid)), [valid], { type: "object", properties: valid }]) {
+      mock(() => jsonReplyStream(wrapped));
+      await expect(callStructured(request(), { client })).resolves.toMatchObject({ data: valid, repairs: 0 });
+    }
+  });
+
+  it("déballe le script complet renvoyé sous une clé « script »", async () => {
+    const schema = jsonSchemaOf(assetSchemas.script);
+    expect(unwrapRoot(schema, { script: validScript })).toEqual(validScript);
+    // Une racine qui porte déjà un champ du script reste telle quelle (la validation dira ce qui manque).
+    const partial = { workingTitle: "Titre", data: validScript };
+    expect(unwrapRoot(schema, partial)).toBe(partial);
+  });
+
+  it("dit au modèle que l'objet manque à la racine, avec les clés reçues", async () => {
+    const calls = mock(
+      () => jsonReplyStream({ result: "ok", note: "voir plus bas" }),
+      () => jsonReplyStream(valid),
+    );
+    await expect(callStructured(request(), { client })).resolves.toMatchObject({ data: valid, repairs: 1 });
+    const repair = (calls[1]!.body.messages as Array<{ content: string }>).at(-1)!.content;
+    expect(repair).toContain("Expected the requested JSON object itself at the root, with the keys title, tags; received an object with keys result, note.");
   });
 
   it("échoue après une seule réparation infructueuse", async () => {

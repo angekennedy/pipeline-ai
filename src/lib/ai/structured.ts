@@ -84,6 +84,7 @@ type JsonSchema = {
   allOf?: JsonSchema[];
   items?: JsonSchema;
   properties?: Record<string, JsonSchema>;
+  required?: string[];
 };
 
 // Forme comparable d'une valeur de liste : casse, espaces et tirets bas ignorés, mots dans l'ordre
@@ -97,9 +98,13 @@ const canonical = (text: string) =>
     .sort()
     .join("-");
 
+// Nom de champ comparable : casse, espaces, tirets et tirets bas ignorés (« working_title » = « workingTitle »).
+const keyOf = (key: string) => key.toLowerCase().replace(/[\s_-]+/g, "");
+
 // Le mode non strict ne garantit pas les listes fermées (enum) : une valeur écrite autrement
 // (« Top Left », « top_left ») est ramenée à la valeur autorisée qui lui correspond, avant Zod.
-// Une valeur sans équivalent reste telle quelle et part en réparation.
+// Une valeur sans équivalent reste telle quelle et part en réparation. De même, un champ dont le nom
+// est écrit autrement prend le nom attendu, s'il n'est pas déjà présent.
 export function coerceEnums(schema: JsonSchema, value: unknown, root: JsonSchema = schema): unknown {
   const ref = schema.$ref?.match(/^#\/\$defs\/(.+)$/)?.[1];
   if (ref && root.$defs?.[ref]) return coerceEnums(root.$defs[ref], value, root);
@@ -109,22 +114,68 @@ export function coerceEnums(schema: JsonSchema, value: unknown, root: JsonSchema
   }
   if (Array.isArray(value) && schema.items) return value.map((item) => coerceEnums(schema.items!, item, root));
   if (value && typeof value === "object" && !Array.isArray(value) && schema.properties) {
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, schema.properties![key] ? coerceEnums(schema.properties![key], item, root) : item]));
+    const properties = schema.properties;
+    const names = new Map(Object.keys(properties).map((name) => [keyOf(name), name]));
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => {
+        const name = properties[key] ? key : names.get(keyOf(key));
+        const renamed = name && (name === key || !(name in value)) ? name : key;
+        return [renamed, properties[renamed] ? coerceEnums(properties[renamed], item, root) : item];
+      }),
+    );
   }
   return value;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
+const MAX_UNWRAP_DEPTH = 3;
+
+// Objet attendu à la racine. Le mode non strict laisse le modèle l'emballer ({"script": {…}},
+// {"output": {…}}), le renvoyer encodé dans une chaîne, dans une liste, ou recopier le schéma
+// ({"type": "object", "properties": {…}}) : l'objet qui porte tous les champs requis de la racine
+// est repris tel quel, sans réparation. Une racine qui porte déjà l'un d'eux n'est pas touchée.
+export function unwrapRoot(schema: JsonSchema, value: unknown, depth = 0): unknown {
+  const required = schema.required ?? [];
+  if (required.length === 0 || depth > MAX_UNWRAP_DEPTH) return value;
+  if (typeof value === "string") {
+    try {
+      return unwrapRoot(schema, JSON.parse(value), depth + 1);
+    } catch {
+      return value;
+    }
+  }
+  if (isRecord(value) && required.some((key) => key in value)) return value;
+  const children = Array.isArray(value) ? value : isRecord(value) ? Object.values(value) : [];
+  for (const child of children) {
+    const found = unwrapRoot(schema, child, depth + 1);
+    if (isRecord(found) && required.every((key) => key in found)) return found;
+  }
+  return value;
+}
+
+// Aucun champ requis à la racine : l'objet est ailleurs. Le dire au modèle (et dans le message
+// d'erreur enregistré), avec les clés reçues, plutôt que la liste des champs manquants.
+function rootIssue(schema: JsonSchema, value: unknown): SchemaIssue | null {
+  const required = schema.required ?? [];
+  if (required.length === 0 || (isRecord(value) && required.some((key) => key in value))) return null;
+  const received = isRecord(value) ? `an object with keys ${Object.keys(value).slice(0, 10).join(", ") || "(none)"}` : Array.isArray(value) ? "an array" : `a ${typeof value}`;
+  return {
+    path: [],
+    message: `Expected the requested JSON object itself at the root, with the keys ${required.join(", ")}; received ${received}. Do not wrap it in another key and do not return the JSON Schema.`,
+  };
 }
 
 function validate<T>(schema: z.ZodType<T>, text: string, jsonSchema: JsonSchema): { ok: true; data: T } | { ok: false; issues: SchemaIssue[] } {
   let json: unknown;
   try {
-    json = JSON.parse(text);
+    json = unwrapRoot(jsonSchema, JSON.parse(text));
   } catch {
     return { ok: false, issues: [{ path: [], message: "Invalid JSON" }] };
   }
   const result = schema.safeParse(coerceEnums(jsonSchema, json));
-  return result.success
-    ? { ok: true, data: result.data }
-    : { ok: false, issues: result.error.issues.map(({ path, message }) => ({ path, message })) };
+  if (result.success) return { ok: true, data: result.data };
+  const root = rootIssue(jsonSchema, json);
+  return { ok: false, issues: root ? [root] : result.error.issues.map(({ path, message }) => ({ path, message })) };
 }
 
 // Forme d'entrée : le modèle produit ce que Zod lit, avant transformations éventuelles. Les
