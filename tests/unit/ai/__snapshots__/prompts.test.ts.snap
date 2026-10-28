@@ -12,7 +12,7 @@ exports[`prompt script > correspond au snapshot 1`] = `
 {"durationMinutes":8,"language":"fr","niche":"Histoire","style":"documentary","tone":"mysterious","topic":"Le mystère de la construction des pyramides de Gizeh"}
 </brief>
 
-Write the script for the video described in <brief>. Target duration: 8 minutes, so 1200 words of narration in total: no fewer than 1080 and no more than 1320. Use 8 to 12 scenes; with 10 scenes, that is about 120 words per scene on average (the hook is shorter, so the other scenes are longer). Write every text field except bRollKeywords in French.",
+Write the script for the video described in <brief>. Target duration: 8 minutes, so 1200 words of narration in total: no fewer than 1080 and no more than 1320. Use 16 scenes (at least 13, at most 19). Scene 1, the hook, has at most 35 words of narration; every other scene has 70 to 90 words of narration, about 78. Write every text field except bRollKeywords in French.",
       "role": "user",
     },
   ],
@@ -26,7 +26,7 @@ Write the script for the video described in <brief>. Target duration: 8 minutes,
 
 ## Length
 - The video's duration is computed from the narration's word count, so the word range in the task is a requirement, not a suggestion. Scripts that come out too short are the most common failure.
-- Plan the word count of every scene before writing, then check the total against the range.
+- Every scene after the hook has the word count given in the task. Count the words of each scene's narration as you write it; a scene that comes out short is developed before moving on.
 - Reach the length by developing each scene with concrete details, examples, consequences and transitions, not by adding scenes beyond the requested range.
 
 ## Fields

@@ -14,6 +14,11 @@ export const WORDS_PER_MINUTE: Record<Language, number> = {
 // Écart maximal toléré entre la durée estimée et la durée cible (±15 %).
 export const DURATION_TOLERANCE = 0.15;
 
+// Vidéo : narration minimale acceptée, en part de la cible. Plus souple que DURATION_TOLERANCE : la
+// vidéo est facturée sur la longueur réelle du script (lib/video/length), et un écart part d'abord en
+// réparation, avec la cible complète.
+export const VIDEO_MIN_LENGTH_RATIO = 0.75;
+
 // Un mot est un groupe sans espace qui contient au moins une lettre ou un chiffre :
 // la ponctuation isolée (« — », « , ») n'est pas lue.
 export function countWords(text: string): number {

@@ -183,17 +183,23 @@ describe("longueur de la narration d'une vidéo", () => {
     ...validScript,
     scenes: validScript.scenes.map((scene, i) => ({ ...scene, narration: words(i === 0 ? total - 3 * Math.floor(total / 4) : Math.floor(total / 4)) })),
   });
-  // 1 min en français : 150 mots visés, 128 au moins (tolérance de 15 %).
+  // 1 min en français : 150 mots visés, 113 au moins (75 %).
   const video = context({ brief: { ...validBrief, durationMinutes: 1, video: true } as Brief });
 
-  it("demande de compléter une narration trop courte, avec les mots manquants", () => {
+  it("demande d'allonger une narration trop courte, scène par scène, vers la cible complète", () => {
     const result = registry.script.outputSchema!(video).safeParse(scriptOf(100));
     expect(result.success).toBe(false);
-    expect(result.error!.issues[0]).toMatchObject({ path: ["scenes"], message: expect.stringContaining("compte 100 mots : il en faut au moins 128 (cible 150)") });
+    const { message } = result.error!.issues[0]!;
+    expect(result.error!.issues[0]!.path).toEqual(["scenes"]);
+    expect(message).toContain("La narration compte 100 mots : il en faut 150 pour 1 min (au moins 113).");
+    // Accroche de 25 mots gardée ; 125 mots à répartir sur les 3 autres scènes.
+    expect(message).toContain("développe la narration de chacune jusqu'à environ 42 mots");
+    expect(message).toContain("À allonger : scène 2 : 25 → 42 mots ; scène 3 : 25 → 42 mots ; scène 4 : 25 → 42 mots.");
   });
 
-  it("accepte une narration dans la tolérance", () => {
-    expect(registry.script.outputSchema!(video).safeParse(scriptOf(130)).success).toBe(true);
+  it("accepte une narration à partir de 75 % de la cible", () => {
+    expect(registry.script.outputSchema!(video).safeParse(scriptOf(113)).success).toBe(true);
+    expect(registry.script.outputSchema!(video).safeParse(scriptOf(112)).success).toBe(false);
   });
 
   it("ne contrôle pas la longueur sans vidéo, ni pour les éditions", () => {

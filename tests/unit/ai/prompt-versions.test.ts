@@ -30,6 +30,8 @@ const FINGERPRINTS: Record<string, string> = {
   "thumbnails@4": "9955ca0bc18224a1",
   // Valeurs de placement et de police écrites en toutes lettres (le mode non strict ne les impose pas).
   "thumbnails@5": "e8e300dfddb0977e",
+  // Narration trop courte avec gpt-4o : scènes plus nombreuses, longueur fixée scène par scène.
+  "script@4": "4493c1b435e491f0",
 };
 
 const ctx = {
