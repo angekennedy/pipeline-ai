@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useRef, useState } from "react";
 import { createPipeline, type CreatePipelineState } from "@/app/(app)/w/[workspaceSlug]/pipelines/new/actions";
 import { LANGUAGES, STYLES, TONES } from "@/lib/ai/schemas";
-import type { CreditSummary } from "@/lib/billing/balance";
+import { effectivePlan, type CreditSummary } from "@/lib/billing/balance";
 import { restrictionMessage } from "@/lib/billing/entitlements";
 import { VIDEO_CREDITS_PER_MINUTE } from "@/lib/billing/credit-rules";
 import { PLANS, PLAN_KEYS } from "@/lib/billing/plans";
@@ -93,7 +93,7 @@ export function BriefForm({
   const errors = Object.fromEntries(Object.keys(state.fieldErrors).map((field) => [field, t(`errors.${field as keyof typeof state.fieldErrors}`)])) as Partial<
     Record<keyof typeof state.fieldErrors, string>
   >;
-  const plan = PLANS[credits.planKey];
+  const plan = effectivePlan(credits);
   // Premium n'est retenu que si le plan l'inclut : l'option grisée ne serait pas envoyée.
   const tierOf = (input: BriefFormValues): ModelTier => (input.tier === "premium" && plan.premium ? "premium" : "standard");
   // Même règle pour la vidéo : la case grisée ne serait pas envoyée.
@@ -343,7 +343,7 @@ export function BriefForm({
         </div>
       )}
 
-      <CostEstimate durationMinutes={Number(duration.trim() || Number.NaN)} tier={tier} video={video} thumbnailImages={plan.thumbnailImages} available={credits.available} />
+      <CostEstimate durationMinutes={Number(duration.trim() || Number.NaN)} tier={tier} video={video} thumbnailImages={plan.thumbnailImages} available={credits.available} unlimited={credits.unlimited} />
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>

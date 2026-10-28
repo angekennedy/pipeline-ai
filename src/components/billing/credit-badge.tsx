@@ -8,7 +8,7 @@ import { PLANS } from "@/lib/billing/plans";
 export function CreditBadge({ credits }: { credits: CreditSummary }) {
   const t = useTranslations();
   const plan = PLANS[credits.planKey];
-  const available = t("Common.credits", { count: credits.available });
+  const available = credits.unlimited ? t("CreditBadge.unlimited") : t("Common.credits", { count: credits.available });
   return (
     <Link
       href="/billing"

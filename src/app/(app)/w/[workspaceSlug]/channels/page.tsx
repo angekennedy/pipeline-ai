@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { buttonVariants } from "@/components/ui/button";
-import { PLANS } from "@/lib/billing/plans";
+import { effectivePlan } from "@/lib/billing/balance";
 import { listChannels } from "@/lib/channels/store";
 import { createClient } from "@/lib/supabase/server";
 import { hasRole, requireMembership } from "@/lib/workspaces/access";
@@ -16,7 +16,7 @@ export default async function ChannelsPage({ params }: PageProps<"/w/[workspaceS
   const { workspaceSlug } = await params;
   const { workspace, role, credits } = await requireMembership(workspaceSlug);
   const channels = await listChannels(await createClient(), workspace.id);
-  const plan = PLANS[credits.planKey];
+  const plan = effectivePlan(credits);
   const canEdit = hasRole(role, "editor");
   const full = channels.length >= plan.channelPresets;
   const t = await getTranslations("Channels");

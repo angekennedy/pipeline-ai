@@ -320,7 +320,8 @@
     "cost": "Coût : <total></total>",
     "missing": "Il vous manque {missing} ({available} disponibles).",
     "after": "Solde après le lancement : {remaining}.",
-    "note": "Les crédits sont réservés au lancement et seuls les assets réussis sont débités : le reste est rendu."
+    "note": "Les crédits sont réservés au lancement et seuls les assets réussis sont débités : le reste est rendu.",
+    "unlimited": "Workspace interne : crédits complétés automatiquement."
   },
   "InsufficientCredits": {
     "title": "Crédits insuffisants",
@@ -555,7 +556,8 @@
     },
     "consent": "En passant au paiement, vous acceptez les <terms>conditions générales d'utilisation et de vente</terms> et la <privacy>politique de confidentialité</privacy>.",
     "stripeConsent": "En payant, vous acceptez les conditions générales de Pipeline AI : {url}",
-    "taxes": "Prix en euros, taxes incluses."
+    "taxes": "Prix en euros, taxes incluses.",
+    "unlimited": "Workspace interne : crédits illimités et toutes les fonctionnalités, pour les tests de l'exploitant. Les coûts réels restent comptés dans /admin."
   },
   "Plans": {
     "pitch": {
@@ -612,7 +614,8 @@
   },
   "CreditBadge": {
     "label": "{credits} disponibles, plan {plan}. Facturation et crédits",
-    "reserved": "{credits} réservés par les pipelines en cours"
+    "reserved": "{credits} réservés par les pipelines en cours",
+    "unlimited": "Illimités"
   },
   "Account": {
     "signIn": "Se connecter",
@@ -860,6 +863,17 @@
         "model": "Modèle",
         "message": "Message exact"
       }
+    },
+    "internal": {
+      "title": "Workspaces internes",
+      "intro": "Crédits complétés automatiquement et toutes les fonctionnalités (Premium, 60 min, vidéo), pour vos tests. Les coûts réels restent comptés ci-dessus, et le disjoncteur de dépense quotidien s'applique toujours.",
+      "slug": "Slug du workspace",
+      "add": "Marquer comme interne",
+      "none": "Aucun workspace interne.",
+      "remove": "Retirer",
+      "removeLabel": "Retirer le statut interne de {slug}",
+      "updated": "Statut interne mis à jour.",
+      "unknown": "Aucun workspace ne porte ce slug."
     }
   },
   "Legal": {
