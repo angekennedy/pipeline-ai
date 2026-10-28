@@ -28,6 +28,8 @@ const FINGERPRINTS: Record<string, string> = {
   "seo@2": "407e12314085455b",
   "voiceover@2": "2f83cf075ffc2df0",
   "thumbnails@4": "9955ca0bc18224a1",
+  // Valeurs de placement et de police écrites en toutes lettres (le mode non strict ne les impose pas).
+  "thumbnails@5": "e8e300dfddb0977e",
 };
 
 const ctx = {
