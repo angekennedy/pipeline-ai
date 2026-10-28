@@ -15,7 +15,7 @@ const manifest: VideoManifest = {
   sandbox: false,
 };
 const panel = (video: VideoView, pipelineStatus: "running" | "completed" | "partial" = "completed") =>
-  render(<VideoPanel video={video} pipelineStatus={pipelineStatus} durationMinutes={8} />);
+  render(<VideoPanel pipelineId="pipe-1" video={video} pipelineStatus={pipelineStatus} durationMinutes={8} />);
 
 describe("VideoPanel", () => {
   it("annonce la création en cours tant que le pipeline tourne", () => {
@@ -26,7 +26,8 @@ describe("VideoPanel", () => {
   it("lit la vidéo prête, la propose au téléchargement et rappelle la déclaration YouTube", () => {
     const { container } = panel({ status: "ready", content: manifest, error: null });
     expect(container.querySelector("video")).toHaveAttribute("src", manifest.url);
-    expect(screen.getByRole("link", { name: "Télécharger la vidéo (MP4)" })).toHaveAttribute("href", manifest.url);
+    // Téléchargement par la route de l'application (pièce jointe), lecture directe depuis le CDN.
+    expect(screen.getByRole("link", { name: "Télécharger la vidéo (MP4)" })).toHaveAttribute("href", "/api/pipelines/pipe-1/video");
     expect(screen.getByText("1080p · environ 8 min")).toBeInTheDocument();
     expect(screen.getByText(/« Contenu modifié ou synthétique » dans YouTube Studio/)).toBeInTheDocument();
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
