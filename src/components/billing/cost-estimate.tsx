@@ -26,7 +26,7 @@ export function CostEstimate({
   const credits = (count: number) => all("Common.credits", { count });
   if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 60) return null;
   const costs = assetCredits({ durationMinutes, thumbnailImages }, tier);
-  const total = pipelineCredits({ durationMinutes, video, thumbnailImages }, tier);
+  const total = pipelineCredits({ durationMinutes, thumbnailImages }, tier);
   const remaining = available - total;
 
   return (
@@ -49,15 +49,11 @@ export function CostEstimate({
             {all(`Labels.assets.${type}`)} <span className="tabular-nums">{costs[type]}</span>
           </li>
         ))}
-        {video && (
-          <li>
-            {all("Labels.assets.video")} <span className="tabular-nums">{videoCredits({ durationMinutes, video })}</span>
-          </li>
-        )}
       </ul>
       <p className="mt-2 text-xs text-muted-foreground">
         {t("note")}
       </p>
+      {video && <p className="mt-1 text-xs text-muted-foreground">{t("videoLater", { credits: credits(videoCredits({ durationMinutes, video })) })}</p>}
     </section>
   );
 }

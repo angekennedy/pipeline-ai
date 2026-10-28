@@ -3,28 +3,27 @@
 import { useTranslations } from "next-intl";
 import type { PipelineStatus } from "@/lib/pipeline/status";
 import type { VideoView } from "@/lib/pipeline/view";
+import { VIDEO_CREDITS_PER_MINUTE } from "@/lib/billing/credit-rules";
 import { buttonVariants } from "@/components/ui/button";
 import { AssetStatusIcon } from "./asset-tabs";
+import { AutoRefresh, GenerateVideoButton, usePipelineActions } from "./pipeline-actions";
 
-// Vidéo MP4 du pipeline : lecture, téléchargement et rappel des règles de YouTube sur les contenus
-// générés. Pendant la génération, l'étape la plus longue du pipeline (images, voix, rendu).
+const TERMINAL: ReadonlySet<PipelineStatus> = new Set(["completed", "partial", "failed", "canceled"]);
+
+// Vidéo MP4 du pipeline. L'utilisateur la lance après avoir relu et ajusté le script : elle en suit
+// la version courante (narration lue mot pour mot, une image par ligne de direction visuelle). Puis
+// lecture, téléchargement et rappel des règles de YouTube sur les contenus générés.
 // `pipelineId` : le téléchargement passe par /api/pipelines/[id]/video, qui force l'enregistrement du fichier.
-export function VideoPanel({
-  pipelineId,
-  video,
-  pipelineStatus,
-  durationMinutes,
-}: {
-  pipelineId: string;
-  video: VideoView;
-  pipelineStatus: PipelineStatus;
-  durationMinutes: number;
-}) {
+export function VideoPanel({ pipelineId, video, pipelineStatus }: { pipelineId: string; video: VideoView; pipelineStatus: PipelineStatus }) {
   const t = useTranslations("Video");
   const failures = useTranslations("Failures");
-  // Le pipeline tourne encore : la vidéo attend ou est en cours, même sans événement en direct.
-  const status = video.status === "pending" && pipelineStatus === "running" ? "running" : video.status;
+  const actions = usePipelineActions();
+  const done = TERMINAL.has(pipelineStatus);
+  const { status, credits } = video;
   const failure = video.error ? (failures.has(video.error.code as never) ? failures(video.error.code as never) : failures("generic")) : null;
+  // Rendu : environ 1,5 fois la durée de la vidéo, au moins 5 min.
+  const minutes = Math.max(5, Math.round(((credits ?? 0) / VIDEO_CREDITS_PER_MINUTE) * 1.5));
+  const launch = (label: string) => credits !== null && done && <GenerateVideoButton credits={credits} label={label} />;
 
   return (
     <section aria-labelledby="video" className="grid gap-3 rounded-xl border p-4">
@@ -32,14 +31,26 @@ export function VideoPanel({
         <AssetStatusIcon status={status} />
         {t("title")}
       </h2>
-      {status === "pending" && <p className="text-sm text-muted-foreground">{t("pending")}</p>}
-      {status === "running" && <p className="text-sm text-muted-foreground">{t("running", { minutes: Math.max(5, Math.round(durationMinutes * 1.5)) })}</p>}
-      {status === "skipped" && <p className="text-sm text-muted-foreground">{t("skipped")}</p>}
-      {status === "failed" && (
+      {status === "pending" && !done && <p className="text-sm text-muted-foreground">{t("afterScript")}</p>}
+      {status === "pending" && done && credits === null && <p className="text-sm text-muted-foreground">{t("noScript")}</p>}
+      {status === "pending" && done && credits !== null && (
+        <>
+          <p className="text-sm text-muted-foreground">{t("review")}</p>
+          <div>{launch(t("generate"))}</div>
+        </>
+      )}
+      {status === "running" && (
+        <p className="text-sm text-muted-foreground">
+          {t("running", { minutes })}
+          <AutoRefresh active={Boolean(actions)} intervalMs={15_000} />
+        </p>
+      )}
+      {failure && status !== "running" && (
         <p role="alert" className="text-sm text-destructive">
           {failure} {t("refunded")}
         </p>
       )}
+      {status === "failed" && <div>{launch(t("retry"))}</div>}
       {status === "ready" && video.content && (
         <>
           <video controls preload="metadata" src={video.content.url} className="aspect-video w-full rounded-lg bg-black">
@@ -57,6 +68,8 @@ export function VideoPanel({
             <span className="text-sm text-muted-foreground">{t("details", { minutes: Math.max(1, Math.round(video.content.durationSeconds / 60)) })}</span>
           </div>
           <p className="text-sm text-muted-foreground">{t("disclosure")}</p>
+          {video.scriptChanged && <p className="text-sm text-muted-foreground">{t("scriptChanged")}</p>}
+          <div>{launch(t("regenerate"))}</div>
         </>
       )}
     </section>

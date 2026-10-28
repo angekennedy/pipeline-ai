@@ -5,7 +5,8 @@ export const SceneSchema = z.object({
   purpose: z.enum(["hook", "context", "development", "twist", "payoff", "cta"]),
   title: z.string().max(80),
   narration: z.string().min(20), // texte lu par la voix off
-  visualDirection: z.string().max(400), // B-roll, stock, motion design
+  // B-roll, stock, motion design. Une ligne par plan voulu dans la vidéo (lib/video/shots).
+  visualDirection: z.string().max(1000),
   bRollKeywords: z.array(z.string().max(40)).max(8),
   onScreenText: z.string().max(60).nullable(),
   estimatedSeconds: z.number().int().positive(), // remplacé par applyTiming() : le modèle ne compte pas

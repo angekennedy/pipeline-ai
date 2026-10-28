@@ -113,59 +113,11 @@ describe("runPipelineSteps", () => {
     ]);
   });
 
-  describe("vidéo", () => {
-    const withVideo = (requested: boolean, failing: AssetType[] = []) => {
-      const ctx = setup(failing);
-      ctx.store.addPipeline({ id: PIPELINE_ID, workspaceId: "ws-1", brief: { ...validBrief, video: requested } as Brief, channel: null, tier: "standard" });
-      return ctx;
-    };
-
-    it("tourne après les miniatures quand le brief la demande, et compte dans le statut", async () => {
-      const { store, step, ids, generated } = withVideo(true);
-      const calls: string[] = [];
-      const outcome = await runPipelineSteps(PIPELINE_ID, { step, store, generate: async (type) => (generated.push(type), `v-${type}`), video: async () => (calls.push("video"), "v-video") });
-      expect(outcome).toMatchObject({ status: "completed", video: { status: "succeeded", versionId: "v-video" } });
-      expect(ids.slice(-3)).toEqual(["thumbnails", "video:requested", "finalize"]);
-      expect(calls).toEqual(["video"]);
-    });
-
-    it("un échec de la vidéo donne partial, les assets texte restent", async () => {
-      const { store, step } = withVideo(true);
-      const outcome = await runPipelineSteps(PIPELINE_ID, {
-        step,
-        store,
-        generate: async (type) => `v-${type}`,
-        video: async () => {
-          throw new Error("rendu en échec");
-        },
-      });
-      expect(outcome).toMatchObject({ status: "partial", video: { status: "failed", error: "rendu en échec" } });
-      expect(outcome.assets.script.status).toBe("succeeded");
-    });
-
-    it("ne la lance pas quand le brief ne la demande pas", async () => {
-      const { store, step } = withVideo(false);
-      let called = false;
-      const outcome = await runPipelineSteps(PIPELINE_ID, { step, store, generate: async (type) => `v-${type}`, video: async () => ((called = true), "v") });
-      expect(called).toBe(false);
-      expect(outcome).toMatchObject({ status: "completed" });
-      expect(outcome).not.toHaveProperty("video");
-    });
-
-    it("ne la lance pas quand le script a échoué", async () => {
-      const { store, step } = withVideo(true);
-      let called = false;
-      const outcome = await runPipelineSteps(PIPELINE_ID, {
-        step,
-        store,
-        generate: async (type) => {
-          if (type === "script") throw new Error("script refusé");
-          return `v-${type}`;
-        },
-        video: async () => ((called = true), "v"),
-      });
-      expect(called).toBe(false);
-      expect(outcome.status).toBe("failed");
-    });
+  it("ne lance pas la vidéo : l'utilisateur la demande après avoir relu le script", async () => {
+    const { store, step, ids } = setup();
+    store.addPipeline({ id: PIPELINE_ID, workspaceId: "ws-1", brief: { ...validBrief, video: true } as Brief, channel: null, tier: "standard" });
+    const outcome = await runPipelineSteps(PIPELINE_ID, { step, store, generate: async (type) => `v-${type}` });
+    expect(outcome.status).toBe("completed");
+    expect(ids.some((id) => id.startsWith("video"))).toBe(false);
   });
 });

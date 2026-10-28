@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth/session";
 import { PlanRestrictionError, type PlanRestriction } from "@/lib/billing/entitlements";
 import { InsufficientCreditsError } from "@/lib/billing/reservation";
 import { PipelineBusyError, requestRegeneration } from "@/lib/jobs/request-regeneration";
+import { requestVideo, VideoBusyError, VideoUnavailableError } from "@/lib/jobs/request-video";
 import { applyScriptForm, scriptFieldErrors, type ScriptErrorField } from "@/lib/pipeline/script-form";
 import { AssetValidationError, editAsset, restoreVersion } from "@/lib/pipeline/versions";
 import { enforceRateLimit, RateLimitedError, retryMinutes } from "@/lib/security/rate-limit";
@@ -16,7 +17,8 @@ import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { createClient } from "@/lib/supabase/server";
 import { findMembership, hasRole } from "@/lib/workspaces/access";
 
-// Écritures sur un pipeline (tâche 4.2) : édition du script, restauration d'une version, régénération.
+// Écritures sur un pipeline (tâche 4.2) : édition du script, restauration d'une version, régénération,
+// lancement de la vidéo.
 // Rôle `editor` et appartenance du pipeline au workspace revérifiés ici (actions appelables
 // directement), puis écriture en service role par les fonctions du domaine.
 
@@ -101,5 +103,31 @@ export async function regenerateAssets(_previous: RegenerateState, formData: For
     throw error;
   }
   refresh(); // solde de l'en-tête et état des assets
+  return { requested: true };
+}
+
+// Refus traduits par le bouton « Générer la vidéo » : ceux d'une régénération, plus une vidéo déjà
+// en cours et une vidéo indisponible (voix ou rendu non configurés).
+export type VideoState = RegenerateState & { videoBusy?: true; unavailable?: true };
+
+// Vidéo MP4 d'après la version courante du script, au coût de sa longueur.
+export async function generateVideo(_previous: VideoState, formData: FormData): Promise<VideoState> {
+  const { user, workspaceId, pipelineId, admin } = await editorOf(formData);
+  const nonce = z.uuid().parse(formData.get("nonce"));
+  try {
+    await enforceRateLimit(admin, [{ rule: "regenerateUser", subject: user.id }]);
+    await enforceSpendGuard(admin, workspaceId);
+    await requestVideo(admin, { workspaceId, userId: user.id, pipelineId, nonce });
+  } catch (error) {
+    if (error instanceof InsufficientCreditsError) return { insufficient: { required: error.required, available: error.available } };
+    if (error instanceof PlanRestrictionError) return { restriction: error.restriction };
+    if (error instanceof PipelineBusyError) return { busy: true };
+    if (error instanceof VideoBusyError) return { videoBusy: true };
+    if (error instanceof VideoUnavailableError) return { unavailable: true };
+    if (error instanceof RateLimitedError) return { rateLimited: { minutes: retryMinutes(error.retryAfterSeconds) } };
+    if (error instanceof SpendPausedError) return { spendPaused: true };
+    throw error;
+  }
+  refresh(); // solde de l'en-tête et état de la vidéo
   return { requested: true };
 }

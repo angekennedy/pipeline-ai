@@ -13,6 +13,7 @@ import { ShotstackClient } from "@/lib/media/shotstack";
 import { supabaseMediaStorage } from "@/lib/media/storage";
 import { createMonitorEconomicsFunction } from "@/lib/jobs/functions/monitor-economics";
 import { createRegenerateAssetFunction } from "@/lib/jobs/functions/regenerate-asset";
+import { createRenderVideoFunction } from "@/lib/jobs/functions/render-video";
 import { createRunPipelineFunction } from "@/lib/jobs/functions/run-pipeline";
 import { createStripeSyncFunction } from "@/lib/jobs/functions/stripe-sync";
 import { createSweepReservationsFunction } from "@/lib/jobs/functions/sweep-reservations";
@@ -57,6 +58,7 @@ export const { GET, POST, PUT } = serve({
   functions: [
     createRunPipelineFunction(deps),
     createRegenerateAssetFunction(deps),
+    createRenderVideoFunction(deps),
     createSweepReservationsFunction({ sweep: () => sweepStaleReservations(db()), purgeRateLimits: () => purgeRateLimits(db()) }),
     createMonitorEconomicsFunction({ check: () => checkAlerts(db()), report: reportAlerts }),
     createStripeSyncFunction({ sync: (eventId) => syncStripeEvent(eventId, { stripe: stripeReader(getStripe()), db: db() }) }),

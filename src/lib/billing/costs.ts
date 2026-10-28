@@ -6,7 +6,7 @@ import { CREDIT_RULES, videoCredits } from "./credit-rules";
 // CREDIT_RULES, que le registre utilise aussi pour les `credits` enregistrés sur chaque génération.
 // Sans dépendance serveur : le formulaire de brief affiche ce coût avant le lancement.
 
-type CostedBrief = Pick<Brief, "durationMinutes" | "video" | "thumbnailImages">;
+type CostedBrief = Pick<Brief, "durationMinutes" | "thumbnailImages">;
 
 export function assetCredits(brief: CostedBrief, tier: ModelTier): Record<AssetType, number> {
   return Object.fromEntries(ASSET_TYPES.map((type) => [type, CREDIT_RULES[type](brief, tier)])) as Record<AssetType, number>;
@@ -14,7 +14,8 @@ export function assetCredits(brief: CostedBrief, tier: ModelTier): Record<AssetT
 
 export { videoCredits };
 
-// Montant réservé à la création du pipeline : les cinq assets texte, plus la vidéo si demandée.
+// Montant réservé à la création du pipeline : les cinq assets texte. La vidéo est réservée à part,
+// quand l'utilisateur la lance après avoir relu le script.
 export function pipelineCredits(brief: CostedBrief, tier: ModelTier): number {
-  return Object.values(assetCredits(brief, tier)).reduce((total, credits) => total + credits, 0) + videoCredits(brief);
+  return Object.values(assetCredits(brief, tier)).reduce((total, credits) => total + credits, 0);
 }

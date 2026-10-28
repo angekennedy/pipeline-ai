@@ -27,6 +27,17 @@ export const assetRegenerateRequested = eventType("asset/regenerate.requested", 
   }),
 });
 
+// Envoyé par la Server Action « Générer la vidéo », après la réservation de son coût sous cette clé.
+// La vidéo suit la version courante du script au moment où elle démarre.
+export const videoRenderRequested = eventType("video/render.requested", {
+  schema: z.object({
+    pipelineId: z.uuid(),
+    workspaceId: z.uuid(),
+    regenerationKey: RegenerationKey,
+    credits: z.number().int().positive(),
+  }),
+});
+
 // Envoyé par le webhook Stripe, une fois l'événement enregistré dans stripe_events. Seul l'id voyage :
 // la fonction stripe-sync relit l'événement chez Stripe.
 export const stripeEventReceived = eventType("stripe/event", {

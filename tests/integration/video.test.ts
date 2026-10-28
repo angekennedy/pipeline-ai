@@ -4,7 +4,7 @@ import type { Brief } from "@/lib/ai/schemas";
 import { pipelineCredits } from "@/lib/billing/costs";
 import { PlanRestrictionError } from "@/lib/billing/entitlements";
 import { PLAN_KEYS, PLANS, type PlanKey } from "@/lib/billing/plans";
-import { createPipelineWithReservation } from "@/lib/billing/reservation";
+import { createPipelineWithReservation, releaseRegeneration, reserveRegeneration } from "@/lib/billing/reservation";
 import { MEDIA_BUCKET, mediaPath, supabaseMediaStorage } from "@/lib/media/storage";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { validBrief } from "../fixtures/assets";
@@ -57,7 +57,7 @@ describe("création d'un pipeline avec vidéo", () => {
     expect(account.reserved).toBe(0);
   });
 
-  it("réserve la vidéo et crée son asset sur un plan payant ; sans option, pas d'asset vidéo", async () => {
+  it("crée l'asset vidéo sur un plan payant, sans réserver la vidéo ; sans option, pas d'asset vidéo", async () => {
     const workspaceId = await workspaceOn("creator");
     const withVideo = await create(workspaceId, true);
     expect(withVideo.credits).toBe(pipelineCredits(brief(true), "standard"));
@@ -65,6 +65,56 @@ describe("création d'un pipeline avec vidéo", () => {
 
     const without = await create(workspaceId, false);
     expect(await assetTypes(without.pipelineId)).toEqual(["script", "seo", "thumbnails", "titles", "voiceover"]);
+  });
+});
+
+describe("vidéo lancée après relecture du script", () => {
+  const ledger = async (key: string) =>
+    unwrap(await admin.from("credit_ledger").select("kind, amount").in("idempotency_key", [`reserve:${key}`, `capture:${key}`, `release:${key}`]).order("created_at"));
+  const telemetry = { model: "gpt-image-2 + eleven + shotstack", promptVersion: "video@1", usage: { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheCreationTokens: 0 }, costUsdMicros: 1, latencyMs: 1, repairs: 0, attempts: 1 };
+
+  async function finishedPipeline() {
+    const workspaceId = await workspaceOn("creator");
+    const { pipelineId } = await create(workspaceId, true);
+    await withPg((pg) => pg.query("select public.finalize_pipeline($1, 'completed')", [pipelineId]));
+    return { workspaceId, pipelineId };
+  }
+
+  it("réserve sous une clé regen:, puis capture le coût au commit de la vidéo", async () => {
+    const { workspaceId, pipelineId } = await finishedPipeline();
+    const key = `regen:${randomUUID()}-video`;
+    expect(await reserveRegeneration(admin, { workspaceId, userId: owner.id, pipelineId, key, credits: 120, tier: "standard" })).toBe(true);
+    const store = new SupabasePipelineStore(admin);
+    const generation = await store.upsertGeneration({ pipelineId, assetType: "video", idempotencyKey: key, credits: 120 });
+    await store.markRunning(generation.id, 1);
+    await store.commitAssetVersion({
+      pipelineId,
+      assetType: "video",
+      content: { url: "https://cdn.shotstack.io/au/v1/x/render.mp4" },
+      schemaVersion: "video@1",
+      source: "ai",
+      sourceVersions: {},
+      restoredFrom: null,
+      createdBy: null,
+      generation: { id: generation.id, telemetry },
+    });
+    expect(await ledger(key)).toEqual([
+      { kind: "reserve", amount: 120 },
+      { kind: "capture", amount: 120 },
+    ]);
+    const account = unwrap(await admin.from("credit_accounts").select("reserved").eq("workspace_id", workspaceId).single());
+    expect(account.reserved).toBe(0);
+  });
+
+  it("rend la réservation quand la vidéo échoue", async () => {
+    const { workspaceId, pipelineId } = await finishedPipeline();
+    const key = `regen:${randomUUID()}-video`;
+    await reserveRegeneration(admin, { workspaceId, userId: owner.id, pipelineId, key, credits: 120, tier: "standard" });
+    expect(await releaseRegeneration(admin, key)).toBe(120);
+    expect(await ledger(key)).toEqual([
+      { kind: "reserve", amount: 120 },
+      { kind: "release", amount: 120 },
+    ]);
   });
 });
 

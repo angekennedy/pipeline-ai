@@ -158,19 +158,29 @@
     "title": "Titre",
     "narration": "Narration",
     "visualDirection": "Direction visuelle",
+    "narrationHint": "Lue mot pour mot par la voix off de la vidéo.",
+    "visualDirectionHint": "Une ligne par image : la vidéo les montre dans cet ordre, réparties sur la narration de la scène. Sur une seule ligne, une image toutes les 15 secondes environ.",
     "onScreenText": "Texte à l'écran (facultatif)",
+    "up": "Monter",
+    "down": "Descendre",
+    "add": "Ajouter une scène après",
+    "remove": "Supprimer",
+    "moveUp": "Monter la scène {index}",
+    "moveDown": "Descendre la scène {index}",
+    "addAfter": "Ajouter une scène après la scène {index}",
+    "removeScene": "Supprimer la scène {index}",
     "callToAction": "Appel à l'action",
     "saving": "Enregistrement…",
     "save": "Enregistrer une nouvelle version",
     "cancel": "Annuler",
-    "note": "Gratuit. Les titres, le SEO, la voix off et les miniatures deviendront obsolètes.",
+    "note": "Gratuit. Les titres, le SEO, la voix off et les miniatures deviendront obsolètes ; la vidéo suivra cette version.",
     "errors": {
       "workingTitle": "Le titre de travail tient en 100 caractères au plus.",
       "hookSummary": "Le résumé de l'accroche tient en 300 caractères au plus.",
       "callToAction": "L'appel à l'action tient en 300 caractères au plus.",
       "title": "Le titre de la scène tient en 80 caractères au plus.",
       "narration": "La narration fait au moins 20 caractères.",
-      "visualDirection": "La direction visuelle tient en 400 caractères au plus.",
+      "visualDirection": "La direction visuelle tient en 1 000 caractères au plus.",
       "onScreenText": "Le texte à l'écran tient en 60 caractères au plus.",
       "fix": "Corrigez les champs signalés.",
       "busy": "Le pipeline est encore en cours : attendez la fin de la génération.",
@@ -321,7 +331,8 @@
     "missing": "Il vous manque {missing} ({available} disponibles).",
     "after": "Solde après le lancement : {remaining}.",
     "note": "Les crédits sont réservés au lancement et seuls les assets réussis sont débités : le reste est rendu.",
-    "unlimited": "Workspace interne : crédits complétés automatiquement."
+    "unlimited": "Workspace interne : crédits complétés automatiquement.",
+    "videoLater": "Vidéo : environ {credits} en plus, réservés seulement quand vous la lancerez, après avoir relu et ajusté le script."
   },
   "InsufficientCredits": {
     "title": "Crédits insuffisants",
@@ -369,10 +380,10 @@
       "video": "La vidéo n'est pas disponible pour le moment. Décochez l'option pour lancer le pipeline."
     },
     "video": "Vidéo",
-    "videoOption": "Créer aussi la vidéo complète (MP4 1080p) : images, voix off, sous-titres et transitions",
+    "videoOption": "Préparer aussi la vidéo complète (MP4 1080p) : images, voix off, sous-titres et transitions",
     "videoPlan": "(plan {plan} ou supérieur)",
     "videoUnavailable": "(indisponible pour le moment)",
-    "videoHint": "{credits} crédits par minute de vidéo, en plus du pipeline. Prête à publier sur YouTube."
+    "videoHint": "Le script est écrit d'abord : vous le relisez et l'ajustez, puis vous lancez la vidéo, qui le suit tel quel. {credits} crédits par minute de vidéo, débités à ce moment-là."
   },
   "ChannelForm": {
     "identity": "Identité de la chaîne",
@@ -692,7 +703,7 @@
       },
       "video": {
         "q": "Pipeline AI fabrique-t-il la vidéo elle-même ?",
-        "a": "Oui, en option sur les plans payants : une vidéo MP4 en 1080p avec les images générées, la voix off ElevenLabs, les sous-titres synchronisés et des transitions simples, prête à publier. Sans l'option, il livre le script, les titres, le SEO, le texte de la voix off et les miniatures."
+        "a": "Oui, en option sur les plans payants : une vidéo MP4 en 1080p avec les images générées, la voix off ElevenLabs, les sous-titres synchronisés et des transitions simples, prête à publier. Le script est écrit d'abord : vous le relisez et l'ajustez à votre manière, puis la vidéo le suit tel quel. Sans l'option, il livre le script, les titres, le SEO, le texte de la voix off et les miniatures."
       },
       "models": {
         "q": "Quels modèles écrivent les contenus ?",
@@ -1057,9 +1068,17 @@
   },
   "Video": {
     "title": "Vidéo MP4",
-    "pending": "La vidéo sera créée après les miniatures.",
+    "afterScript": "Une fois le script prêt, relisez-le et ajustez-le, puis lancez la vidéo : elle suivra votre version.",
+    "review": "Relisez le script et ajustez-le à votre manière (onglet Script, « Modifier ») : la vidéo suivra exactement sa version actuelle. La narration est lue mot pour mot, et chaque ligne de la direction visuelle d'une scène devient une image, dans l'ordre.",
+    "noScript": "Pas de vidéo possible : le script n'a pas abouti.",
+    "generate": "Générer la vidéo",
+    "retry": "Relancer la vidéo",
+    "regenerate": "Générer une nouvelle vidéo",
+    "launched": "Vidéo lancée. La page se met à jour toute seule.",
+    "alreadyRunning": "Une vidéo de ce pipeline est déjà en cours.",
+    "unavailable": "La vidéo n'est pas disponible pour le moment.",
+    "scriptChanged": "Le script a changé depuis cette vidéo : générez-en une nouvelle pour suivre la dernière version.",
     "running": "Création de la vidéo : images, voix off, sous-titres, puis montage. Comptez jusqu'à {minutes} min ; la page se met à jour à la fin.",
-    "skipped": "Vidéo non créée : le script n'a pas abouti. Ses crédits vous ont été rendus.",
     "refunded": "Les crédits de la vidéo vous ont été rendus.",
     "noPlayer": "Votre navigateur ne lit pas cette vidéo : téléchargez-la.",
     "sandbox": "Rendu d'essai (bac à sable Shotstack) : la vidéo porte un filigrane. Ne la publiez pas.",
@@ -1067,4 +1086,5 @@
     "details": "1080p · environ {minutes} min",
     "disclosure": "Avant de publier, cochez « Contenu modifié ou synthétique » dans YouTube Studio : la voix et les images de cette vidéo sont générées par l'IA."
   }
+
 }

@@ -42,7 +42,7 @@ function PipelineBody({ view, scenes }: { view: PipelineView; scenes: Scene[] })
       </div>
       {stale.length > 0 && <StaleBanner types={stale} credits={view.staleCredits} />}
       <AssetTabs view={view} scenes={scenes} />
-      {view.video && <VideoPanel pipelineId={view.id} video={view.video} pipelineStatus={view.status} durationMinutes={view.brief.durationMinutes} />}
+      {view.video && <VideoPanel pipelineId={view.id} video={view.video} pipelineStatus={view.status} />}
     </div>
   );
 }

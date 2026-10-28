@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createContext, useActionState, useContext, useEffect, useState } from "react";
-import { regenerateAssets, restoreAssetVersion, type RegenerateState } from "@/app/(app)/w/[workspaceSlug]/pipelines/[pipelineId]/actions";
+import { generateVideo, regenerateAssets, restoreAssetVersion, type RegenerateState, type VideoState } from "@/app/(app)/w/[workspaceSlug]/pipelines/[pipelineId]/actions";
 import type { AssetType } from "@/lib/ai/schemas";
 import { restrictionMessage } from "@/lib/billing/entitlements";
 import { InsufficientCreditsDialog } from "@/components/billing/insufficient-credits-dialog";
@@ -86,6 +86,68 @@ export function RegenerateButton({
         // La génération démarre dans quelques secondes : la page est relue jusqu'à ce qu'elle apparaisse.
         <p role="status" className="text-sm text-muted-foreground">
           {t("launched")}
+          <AutoRefresh active />
+        </p>
+      )}
+      {refusal && (
+        <p role="alert" className="text-sm text-destructive">
+          {refusal}
+        </p>
+      )}
+      {state.insufficient && <InsufficientCreditsDialog open={dialogOpen} onOpenChange={setDialogOpen} {...state.insufficient} />}
+    </form>
+  );
+}
+
+// Lance la vidéo d'après la version courante du script (VideoPanel).
+export function GenerateVideoButton({ credits, label }: { credits: number; label: string }) {
+  const t = useTranslations("PipelineActions");
+  const video = useTranslations("Video");
+  const common = useTranslations("Common");
+  const restriction = useTranslations("Restriction");
+  const limits = useTranslations("Limits");
+  const actions = usePipelineActions();
+  const [state, action, pending] = useActionState<VideoState, FormData>(generateVideo, {});
+  const [key, setKey] = useState(nonce);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [answered, setAnswered] = useState(state);
+  if (answered !== state) {
+    setAnswered(state);
+    if (state.requested) setKey(nonce());
+    setDialogOpen(Boolean(state.insufficient));
+  }
+
+  const refusal = state.restriction
+    ? restrictionMessage(state.restriction, restriction)
+    : state.busy
+      ? t("busy")
+      : state.videoBusy
+        ? video("alreadyRunning")
+        : state.unavailable
+          ? video("unavailable")
+          : state.rateLimited
+            ? limits("rateLimited", state.rateLimited)
+            : state.spendPaused
+              ? limits("spendPaused")
+              : null;
+  const text = t("withCost", { label: pending ? t("launching") : label, credits: common("credits", { count: credits }) });
+  if (!actions) {
+    return (
+      <Button type="button" size="sm" disabled title={t("unavailable")}>
+        {text}
+      </Button>
+    );
+  }
+  return (
+    <form action={action} className="inline-grid gap-2">
+      <Hidden actions={actions} />
+      <input type="hidden" name="nonce" value={key} />
+      <Button type="submit" size="sm" disabled={pending}>
+        {text}
+      </Button>
+      {state.requested && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {video("launched")}
           <AutoRefresh active />
         </p>
       )}

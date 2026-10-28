@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Brief } from "@/lib/ai/schemas";
 import { assetCredits, pipelineCredits, videoCredits } from "@/lib/billing/costs";
+import { videoCreditsFor } from "@/lib/billing/credit-rules";
 import { validBrief } from "../../fixtures/assets";
 
 const brief = (durationMinutes: number, options: { video?: boolean; thumbnailImages?: boolean } = {}) => ({ ...validBrief, durationMinutes, ...options }) as Brief;
@@ -26,10 +27,11 @@ describe("coût en crédits", () => {
     expect(pipelineCredits(brief(10, { thumbnailImages: true }), "standard")).toBe(35);
   });
 
-  it("ajoute 60 crédits par minute quand le brief demande la vidéo", () => {
+  it("estime la vidéo à 60 crédits par minute, réservés à part quand l'utilisateur la lance", () => {
     expect(videoCredits(brief(10))).toBe(0);
     expect(videoCredits(brief(10, { video: true }))).toBe(600);
-    expect(pipelineCredits(brief(10, { video: true, thumbnailImages: true }), "standard")).toBe(35 + 600);
-    expect(pipelineCredits(brief(60, { video: true }), "premium")).toBe(pipelineCredits(brief(60), "premium") + 3600);
+    expect(videoCreditsFor(0)).toBe(60); // au moins une minute
+    // Hors du montant réservé à la création du pipeline.
+    expect(pipelineCredits(brief(10, { video: true, thumbnailImages: true }), "standard")).toBe(35);
   });
 });
