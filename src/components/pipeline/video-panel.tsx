@@ -8,7 +8,18 @@ import { AssetStatusIcon } from "./asset-tabs";
 
 // Vidéo MP4 du pipeline : lecture, téléchargement et rappel des règles de YouTube sur les contenus
 // générés. Pendant la génération, l'étape la plus longue du pipeline (images, voix, rendu).
-export function VideoPanel({ video, pipelineStatus, durationMinutes }: { video: VideoView; pipelineStatus: PipelineStatus; durationMinutes: number }) {
+// `pipelineId` : le téléchargement passe par /api/pipelines/[id]/video, qui force l'enregistrement du fichier.
+export function VideoPanel({
+  pipelineId,
+  video,
+  pipelineStatus,
+  durationMinutes,
+}: {
+  pipelineId: string;
+  video: VideoView;
+  pipelineStatus: PipelineStatus;
+  durationMinutes: number;
+}) {
   const t = useTranslations("Video");
   const failures = useTranslations("Failures");
   // Le pipeline tourne encore : la vidéo attend ou est en cours, même sans événement en direct.
@@ -40,7 +51,7 @@ export function VideoPanel({ video, pipelineStatus, durationMinutes }: { video: 
             </p>
           )}
           <div className="flex flex-wrap items-center gap-3">
-            <a href={video.content.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ size: "sm" })}>
+            <a href={`/api/pipelines/${pipelineId}/video`} download className={buttonVariants({ size: "sm" })}>
               {t("download")}
             </a>
             <span className="text-sm text-muted-foreground">{t("details", { minutes: Math.max(1, Math.round(video.content.durationSeconds / 60)) })}</span>

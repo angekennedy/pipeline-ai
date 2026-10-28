@@ -33,3 +33,16 @@ export type VideoVoice = z.infer<typeof VideoVoiceSchema>;
 export type VideoManifest = z.infer<typeof VideoManifestSchema>;
 
 export const VIDEO_SCHEMA_VERSION = "video@1";
+
+// Hôtes de Shotstack (CDN et sorties de rendu) : seuls relayés par la route de téléchargement.
+export function isShotstackUrl(raw: string): boolean {
+  try {
+    const url = new URL(raw);
+    return (
+      url.protocol === "https:" &&
+      (url.hostname === "shotstack.io" || url.hostname.endsWith(".shotstack.io") || /^shotstack-[a-z0-9-]+\.s3[a-z0-9.-]*\.amazonaws\.com$/.test(url.hostname))
+    );
+  } catch {
+    return false;
+  }
+}

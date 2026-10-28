@@ -176,3 +176,29 @@ describe("sortie du modèle plus souple que le contrat stocké", () => {
     expect(registry.thumbnails.outputSchema!(context()).safeParse(thumbnails).success).toBe(false);
   });
 });
+
+describe("longueur de la narration d'une vidéo", () => {
+  const words = (n: number) => Array.from({ length: n }, (_, i) => `mot${i}`).join(" ") + ".";
+  const scriptOf = (total: number) => ({
+    ...validScript,
+    scenes: validScript.scenes.map((scene, i) => ({ ...scene, narration: words(i === 0 ? total - 3 * Math.floor(total / 4) : Math.floor(total / 4)) })),
+  });
+  // 1 min en français : 150 mots visés, 128 au moins (tolérance de 15 %).
+  const video = context({ brief: { ...validBrief, durationMinutes: 1, video: true } as Brief });
+
+  it("demande de compléter une narration trop courte, avec les mots manquants", () => {
+    const result = registry.script.outputSchema!(video).safeParse(scriptOf(100));
+    expect(result.success).toBe(false);
+    expect(result.error!.issues[0]).toMatchObject({ path: ["scenes"], message: expect.stringContaining("compte 100 mots : il en faut au moins 128 (cible 150)") });
+  });
+
+  it("accepte une narration dans la tolérance", () => {
+    expect(registry.script.outputSchema!(video).safeParse(scriptOf(130)).success).toBe(true);
+  });
+
+  it("ne contrôle pas la longueur sans vidéo, ni pour les éditions", () => {
+    const text = context({ brief: { ...validBrief, durationMinutes: 1 } as Brief });
+    expect(registry.script.outputSchema!(text).safeParse(scriptOf(100)).success).toBe(true);
+    expect(registry.script.schema(video).safeParse(scriptOf(100)).success).toBe(true);
+  });
+});

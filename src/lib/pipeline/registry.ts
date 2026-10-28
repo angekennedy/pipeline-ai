@@ -22,7 +22,7 @@ import {
   type Voiceover,
   overlayWords,
 } from "@/lib/ai/schemas";
-import { WORDS_PER_MINUTE, applyTiming } from "./postprocess/timing";
+import { DURATION_TOLERANCE, WORDS_PER_MINUTE, applyTiming, countWords } from "./postprocess/timing";
 import { buildChapters } from "./postprocess/chapters";
 import { normalizeTags } from "./postprocess/tags";
 import { recountTitles } from "./postprocess/titles";
@@ -77,6 +77,26 @@ function withChapterRule(schema: z.ZodType<Seo>, ctx: PromptContext) {
   });
 }
 
+// Vidéo : le MP4 dure le temps de la voix, donc de la narration. Une narration plus courte que la
+// cible (au-delà de la tolérance) part en réparation, avec le nombre de mots manquants. Sans vidéo,
+// la durée reste indicative : pas de règle.
+function withLengthRule(schema: z.ZodType<Script>, ctx: PromptContext) {
+  if (!ctx.brief.video) return schema;
+  const target = narrationWords(ctx.brief);
+  const min = Math.round(target * (1 - DURATION_TOLERANCE));
+  return schema.superRefine((script, issues) => {
+    const words = script.scenes.reduce((sum, scene) => sum + countWords(scene.narration), 0);
+    if (words < min) {
+      issues.addIssue({
+        code: "custom",
+        path: ["scenes"],
+        // i18n-ignore : message de réparation adressé au modèle, jamais affiché.
+        message: `La narration compte ${words} mots : il en faut au moins ${min} (cible ${target}) pour ${ctx.brief.durationMinutes} min. Développe les scènes existantes d'environ ${target - words} mots, sans phrases creuses.`,
+      });
+    }
+  });
+}
+
 function withTitleRule(schema: z.ZodType<Thumbnails>, ctx: PromptContext) {
   const titleCount = ctx.titles?.variants.length ?? 0;
   return schema.superRefine((thumbnails, issues) => {
@@ -101,6 +121,7 @@ export const registry: { [K in AssetType]: AssetDefinition<K> } = {
     prompt: prompts.script,
     modelKey: (tier) => (tier === "premium" ? "script.premium" : "script.standard"),
     schema: () => ScriptSchema,
+    outputSchema: (ctx) => withLengthRule(ScriptSchema, ctx),
     // Environ 4 tokens par mot de narration : narration, direction visuelle, JSON et thinking.
     maxTokens: (brief) => capped(8000 + narrationWords(brief) * 4),
     credits: CREDIT_RULES.script,
