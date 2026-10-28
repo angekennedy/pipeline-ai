@@ -21,7 +21,7 @@ export const hasRole = (role: MemberRole, min: MemberRole) => RANK[role] >= RANK
 export async function findMembership(db: SupabaseClient<Database>, userId: string, slug: string): Promise<Membership | null> {
   const { data, error } = await db
     .from("workspaces")
-    .select("id, slug, name, plan_key, workspace_members!inner(role), credit_accounts(balance, reserved)")
+    .select("id, slug, name, plan_key, is_internal, workspace_members!inner(role), credit_accounts(balance, reserved)")
     .eq("slug", slug)
     .eq("workspace_members.user_id", userId)
     .maybeSingle();
@@ -32,7 +32,7 @@ export async function findMembership(db: SupabaseClient<Database>, userId: strin
   return {
     workspace: { id: data.id, slug: data.slug, name: data.name },
     role: member.role,
-    credits: creditSummary(isPlanKey(data.plan_key) ? data.plan_key : "free", account?.balance ?? 0, account?.reserved ?? 0),
+    credits: creditSummary(isPlanKey(data.plan_key) ? data.plan_key : "free", account?.balance ?? 0, account?.reserved ?? 0, data.is_internal),
   };
 }
 

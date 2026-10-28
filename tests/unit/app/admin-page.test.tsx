@@ -12,9 +12,17 @@ const responses: Record<string, unknown> = {};
 const rpc = vi.fn(async (name: string) => ({ data: responses[name], error: null }));
 let comments: { score: number; comment: string; updated_at: string }[] = [];
 let failedGenerations: Record<string, unknown>[] = [];
+let internalWorkspaces: Array<{ id: string; slug: string; name: string }> = [];
 const from = (table: string) => {
   const data = table === "generations" ? failedGenerations : comments;
-  const builder = { select: () => builder, not: () => builder, eq: () => builder, order: () => builder, limit: async () => ({ data, error: null }) };
+  const builder = {
+    select: () => builder,
+    not: () => builder,
+    eq: () => builder,
+    // Workspaces internes : la liste se termine par order().
+    order: () => (table === "workspaces" ? Promise.resolve({ data: internalWorkspaces, error: null }) : builder),
+    limit: async () => ({ data, error: null }),
+  };
   return builder;
 };
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc, from }) }));
@@ -53,6 +61,7 @@ beforeEach(() => {
   });
   comments = [{ score: 9, comment: "Les titres sont excellents", updated_at: "2026-10-26T09:00:00.000Z" }];
   failedGenerations = [];
+  internalWorkspaces = [];
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -129,5 +138,14 @@ describe("page d'administration", () => {
   it("indique qu'aucune génération n'a échoué", async () => {
     render(await page());
     expect(screen.getByRole("region", { name: "Dernières erreurs de génération" })).toHaveTextContent("Aucune génération en échec.");
+  });
+
+  it("liste les workspaces internes et permet d'en retirer un", async () => {
+    internalWorkspaces = [{ id: "ws-9", slug: "mon-labo", name: "Mon labo" }];
+    render(await page());
+    const internal = screen.getByRole("region", { name: "Workspaces internes" });
+    expect(internal).toHaveTextContent("Mon labo");
+    expect(within(internal).getByRole("button", { name: "Retirer le statut interne de mon-labo" })).toBeInTheDocument();
+    expect(within(internal).getByLabelText("Slug du workspace")).toBeInTheDocument();
   });
 });

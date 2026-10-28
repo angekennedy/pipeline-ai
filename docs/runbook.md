@@ -40,6 +40,11 @@ Option du brief, réservée aux plans payants (`PLANS.video`, `private.plan_allo
 - [ ] Stockage Supabase : bucket `pipeline-media` (migration 0017). Le plan Free limite chaque fichier à 50 Mo (le MP4 reste chez Shotstack) et le total à **1 Go** : une vidéo de 60 min y laisse ≈ 150 Mo d'images et de voix. Surveiller l'espace, passer en Pro ou purger les médias anciens avant la limite.
 - [ ] *Vérifier* : une vidéo de 1 min en bac à sable, de bout en bout (lecture, téléchargement, ZIP avec les médias), puis son coût réel dans /admin.
 
+### 1.2 ter Workspace interne (tests de l'exploitant)
+
+- [ ] Dans /admin → **Workspaces internes**, marquer le workspace de test par son slug (migration 0018). Il a alors tous les droits (Premium, 60 min, vidéo, presets) quel que soit son plan, et les crédits qui manquent sont ajoutés à chaque lancement par un `grant` tracé (`grant:internal:…`). Garder son plan sur Free : son chiffre d'affaires estimé reste à 0 dans /admin.
+- [ ] Les coûts réels (OpenAI, ElevenLabs, Shotstack) restent payés et le disjoncteur quotidien (`SPEND_DAILY_WORKSPACE_LIMIT_USD`) s'applique : le relever pendant une campagne de tests, puis le rétablir.
+
 ### 1.3 Stripe en live
 
 - [ ] Compte activé pour les paiements live (identité, IBAN). Question des taxes tranchée (Stripe Tax, ou prix taxes incluses) : TPS et TVQ, et TVA pour les clients de l'UE, avec un comptable.

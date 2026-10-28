@@ -11,4 +11,9 @@ describe("CreditBadge", () => {
     expect(link).toHaveAttribute("href", "/billing");
     expect(link).toHaveAttribute("title", "21 crédits réservés par les pipelines en cours");
   });
+
+  it("affiche « Illimités » pour un workspace interne", () => {
+    render(<CreditBadge credits={creditSummary("free", 0, 0, true)} />);
+    expect(screen.getByRole("link", { name: "Illimités disponibles, plan Free. Facturation et crédits" })).toHaveTextContent("Illimités");
+  });
 });

@@ -12,12 +12,14 @@ export function CostEstimate({
   video = false,
   thumbnailImages = false,
   available,
+  unlimited = false,
 }: {
   durationMinutes: number;
   tier: ModelTier;
   video?: boolean;
   thumbnailImages?: boolean;
   available: number;
+  unlimited?: boolean; // workspace interne : crédits complétés à la demande
 }) {
   const t = useTranslations("CostEstimate");
   const all = useTranslations();
@@ -33,8 +35,10 @@ export function CostEstimate({
         <h2 id="cost-estimate" className="font-medium">
           {t.rich("cost", { total: () => <span className="tabular-nums">{credits(total)}</span> })}
         </h2>
-        <p className={remaining < 0 ? "text-destructive" : "text-muted-foreground"}>
-          {remaining < 0
+        <p className={remaining < 0 && !unlimited ? "text-destructive" : "text-muted-foreground"}>
+          {unlimited
+            ? t("unlimited")
+            : remaining < 0
             ? t("missing", { missing: credits(-remaining), available: credits(available) })
             : t("after", { remaining: credits(remaining) })}
         </p>

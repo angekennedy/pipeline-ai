@@ -320,7 +320,8 @@
     "cost": "Cost: <total></total>",
     "missing": "You are short {missing} ({available} available).",
     "after": "Balance after launch: {remaining}.",
-    "note": "Credits are reserved at launch and only successful assets are charged: the rest is returned."
+    "note": "Credits are reserved at launch and only successful assets are charged: the rest is returned.",
+    "unlimited": "Internal workspace: credits topped up automatically."
   },
   "InsufficientCredits": {
     "title": "Not enough credits",
@@ -555,7 +556,8 @@
     },
     "consent": "By proceeding to payment, you accept the <terms>terms of use and sale</terms> and the <privacy>privacy policy</privacy>.",
     "stripeConsent": "By paying, you accept Pipeline AI's terms: {url}",
-    "taxes": "Prices in euros, taxes included."
+    "taxes": "Prices in euros, taxes included.",
+    "unlimited": "Internal workspace: unlimited credits and every feature, for the operator's tests. Real costs are still tracked in /admin."
   },
   "Plans": {
     "pitch": {
@@ -612,7 +614,8 @@
   },
   "CreditBadge": {
     "label": "{credits} available, {plan} plan. Billing and credits",
-    "reserved": "{credits} reserved by running pipelines"
+    "reserved": "{credits} reserved by running pipelines",
+    "unlimited": "Unlimited"
   },
   "Account": {
     "signIn": "Sign in",
@@ -860,6 +863,17 @@
         "model": "Model",
         "message": "Exact message"
       }
+    },
+    "internal": {
+      "title": "Internal workspaces",
+      "intro": "Credits topped up automatically and every feature (Premium, 60 min, video), for your tests. Real costs are still counted above, and the daily spend breaker still applies.",
+      "slug": "Workspace slug",
+      "add": "Mark as internal",
+      "none": "No internal workspace.",
+      "remove": "Remove",
+      "removeLabel": "Remove internal status from {slug}",
+      "updated": "Internal status updated.",
+      "unknown": "No workspace has this slug."
     }
   },
   "Legal": {

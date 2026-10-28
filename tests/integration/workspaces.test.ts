@@ -53,7 +53,7 @@ describe("appartenance au workspace", () => {
     expect(await findMembership(a.client, a.id, wsA.slug)).toEqual({
       workspace: { id: wsA.id, slug: wsA.slug, name: expect.stringMatching(/^Espace de /) },
       role: "owner",
-      credits: { planKey: "free", balance: 14, reserved: 0, available: 14 }, // 18 réservés, 16 débités : titres et miniatures (1 + 1) rendus
+      credits: { planKey: "free", balance: 14, reserved: 0, available: 14, unlimited: false }, // 18 réservés, 16 débités : titres et miniatures (1 + 1) rendus
     });
   });
 

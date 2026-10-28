@@ -181,7 +181,7 @@ describe("getCreditSummary", () => {
     const workspaceId = await workspaceWith(100);
     await createPipelineWithReservation(admin, { workspaceId, userId: owner.id, brief, tier: "standard", idempotencyKey: randomUUID() });
 
-    expect(await getCreditSummary(owner.client, workspaceId)).toEqual({ planKey: "free", balance: 100, reserved: 21, available: 79 });
+    expect(await getCreditSummary(owner.client, workspaceId)).toEqual({ planKey: "free", balance: 100, reserved: 21, available: 79, unlimited: false });
   });
 
   it("donne un solde nul à un workspace qui n'a encore rien reçu", async () => {

@@ -301,14 +301,14 @@ isOneToOne: false
                   ]
                 },"workspaces": {
                   Row: {
-                    "created_at": string,"id": string,"name": string,"plan_key": string,"slug": string,"stripe_customer_id": string | null
+                    "created_at": string,"id": string,"is_internal": boolean,"name": string,"plan_key": string,"slug": string,"stripe_customer_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"name": string,"plan_key"?: string,"slug": string,"stripe_customer_id"?: string | null
+                    "created_at"?: string,"id"?: string,"is_internal"?: boolean,"name": string,"plan_key"?: string,"slug": string,"stripe_customer_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"name"?: string,"plan_key"?: string,"slug"?: string,"stripe_customer_id"?: string | null
+                    "created_at"?: string,"id"?: string,"is_internal"?: boolean,"name"?: string,"plan_key"?: string,"slug"?: string,"stripe_customer_id"?: string | null
                   }
                   Relationships: [
                     
@@ -387,6 +387,9 @@ isOneToOne: false
                            },
 "set_beta_invite_only":
 { Args: { "p_enabled": boolean }; Returns: undefined
+                           },
+"set_workspace_internal":
+{ Args: { "p_internal": boolean,"p_workspace": string }; Returns: boolean
                            },
 "spend_since":
 { Args: { "p_since": string,"p_workspace"?: string }; Returns: number

@@ -87,7 +87,7 @@ export default async function BillingPage({ params, searchParams }: PageProps<"/
           {t("plan", { plan: plan.name })}
         </h2>
         <p className="text-sm">
-          {t("available", { credits: credit(credits.available) })}
+          {credits.unlimited ? t("unlimited") : t("available", { credits: credit(credits.available) })}
           {credits.reserved > 0 && (
             <span className="text-muted-foreground"> {t("reserved", { credits: credit(credits.reserved) })}</span>
           )}

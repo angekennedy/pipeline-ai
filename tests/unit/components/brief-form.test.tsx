@@ -177,6 +177,15 @@ describe("BriefForm", () => {
     expect(estimate).toHaveTextContent("Vidéo 480");
   });
 
+  it("ouvre toutes les fonctionnalités à un workspace interne, sans compter le solde", () => {
+    render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={creditSummary("free", 0, 0, true)} videoAvailable />);
+    expect(screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ })).toBeEnabled();
+    expect(screen.getByLabelText(/Premium/)).toBeEnabled();
+    const estimate = screen.getByRole("region", { name: /Coût/ });
+    expect(estimate).toHaveTextContent("Workspace interne : crédits complétés automatiquement.");
+    expect(estimate).not.toHaveTextContent("Il vous manque");
+  });
+
   it("grise la vidéo sur Free, avec le plan qui l'inclut, et quand elle n'est pas configurée", () => {
     const { unmount } = render(<BriefForm workspaceSlug="mon-espace" idempotencyKey={KEY} credits={credits} videoAvailable />);
     expect(screen.getByRole("checkbox", { name: /Créer aussi la vidéo complète/ })).toBeDisabled();

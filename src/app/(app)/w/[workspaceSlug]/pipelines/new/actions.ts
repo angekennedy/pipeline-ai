@@ -11,7 +11,7 @@ import { InsufficientCreditsError, createPipelineWithReservation } from "@/lib/b
 import { getChannel } from "@/lib/channels/store";
 import { inngest } from "@/lib/jobs/client";
 import { pipelineRequested } from "@/lib/jobs/events";
-import { PLANS } from "@/lib/billing/plans";
+import { effectivePlan } from "@/lib/billing/balance";
 import { videoAvailable } from "@/lib/media/config";
 import { parseBriefForm, type BriefFieldErrors, type BriefFormValues } from "@/lib/pipeline/brief-form";
 import { moderateBrief, ModerationUnavailableError, type ModerationCategory } from "@/lib/security/moderation";
@@ -53,7 +53,7 @@ export async function createPipeline(_previous: CreatePipelineState, formData: F
   // avant toute réservation. Le plan, lui, est revérifié en base.
   if (result.brief.video && !videoAvailable()) return { fieldErrors: { video: true }, values: result.values };
   // Miniatures en images HD selon le plan, jamais selon le formulaire.
-  if (PLANS[membership.credits.planKey].thumbnailImages) result.brief.thumbnailImages = true;
+  if (effectivePlan(membership.credits).thumbnailImages) result.brief.thumbnailImages = true;
   const key = KeySchema.safeParse(formData.get("idempotencyKey"));
   if (!key.success) throw new Error("Clé de soumission invalide");
 

@@ -6,6 +6,7 @@ import { COST, PERCENT, SHORT_DATE_TIME } from "@/i18n/format";
 import { GenerationErrors } from "@/components/admin/generation-errors";
 import { checkAlerts, loadEconomics, totals, type Alert } from "@/lib/admin/economics";
 import { recentGenerationErrors } from "@/lib/admin/generation-errors";
+import { listInternalWorkspaces } from "@/lib/admin/internal-workspaces";
 import { isPlatformAdmin } from "@/lib/auth/admin";
 import { betaSettings, npsSummary, recentNpsComments } from "@/lib/beta";
 import { requireUser } from "@/lib/auth/session";
@@ -15,7 +16,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addBetaInvite, removeBetaInvite, toggleInviteOnly } from "./actions";
+import { addBetaInvite, markInternalWorkspace, removeBetaInvite, toggleInviteOnly } from "./actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("Meta"))("admin"), robots: { index: false, follow: false } };
@@ -38,10 +39,11 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
 
   const db = createAdminClient();
   const now = new Date();
-  const [rows, alerts, errors, beta, nps, comments, t, labels, format] = await Promise.all([
+  const [rows, alerts, errors, internal, beta, nps, comments, t, labels, format] = await Promise.all([
     loadEconomics(db, new Date(now.getTime() - days * DAY), LIMIT),
     checkAlerts(db, now),
     recentGenerationErrors(db),
+    listInternalWorkspaces(db),
     betaSettings(db),
     npsSummary(db),
     recentNpsComments(db),
@@ -126,6 +128,51 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           {t("errors.title")}
         </h2>
         <GenerationErrors errors={errors} showPipeline />
+      </section>
+
+      <section aria-labelledby="internal" className="grid gap-3">
+        <h2 id="internal" className="text-lg font-semibold">
+          {t("internal.title")}
+        </h2>
+        <p className="text-sm text-muted-foreground">{t("internal.intro")}</p>
+        {query.internal === "updated" && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {t("internal.updated")}
+          </p>
+        )}
+        {query.internal === "unknown" && (
+          <p role="alert" className="text-sm text-destructive">
+            {t("internal.unknown")}
+          </p>
+        )}
+        <form action={markInternalWorkspace} className="flex flex-wrap items-end gap-2">
+          <div className="grid gap-1">
+            <Label htmlFor="internal-slug">{t("internal.slug")}</Label>
+            <Input id="internal-slug" name="slug" required className="w-64" />
+          </div>
+          <Button type="submit" size="sm">
+            {t("internal.add")}
+          </Button>
+        </form>
+        {internal.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("internal.none")}</p>
+        ) : (
+          <ul className="grid gap-1 text-sm">
+            {internal.map((workspace) => (
+              <li key={workspace.id} className="flex flex-wrap items-center gap-3">
+                <span className="font-medium">{workspace.name}</span>
+                <span className="font-mono text-muted-foreground">{workspace.slug}</span>
+                <form action={markInternalWorkspace}>
+                  <input type="hidden" name="slug" value={workspace.slug} />
+                  <input type="hidden" name="enabled" value="false" />
+                  <Button type="submit" variant="ghost" size="sm" aria-label={t("internal.removeLabel", { slug: workspace.slug })}>
+                    {t("internal.remove")}
+                  </Button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section aria-labelledby="beta" className="grid gap-3">

@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { isPlatformAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/session";
+import { setInternalWorkspace } from "@/lib/admin/internal-workspaces";
 import { addInvite, removeInvite, setInviteOnly } from "@/lib/beta";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -36,4 +37,15 @@ export async function removeBetaInvite(formData: FormData) {
   const admin = await requireAdmin();
   await removeInvite(admin, z.email().parse(formData.get("email")));
   refresh();
+}
+
+// Workspace interne (migration 0018) : crédits illimités et toutes les fonctionnalités, pour les tests.
+const Slug = z.string().trim().toLowerCase().regex(/^[a-z0-9-]{1,64}$/);
+
+export async function markInternalWorkspace(formData: FormData) {
+  const admin = await requireAdmin();
+  const slug = Slug.safeParse(formData.get("slug"));
+  if (!slug.success) redirect("/admin?internal=unknown");
+  const done = await setInternalWorkspace(admin, slug.data, formData.get("enabled") !== "false");
+  redirect(`/admin?internal=${done ? "updated" : "unknown"}`);
 }
