@@ -13,6 +13,7 @@ import {
   callStructured,
   coerceEnums,
   jsonSchemaOf,
+  strictSchemaOf,
   unwrapRoot,
 } from "@/lib/ai/structured";
 import { OPENAI_CHAT_URL, openaiSequence, jsonReplyStream, refusalStream } from "../../mocks/openai";
@@ -64,15 +65,17 @@ describe("callStructured", () => {
       stream: boolean;
       stream_options: { include_usage: boolean };
       messages: Array<{ role: string; content: string }>;
-      response_format: { type: string; json_schema: { strict: boolean; schema: { $schema?: string; properties: { title: object } } } };
+      response_format: { type: string; json_schema: { strict: boolean; schema: { $schema?: string; additionalProperties: boolean; required: string[]; properties: { title: object } } } };
     };
     expect(body).toMatchObject({ model: "gpt-4o", max_completion_tokens: 1000, stream: true, stream_options: { include_usage: true } });
     expect(body.messages.map((m) => m.role)).toEqual(["system", "user"]);
     expect(body.messages[0]!.content).toBe("Tu écris des scripts YouTube.");
     expect(body.response_format.type).toBe("json_schema");
-    expect(body.response_format.json_schema.strict).toBe(false);
+    // Mode strict : génération contrainte au schéma, objets fermés, bornes de longueur en description.
+    expect(body.response_format.json_schema.strict).toBe(true);
     expect(body.response_format.json_schema.schema).not.toHaveProperty("$schema");
-    expect(body.response_format.json_schema.schema.properties.title).toMatchObject({ type: "string" });
+    expect(body.response_format.json_schema.schema).toMatchObject({ additionalProperties: false, required: ["title", "tags"] });
+    expect(body.response_format.json_schema.schema.properties.title).toEqual({ type: "string", description: "At least 10 characters." });
     expect(calls[0]!.headers.get("authorization")).toBe("Bearer test-key");
   });
 
@@ -237,6 +240,44 @@ describe("callStructured", () => {
     expect(error).toBeInstanceOf(LlmTruncatedError);
     expect(error).toMatchObject({ code: "MAX_TOKENS", retryable: false });
     expect(calls).toHaveLength(2);
+  });
+
+  it.each(Object.keys(assetSchemas) as Array<keyof typeof assetSchemas>)("adapte le schéma %s au mode strict", (type) => {
+    const ctx = { brief: { ...validBrief, video: true }, channel: null, script: validScript, titles: validTitles } as PromptContext;
+    const strict = JSON.stringify(strictSchemaOf(jsonSchemaOf(registry[type].outputSchema?.(ctx) ?? registry[type].schema(ctx))));
+    expect(strict).not.toMatch(/"(minLength|maxLength|pattern)":/);
+    // Chaque objet est fermé et liste tous ses champs comme requis.
+    const objects: Array<Record<string, unknown>> = [];
+    JSON.parse(strict, (_key, value) => (value && typeof value === "object" && "properties" in value && objects.push(value), value));
+    for (const object of objects) {
+      expect(object.additionalProperties).toBe(false);
+      expect(object.required).toEqual(Object.keys(object.properties as object));
+    }
+  });
+
+  it("retire du schéma strict les champs facultatifs, calculés par le post-traitement", () => {
+    const schema = jsonSchemaOf(z.object({ tags: z.array(z.string().max(30)), chapters: z.array(z.string()).optional() }));
+    expect(strictSchemaOf(schema)).toEqual({
+      type: "object",
+      properties: { tags: { type: "array", items: { type: "string", description: "At most 30 characters." } } },
+      required: ["tags"],
+      additionalProperties: false,
+    });
+  });
+
+  it("repasse en mode non strict quand l'API refuse le schéma strict", async () => {
+    const bodies: Array<{ response_format: { json_schema: { strict: boolean } } }> = [];
+    server.use(
+      http.post(OPENAI_CHAT_URL, async ({ request: req }) => {
+        const body = (await req.json()) as (typeof bodies)[number];
+        bodies.push(body);
+        return body.response_format.json_schema.strict
+          ? HttpResponse.json({ error: { message: "Invalid schema for response_format 'output'", type: "invalid_request_error", code: null } }, { status: 400 })
+          : jsonReplyStream(valid);
+      }),
+    );
+    await expect(callStructured(request(), { client })).resolves.toMatchObject({ data: valid });
+    expect(bodies.map((b) => b.response_format.json_schema.strict)).toEqual([true, false]);
   });
 
   it("laisse remonter les erreurs HTTP de l'API avec leur statut et leur message", async () => {

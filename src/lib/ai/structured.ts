@@ -2,12 +2,14 @@ import "server-only";
 import { z } from "zod";
 import { getOpenAI } from "./client";
 import { modelFor, type ModelKey } from "./models";
-import { MAX_OUTPUT_TOKENS, type ChatMessage, type OpenAIClient } from "./openai";
+import { MAX_OUTPUT_TOKENS, OpenAIError, type ChatMessage, type OpenAIClient } from "./openai";
 import { costUsdMicros as priceOf } from "./pricing";
 
-// Sorties structurées de l'API OpenAI (`response_format: json_schema`), en mode non strict : le mode
-// strict refuse les champs facultatifs et une partie des bornes de Zod. Le schéma guide le modèle,
-// la validation Zod ci-dessous fait foi, avec une réparation en cas d'écart.
+// Sorties structurées de l'API OpenAI (`response_format: json_schema`), en mode strict : la génération
+// est contrainte au schéma, le modèle ne peut ni l'emballer ni le recopier (constaté en mode non
+// strict sur le script). Le mode strict refuse une partie des bornes de Zod : le schéma envoyé en est
+// une version adaptée (strictSchemaOf), et la validation Zod ci-dessous fait foi, avec une réparation
+// en cas d'écart. Un schéma refusé par l'API (400) repasse en mode non strict plutôt que d'échouer.
 const MAX_REPAIRS = 1;
 const MAX_TRUNCATION_RETRIES = 1;
 const TRUNCATION_GROWTH = 1.5;
@@ -198,6 +200,48 @@ function withoutPatterns(node: unknown): unknown {
   );
 }
 
+// Bornes de longueur que le mode strict n'accepte pas : reportées dans la description, que le modèle
+// lit ; Zod les applique ensuite.
+const LENGTH_HINTS: Record<string, (n: number) => string> = {
+  minLength: (n) => `At least ${n} characters.`,
+  maxLength: (n) => `At most ${n} characters.`,
+};
+
+// Schéma pour le mode strict : chaque objet fermé (`additionalProperties: false`) et tous ses champs
+// requis. Un champ facultatif est retiré : c'est un champ que le post-traitement calcule
+// (`seo.chapters`), pas une sortie du modèle.
+export function strictSchemaOf(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(strictSchemaOf);
+  if (node === null || typeof node !== "object") return node;
+  const schema = node as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  const hints: string[] = [];
+  for (const [key, value] of Object.entries(schema)) {
+    if (key in LENGTH_HINTS && typeof value === "number") {
+      hints.push(LENGTH_HINTS[key]!(value));
+    } else if (key === "properties" && value && typeof value === "object") {
+      const required = new Set((schema.required as string[] | undefined) ?? []);
+      out.properties = Object.fromEntries(
+        Object.entries(value)
+          .filter(([name]) => required.has(name))
+          .map(([name, child]) => [name, strictSchemaOf(child)]),
+      );
+    } else if (key !== "required" && key !== "additionalProperties") {
+      out[key] = strictSchemaOf(value);
+    }
+  }
+  if (out.properties) {
+    out.required = Object.keys(out.properties as object);
+    out.additionalProperties = false;
+  }
+  if (hints.length > 0) out.description = [schema.description, ...hints].filter(Boolean).join(" ");
+  return out;
+}
+
+// Refus du schéma strict par l'API : le reste de la requête est valide, le mode non strict prend le relais.
+const strictRejected = (error: unknown) =>
+  error instanceof OpenAIError && error.status === 400 && /schema|response_format|strict/i.test(error.message);
+
 const repairInstruction = (issues: SchemaIssue[]) =>
   "Your previous response did not satisfy the required schema. Fix every issue below, then reply " +
   "with the complete corrected JSON object only.\n" +
@@ -209,6 +253,8 @@ export async function callStructured<T>(
 ): Promise<StructuredResult<T>> {
   const { id: model } = modelFor(request.modelKey);
   const schema = jsonSchemaOf(request.schema);
+  const strictSchema = strictSchemaOf(schema) as Record<string, unknown>;
+  let strict = true;
 
   let messages: ChatMessage[] = [{ role: "system", content: request.system }, ...request.messages];
   let maxTokens = Math.min(request.maxTokens, MAX_OUTPUT_TOKENS);
@@ -220,15 +266,24 @@ export async function callStructured<T>(
 
   for (;;) {
     attempts++;
-    const reply = await client.streamChat(
-      {
-        model,
-        messages,
-        max_completion_tokens: maxTokens,
-        response_format: { type: "json_schema", json_schema: { name: "output", schema, strict: false } },
-      },
-      { signal: request.signal, onText: request.onText },
-    );
+    let reply: Awaited<ReturnType<OpenAIClient["streamChat"]>>;
+    try {
+      reply = await client.streamChat(
+        {
+          model,
+          messages,
+          max_completion_tokens: maxTokens,
+          response_format: { type: "json_schema", json_schema: { name: "output", schema: strict ? strictSchema : schema, strict } },
+        },
+        { signal: request.signal, onText: request.onText },
+      );
+    } catch (error) {
+      if (strict && strictRejected(error)) {
+        strict = false;
+        continue;
+      }
+      throw error;
+    }
 
     const cached = reply.usage.prompt_tokens_details?.cached_tokens ?? 0;
     usage.inputTokens += reply.usage.prompt_tokens - cached;
