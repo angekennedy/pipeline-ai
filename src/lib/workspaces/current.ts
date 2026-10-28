@@ -19,7 +19,7 @@ export const getCurrentWorkspace = cache(async (): Promise<CurrentWorkspace | nu
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("workspace_members")
-    .select("role, workspaces(id, slug, name, plan_key, created_at, credit_accounts(balance, reserved))")
+    .select("role, workspaces(id, slug, name, plan_key, is_internal, created_at, credit_accounts(balance, reserved))")
     .eq("user_id", user.id);
   if (error) throw Object.assign(new Error(`Workspace courant : ${error.message}`), { code: error.code });
 
@@ -35,7 +35,7 @@ export const getCurrentWorkspace = cache(async (): Promise<CurrentWorkspace | nu
     slug: workspace.slug,
     name: workspace.name,
     role,
-    credits: creditSummary(isPlanKey(workspace.plan_key) ? workspace.plan_key : "free", account?.balance ?? 0, account?.reserved ?? 0),
+    credits: creditSummary(isPlanKey(workspace.plan_key) ? workspace.plan_key : "free", account?.balance ?? 0, account?.reserved ?? 0, workspace.is_internal),
   };
 });
 
