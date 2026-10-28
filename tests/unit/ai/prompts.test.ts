@@ -96,15 +96,15 @@ describe("prompt script", () => {
   });
 
   it.each([
-    // durée (min), langue, mots visés, minimum, maximum, scènes, mots par scène
-    [8, "fr", 1200, 1080, 1320, "8 to 12", 120],
-    [1, "de", 135, 122, 149, "3 to 3", 45],
-    [60, "es", 9600, 8640, 10560, "58 to 80", 139],
-  ] as const)("calcule la cible : %i min en %s → %i mots (%i à %i), %s scènes, %i mots par scène", (durationMinutes, language, words, min, max, scenes, perScene) => {
+    // durée (min), langue, mots visés, minimum, maximum, scènes, mots par scène (fourchette, cible)
+    [8, "fr", 1200, 1080, 1320, "16 scenes (at least 13, at most 19)", "70 to 90", 78],
+    [1, "de", 135, 122, 149, "3 scenes (at least 3, at most 3)", "45 to 57", 50],
+    [60, "es", 9600, 8640, 10560, "80 scenes (at least 80, at most 80)", "109 to 139", 121],
+  ] as const)("calcule la cible : %i min en %s → %i mots (%i à %i), %s, %s mots par scène", (durationMinutes, language, words, min, max, scenes, range, perScene) => {
     const task = allText("script", context({ brief: { ...validBrief, durationMinutes, language } as Brief }));
     expect(task).toContain(`${words} words of narration in total: no fewer than ${min} and no more than ${max}`);
-    expect(task).toContain(`Use ${scenes} scenes`);
-    expect(task).toContain(`about ${perScene} words per scene`);
+    expect(task).toContain(`Use ${scenes}.`);
+    expect(task).toContain(`at most 35 words of narration; every other scene has ${range} words of narration, about ${perScene}.`);
   });
 });
 

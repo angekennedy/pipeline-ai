@@ -58,7 +58,7 @@ describe("generateAsset", () => {
     expect(generation).toMatchObject({ status: "succeeded", attempt: 1, versionId, credits: 12 });
     expect(generation.telemetry).toMatchObject({
       model: "gpt-4o-2024-08-06",
-      promptVersion: "script@3",
+      promptVersion: "script@4",
       usage: { inputTokens: 1000, outputTokens: 500 },
       costUsdMicros: 1000 * 2.5 + 500 * 10,
       repairs: 0,

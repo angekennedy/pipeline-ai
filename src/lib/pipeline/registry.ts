@@ -3,6 +3,7 @@ import type { ModelKey } from "@/lib/ai/models";
 import { MAX_OUTPUT_TOKENS } from "@/lib/ai/openai";
 import { CREDIT_RULES } from "@/lib/billing/credit-rules";
 import { prompts, type PromptContext, type PromptTemplate } from "@/lib/ai/prompts";
+import { HOOK_WORDS, scriptTargets } from "@/lib/ai/prompts/script";
 import { requireScript } from "@/lib/ai/prompts/shared";
 import {
   ScriptSchema,
@@ -22,7 +23,7 @@ import {
   type Voiceover,
   overlayWords,
 } from "@/lib/ai/schemas";
-import { DURATION_TOLERANCE, WORDS_PER_MINUTE, applyTiming, countWords } from "./postprocess/timing";
+import { VIDEO_MIN_LENGTH_RATIO, WORDS_PER_MINUTE, applyTiming, countWords } from "./postprocess/timing";
 import { buildChapters } from "./postprocess/chapters";
 import { normalizeTags } from "./postprocess/tags";
 import { recountTitles } from "./postprocess/titles";
@@ -77,23 +78,33 @@ function withChapterRule(schema: z.ZodType<Seo>, ctx: PromptContext) {
   });
 }
 
-// Vidéo : le MP4 dure le temps de la voix, donc de la narration. Une narration plus courte que la
-// cible (au-delà de la tolérance) part en réparation, avec le nombre de mots manquants. Sans vidéo,
-// la durée reste indicative : pas de règle.
+// Vidéo : le MP4 dure le temps de la voix, donc de la narration. Une narration nettement plus courte
+// que la cible (sous VIDEO_MIN_LENGTH_RATIO) part en réparation, avec la longueur à atteindre scène
+// par scène : le modèle corrige mieux une scène nommée qu'un total. Sans vidéo, la durée reste
+// indicative : pas de règle.
 function withLengthRule(schema: z.ZodType<Script>, ctx: PromptContext) {
   if (!ctx.brief.video) return schema;
-  const target = narrationWords(ctx.brief);
-  const min = Math.round(target * (1 - DURATION_TOLERANCE));
+  const { words: target } = scriptTargets(ctx);
+  const min = Math.round(target * VIDEO_MIN_LENGTH_RATIO);
   return schema.superRefine((script, issues) => {
-    const words = script.scenes.reduce((sum, scene) => sum + countWords(scene.narration), 0);
-    if (words < min) {
-      issues.addIssue({
-        code: "custom",
-        path: ["scenes"],
-        // i18n-ignore : message de réparation adressé au modèle, jamais affiché.
-        message: `La narration compte ${words} mots : il en faut au moins ${min} (cible ${target}) pour ${ctx.brief.durationMinutes} min. Développe les scènes existantes d'environ ${target - words} mots, sans phrases creuses.`,
-      });
-    }
+    const counts = script.scenes.map((scene) => countWords(scene.narration));
+    const words = counts.reduce((sum, n) => sum + n, 0);
+    if (words >= min) return;
+    // Mots à atteindre dans chaque scène après l'accroche, pour le nombre de scènes écrites.
+    const perScene = Math.round((target - Math.min(counts[0] ?? 0, HOOK_WORDS)) / Math.max(1, script.scenes.length - 1));
+    const short = script.scenes
+      .slice(1)
+      .filter((_, i) => counts[i + 1]! < perScene * 0.9)
+      .map((scene) => `scène ${scene.index} : ${counts[scene.index - 1]} → ${perScene} mots`);
+    issues.addIssue({
+      code: "custom",
+      path: ["scenes"],
+      // i18n-ignore : message de réparation adressé au modèle, jamais affiché.
+      message:
+        `La narration compte ${words} mots : il en faut ${target} pour ${ctx.brief.durationMinutes} min (au moins ${min}). ` +
+        `Garde les mêmes scènes et développe la narration de chacune jusqu'à environ ${perScene} mots, avec des faits, exemples et transitions concrets, sans phrases creuses. ` +
+        `À allonger : ${short.join(" ; ")}.`,
+    });
   });
 }
 
