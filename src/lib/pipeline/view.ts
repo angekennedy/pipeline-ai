@@ -26,7 +26,9 @@ export type PipelineAssets = { [K in AssetType]: AssetView<K> };
 export type VideoView = {
   status: AssetViewStatus;
   content: VideoManifest | null; // renseigné quand status = ready
-  error: { code: string } | null; // dernier lancement en échec (la vidéo précédente reste affichée)
+  // Dernier lancement en échec (la vidéo précédente reste affichée). `sceneIndex` : scène dont une
+  // image a été refusée par la modération (IMAGE_REFUSED), à modifier avant de relancer.
+  error: { code: string; sceneIndex?: number } | null;
   credits: number | null; // coût d'une vidéo du script courant ; null sans script
   scriptChanged: boolean; // le script a changé depuis cette vidéo
 };

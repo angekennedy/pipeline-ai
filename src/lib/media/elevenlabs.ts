@@ -60,7 +60,9 @@ export class ElevenLabsClient {
       },
       {
         maxRetries: this.maxRetries,
-        timeout: 120_000,
+        // 3 tentatives tiennent dans une invocation Vercel (300 s) : au-delà, l'étape serait coupée
+        // sans erreur exploitable, puis rejouée.
+        timeout: 90_000,
         fetch: this.fetchImpl,
         signal,
         toError: async (res) => new ElevenLabsError(res.status, `${res.status} ${await detailOf(res)}`),

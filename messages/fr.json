@@ -85,6 +85,8 @@
     }
   },
   "Failures": {
+    "IMAGE_REFUSED": "OpenAI a refusé de générer une image de la vidéo : sa modération a jugé une scène trop violente. Modifiez la direction visuelle de la scène en cause, puis relancez.",
+    "STALLED": "La création ne s'est pas terminée (aucune activité depuis 30 minutes). Relancez-la.",
     "CONTENT_REFUSED": "Le modèle a refusé de générer cet asset. Reformulez le brief puis régénérez-le.",
     "SCHEMA_INVALID": "La réponse du modèle était incomplète, même après correction. Régénérez cet asset.",
     "MAX_TOKENS": "La réponse a dépassé la longueur maximale. Réduisez la durée ou régénérez cet asset.",
@@ -1080,6 +1082,7 @@
     "scriptChanged": "Le script a changé depuis cette vidéo : générez-en une nouvelle pour suivre la dernière version.",
     "running": "Création de la vidéo : images, voix off, sous-titres, puis montage. Comptez jusqu'à {minutes} min ; la page se met à jour à la fin.",
     "refunded": "Les crédits de la vidéo vous ont été rendus.",
+    "imageRefused": "OpenAI a refusé de générer une image de la scène {scene} : sa modération l'a jugée trop violente, même après une version adoucie. Ouvrez le script, réécrivez la direction visuelle de cette scène en évoquant plutôt qu'en montrant (lieux, objets, documents d'archives, silhouettes lointaines, sans violence visible), puis relancez la vidéo.",
     "noPlayer": "Votre navigateur ne lit pas cette vidéo : téléchargez-la.",
     "sandbox": "Rendu d'essai (bac à sable Shotstack) : la vidéo porte un filigrane. Ne la publiez pas.",
     "download": "Télécharger la vidéo (MP4)",

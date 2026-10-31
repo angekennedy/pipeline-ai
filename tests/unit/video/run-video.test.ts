@@ -12,6 +12,8 @@ import { MemoryPipelineStore } from "../../mocks/memory-store";
 const PIPELINE_ID = "6f0c2b1e-8d4a-4c3b-9e2f-1a2b3c4d5e6f";
 const WORKSPACE_ID = "0b6c1e2d-3f4a-4b5c-8d9e-0f1a2b3c4d5e";
 const REQUEST = { key: "regen:1a2b3c4d-video", credits: 60 };
+// Images demandées en parallèle par lot (run-video) : toutes refusées, chacune est redemandée une fois.
+const IMAGE_BATCH_PROMPTS = 4;
 
 let store: MemoryPipelineStore;
 let storage: MemoryMediaStorage;
@@ -118,5 +120,26 @@ describe("runVideoSteps", () => {
     const versionId = await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender()));
     expect(voice.requests.map((r) => r.text)).toEqual(edited.scenes.map((scene) => scene.narration));
     expect(store.versions.find((v) => v.id === versionId)!.sourceVersions).toEqual({ script: editedId });
+  });
+
+  it("redemande une image refusée par la modération avec un prompt adouci, sans la narration", async () => {
+    let first = true; // seule la toute première demande (plan 1) est refusée
+    images = new FakeImages(() => (first ? !(first = false) : false));
+    const versionId = await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender()));
+    const softened = images.prompts.find((prompt) => prompt.startsWith("Respectful, non-graphic"))!;
+    expect(softened).toBeDefined();
+    expect(softened).toMatch(/^Respectful, non-graphic documentary image/);
+    expect(softened).not.toContain("It illustrates this narration");
+    // Le prompt réellement utilisé est enregistré dans le manifeste.
+    const manifest = VideoManifestSchema.parse(store.versions.find((v) => v.id === versionId)!.content);
+    expect(manifest.shots[0]!.prompt).toBe(softened);
+  });
+
+  it("s'arrête sur un échec qui nomme la scène quand l'image reste refusée", async () => {
+    images = new FakeImages(() => true);
+    const error = await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender())).catch((e) => e);
+    expect(error).toMatchObject({ name: "ImageRefusedError", code: "IMAGE_REFUSED", sceneIndex: 1, retryable: false });
+    expect(images.prompts).toHaveLength(IMAGE_BATCH_PROMPTS * 2);
+    expect(store.generation(REQUEST.key)).toMatchObject({ status: "failed", failure: { code: "IMAGE_REFUSED", message: expect.stringMatching(/^\[scene:1\] /) } });
   });
 });

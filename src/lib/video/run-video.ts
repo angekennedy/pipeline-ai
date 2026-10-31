@@ -5,6 +5,7 @@ import { cuesToSrt, type Cue } from "@/lib/export/srt";
 import { spokenText } from "@/lib/export/spoken";
 import type { ElevenLabsClient } from "@/lib/media/elevenlabs";
 import type { ShotstackClient } from "@/lib/media/shotstack";
+import { ImageRefusedError, isModerationBlocked } from "@/lib/media/moderation";
 import { mediaPath, type MediaStorage } from "@/lib/media/storage";
 import { IMAGE_SIZE } from "@/lib/media/thumbnail-images";
 import { failureOf, MissingDependencyError } from "@/lib/pipeline/generate-asset";
@@ -12,7 +13,7 @@ import type { StepRunner } from "@/lib/pipeline/run-pipeline";
 import type { PipelineStore, SourceVersions } from "@/lib/pipeline/store";
 import { wordsOf, wordsToCues, type TimedWord } from "./captions";
 import { VIDEO_SCHEMA_VERSION, type VideoManifest } from "./manifest";
-import { planShots, sceneTimings } from "./shots";
+import { planShots, sceneTimings, softenedShotPrompt, type PlannedShot } from "./shots";
 import { buildEdit } from "./timeline";
 
 // Vidéo MP4 complète, en étapes Inngest mémoïsées : chaque étape tient dans une invocation (5 min)
@@ -90,11 +91,11 @@ export async function runVideoSteps(pipelineId: string, request: VideoRequest, s
     // 2. Plans calés sur la durée réelle de chaque voix, puis leurs images, par lots.
     const timings = sceneTimings(voices.map((v) => ({ sceneIndex: v.sceneIndex, duration: v.duration })));
     const shots = planShots(started.brief, scenes, timings);
-    const images: Array<{ path: string; costUsdMicros: number | null }> = [];
+    const images: Array<{ path: string; prompt: string; costUsdMicros: number | null }> = [];
     for (let first = 0; first < shots.length; first += IMAGE_BATCH) {
       const batch = shots.slice(first, first + IMAGE_BATCH);
       images.push(
-        ...(await Promise.all(batch.map((shot, i) => step.run(`video:image:${first + i + 1}`, () => drawShot(shot.prompt, path(`shot-${first + i + 1}.jpg`), { deps, generationId }))))),
+        ...(await Promise.all(batch.map((shot, i) => step.run(`video:image:${first + i + 1}`, () => drawShot(shot, path(`shot-${first + i + 1}.jpg`), { deps, generationId }))))),
       );
     }
 
@@ -139,7 +140,7 @@ export async function runVideoSteps(pipelineId: string, request: VideoRequest, s
         durationSeconds: final.durationSeconds,
         captionsPath,
         voice: voices.map((voice, i) => ({ sceneIndex: voice.sceneIndex, path: voice.path, start: timings[i]!.start, duration: voice.duration })),
-        shots: shots.map((shot, i) => ({ sceneIndex: shot.sceneIndex, start: shot.start, length: shot.length, imagePath: images[i]!.path, prompt: shot.prompt })),
+        shots: shots.map((shot, i) => ({ sceneIndex: shot.sceneIndex, start: shot.start, length: shot.length, imagePath: images[i]!.path, prompt: images[i]!.prompt })),
         sandbox: deps.config.sandbox,
       };
       const imageCosts = images.map((image) => image.costUsdMicros);
@@ -231,11 +232,25 @@ async function synthesize(
   return { sceneIndex: scene.index, path: audioPath, wordsPath, duration, characters: scene.spoken.length };
 }
 
-async function drawShot(prompt: string, imagePath: string, { deps, generationId }: StepContext): Promise<{ path: string; costUsdMicros: number | null }> {
+// Image refusée par la modération : une seconde demande, adoucie ; refusée encore, la vidéo s'arrête
+// sur un échec qui nomme la scène à modifier (ImageRefusedError, non relancé).
+async function drawShot(shot: PlannedShot, imagePath: string, { deps, generationId }: StepContext): Promise<{ path: string; prompt: string; costUsdMicros: number | null }> {
   await deps.store.touchGeneration(generationId);
-  const image = await deps.openai.generateImage({ model: deps.config.imageModel, prompt, size: IMAGE_SIZE, quality: "high", output_format: "jpeg", output_compression: 90 });
+  const draw = (prompt: string) =>
+    deps.openai.generateImage({ model: deps.config.imageModel, prompt, size: IMAGE_SIZE, quality: "high", output_format: "jpeg", output_compression: 90 });
+  let prompt = shot.prompt;
+  let image: Awaited<ReturnType<typeof draw>>;
+  try {
+    image = await draw(prompt);
+  } catch (error) {
+    if (!isModerationBlocked(error)) throw error;
+    prompt = softenedShotPrompt(shot.prompt);
+    image = await draw(prompt).catch((retry: unknown) => {
+      throw isModerationBlocked(retry) ? new ImageRefusedError(shot.sceneIndex, retry) : retry;
+    });
+  }
   await deps.storage.upload(imagePath, image.bytes, "image/jpeg");
-  return { path: imagePath, costUsdMicros: imageCostUsdMicros(deps.config.imageModel, image.usage) };
+  return { path: imagePath, prompt, costUsdMicros: imageCostUsdMicros(deps.config.imageModel, image.usage) };
 }
 
 async function captions(

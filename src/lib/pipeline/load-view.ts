@@ -4,7 +4,9 @@ import { ASSET_TYPES, type AssetType, type Brief } from "@/lib/ai/schemas";
 import type { Database } from "@/lib/supabase/database.types";
 import type { AssetContent, ModelTier } from "./registry";
 import { regenerationCredits, staleAssets, type CurrentVersions } from "./staleness";
+import { isStalled, STALLED } from "./stalled";
 import type { PipelineStatus, SourceVersions, VersionSource } from "./store";
+import { refusedSceneOf } from "@/lib/media/moderation";
 import { MEDIA_BUCKET } from "@/lib/media/storage";
 import { videoCreditsFor } from "@/lib/billing/credit-rules";
 import { videoMinutesOf } from "@/lib/video/length";
@@ -32,14 +34,17 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
       .select("id, version, source, content, source_versions, restored_from, created_at, asset:pipeline_assets!asset_versions_asset_id_fkey!inner(pipeline_id, type)")
       .eq("asset.pipeline_id", pipelineId)
       .order("version", { ascending: false }),
-    db.from("generations").select("asset_type, error_code, created_at, finished_at").eq("pipeline_id", pipelineId).eq("status", "failed").order("created_at", { ascending: false }),
-    // Régénérations demandées et pas encore terminées : l'asset s'affiche en cours.
-    db.from("generations").select("asset_type").eq("pipeline_id", pipelineId).like("idempotency_key", "regen:%").in("status", ["queued", "running"]),
+    db.from("generations").select("asset_type, error_code, error_message, created_at, finished_at").eq("pipeline_id", pipelineId).eq("status", "failed").order("created_at", { ascending: false }),
+    // Régénérations demandées et pas encore terminées : l'asset s'affiche en cours, sauf si elles sont
+    // bloquées (aucune activité depuis 30 min, crédits déjà rendus par le balayage).
+    db.from("generations").select("asset_type, created_at, started_at").eq("pipeline_id", pipelineId).like("idempotency_key", "regen:%").in("status", ["queued", "running"]),
   ]);
   const assetRows = check(assets, "Assets") ?? [];
   const versionRows = check(versions, "Versions") ?? [];
   const failureRows = check(failures, "Générations") ?? [];
-  const regenerating = new Set((check(regenerations, "Régénérations") ?? []).map((g) => g.asset_type));
+  const pending = check(regenerations, "Régénérations") ?? [];
+  const regenerating = new Set(pending.filter((g) => !isStalled(g)).map((g) => g.asset_type));
+  const stalled = new Set(pending.filter((g) => isStalled(g)).map((g) => g.asset_type));
 
   const brief = pipeline.brief as Brief; // validé par BriefSchema à la création
   const tier = pipeline.model_tier as ModelTier; // contrainte CHECK (standard, premium)
@@ -74,14 +79,17 @@ export async function loadPipelineView(db: SupabaseClient<Database>, workspaceId
     const version = versionRows.find((v) => v.id === videoRow?.current_version_id) ?? null;
     const manifest = version ? VideoManifestSchema.safeParse(version.content) : null;
     // Échec du dernier lancement : plus récent que la vidéo affichée, s'il y en a une.
-    const failure = failureRows.find((g) => g.asset_type === "video" && (!version || (g.finished_at ?? g.created_at) > version.created_at));
-    const videoStatus: AssetViewStatus = regenerating.has("video") || videoRow?.status === "running" ? "running" : version ? "ready" : failure ? "failed" : "pending";
+    // Lancement bloqué sans activité : présenté comme un échec, que l'utilisateur peut relancer.
+    const failed = failureRows.find((g) => g.asset_type === "video" && (!version || (g.finished_at ?? g.created_at) > version.created_at));
+    const failure = stalled.has("video") && !regenerating.has("video") ? { error_code: STALLED, error_message: null } : failed;
+    const videoStatus: AssetViewStatus = regenerating.has("video") ? "running" : version ? "ready" : failure ? "failed" : "pending";
     const script = views.script.content as AssetContent["script"] | null;
     const scriptOrigin = current.script ? (current.script.restoredFrom ?? current.script.id) : null;
     video = {
       status: videoStatus,
       content: version && manifest?.success ? manifest.data : null,
-      error: failure ? failureView(failure.error_code) : null,
+      // Seul le numéro de scène est lu dans le message : le détail du fournisseur n'est pas affiché.
+      error: failure ? { ...failureView(failure.error_code), ...(failure.error_code === "IMAGE_REFUSED" && { sceneIndex: refusedSceneOf(failure.error_message) }) } : null,
       credits: script ? videoCreditsFor(videoMinutesOf(script, brief.language)) : null,
       scriptChanged: Boolean(version && scriptOrigin && (version.source_versions as SourceVersions).script !== scriptOrigin),
     };

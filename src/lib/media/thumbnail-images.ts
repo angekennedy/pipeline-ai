@@ -1,6 +1,7 @@
 import type { OpenAIClient } from "@/lib/ai/openai";
 import { imageCostUsdMicros } from "@/lib/ai/pricing";
 import type { ThumbnailConcept, Thumbnails } from "@/lib/ai/schemas";
+import { isModerationBlocked } from "./moderation";
 import { mediaPath, type MediaStorage } from "./storage";
 
 // Miniatures en image : chaque concept (prompt, composition, texte incrusté) devient une image
@@ -39,7 +40,8 @@ export function thumbnailPrompt(concept: ThumbnailConcept): string {
     .join("\n");
 }
 
-// Toutes les images en parallèle : 4 au plus, dans une seule étape du pipeline.
+// Toutes les images en parallèle : 4 au plus, dans une seule étape du pipeline. Une image refusée par
+// la modération d'OpenAI laisse son concept sans image (texte seul), sans faire échouer les autres.
 export async function renderThumbnailImages(
   thumbnails: Thumbnails,
   { workspaceId, pipelineId, generationId }: { workspaceId: string; pipelineId: string; generationId: string },
@@ -47,7 +49,13 @@ export async function renderThumbnailImages(
 ): Promise<{ content: Thumbnails; costUsdMicros: number | null }> {
   const results = await Promise.all(
     thumbnails.concepts.map(async (concept, i) => {
-      const image = await openai.generateImage({ model, prompt: thumbnailPrompt(concept), size: IMAGE_SIZE, quality: "high", output_format: "jpeg", output_compression: 92 });
+      const image = await openai
+        .generateImage({ model, prompt: thumbnailPrompt(concept), size: IMAGE_SIZE, quality: "high", output_format: "jpeg", output_compression: 92 })
+        .catch((error: unknown) => {
+          if (isModerationBlocked(error)) return null;
+          throw error;
+        });
+      if (!image) return { concept, cost: 0 };
       const imagePath = mediaPath(workspaceId, pipelineId, "thumbnails", `${generationId}-${i + 1}.jpg`);
       await storage.upload(imagePath, image.bytes, "image/jpeg");
       return { concept: { ...concept, imagePath }, cost: imageCostUsdMicros(model, image.usage) };

@@ -20,7 +20,13 @@ export function VideoPanel({ pipelineId, video, pipelineStatus }: { pipelineId: 
   const actions = usePipelineActions();
   const done = TERMINAL.has(pipelineStatus);
   const { status, credits } = video;
-  const failure = video.error ? (failures.has(video.error.code as never) ? failures(video.error.code as never) : failures("generic")) : null;
+  const failure = !video.error
+    ? null
+    : video.error.code === "IMAGE_REFUSED" && video.error.sceneIndex
+      ? t("imageRefused", { scene: video.error.sceneIndex })
+      : failures.has(video.error.code as never)
+        ? failures(video.error.code as never)
+        : failures("generic");
   // Rendu : environ 1,5 fois la durée de la vidéo, au moins 5 min.
   const minutes = Math.max(5, Math.round(((credits ?? 0) / VIDEO_CREDITS_PER_MINUTE) * 1.5));
   const launch = (label: string) => credits !== null && done && <GenerateVideoButton credits={credits} label={label} />;

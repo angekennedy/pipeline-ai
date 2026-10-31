@@ -7,6 +7,7 @@ import { PlanRestrictionError } from "@/lib/billing/entitlements";
 import { InsufficientCreditsError, releaseRegeneration, reserveRegeneration } from "@/lib/billing/reservation";
 import { videoAvailable } from "@/lib/media/config";
 import type { ModelTier } from "@/lib/pipeline/registry";
+import { isStalled, STALLED } from "@/lib/pipeline/stalled";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import type { Database } from "@/lib/supabase/database.types";
 import { videoMinutesOf } from "@/lib/video/length";
@@ -55,17 +56,24 @@ export async function requestVideo(admin: SupabaseClient<Database>, request: Vid
   const summary = await getCreditSummary(admin, request.workspaceId);
   if (!effectivePlan(summary).video) throw new PlanRestrictionError({ reason: "video", plan: summary.planKey });
 
-  const { data: running, error: runningError } = await admin
+  const { data: pending, error: pendingError } = await admin
     .from("generations")
-    .select("id")
+    .select("id, idempotency_key, created_at, started_at")
     .eq("pipeline_id", request.pipelineId)
     .eq("asset_type", "video")
-    .in("status", ["queued", "running"])
-    .limit(1);
-  if (runningError) throw new Error(`Générations vidéo : ${runningError.message}`);
-  if (running.length > 0) throw new VideoBusyError();
+    .in("status", ["queued", "running"]);
+  if (pendingError) throw new Error(`Générations vidéo : ${pendingError.message}`);
+  if (pending.some((generation) => !isStalled(generation))) throw new VideoBusyError();
 
+  // Lancements bloqués (exécution perdue) : clos en échec, réservation rendue si le balayage ne l'a
+  // pas encore fait, pour que le nouveau lancement parte.
   const store = new SupabasePipelineStore(admin);
+  for (const generation of pending) {
+    // i18n-ignore : message de diagnostic (/admin), jamais affiché.
+    await store.markFailed(generation.id, { code: STALLED, message: "Aucune activité depuis 30 min : exécution perdue", costUsdMicros: null });
+    if (generation.idempotency_key.startsWith("regen:")) await releaseRegeneration(admin, generation.idempotency_key);
+  }
+
   const script = await store.getCurrentVersion(request.pipelineId, "script");
   if (!script) throw new Error("Ce pipeline n'a pas de script");
   const brief = pipeline.brief as Brief;

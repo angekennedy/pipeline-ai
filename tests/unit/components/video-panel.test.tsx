@@ -98,6 +98,13 @@ describe("VideoPanel", () => {
     expect(screen.getByRole("button", { name: /Relancer la vidéo/ })).toBeInTheDocument();
   });
 
+  it("nomme la scène dont l'image a été refusée et dit comment la modifier", () => {
+    panel({ status: "failed", error: { code: "IMAGE_REFUSED", sceneIndex: 4 } });
+    expect(screen.getByRole("alert")).toHaveTextContent("OpenAI a refusé de générer une image de la scène 4");
+    expect(screen.getByRole("alert")).toHaveTextContent("réécrivez la direction visuelle de cette scène");
+    expect(screen.getByRole("button", { name: /Relancer la vidéo/ })).toBeInTheDocument();
+  });
+
   it("dit pourquoi la vidéo n'est pas possible sans script", () => {
     panel({ credits: null }, "failed" as never);
     expect(screen.getByText(/le script n'a pas abouti/)).toBeInTheDocument();

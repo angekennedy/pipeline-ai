@@ -6,6 +6,7 @@ import { PlanRestrictionError } from "@/lib/billing/entitlements";
 import { PLAN_KEYS, PLANS, type PlanKey } from "@/lib/billing/plans";
 import { createPipelineWithReservation, releaseRegeneration, reserveRegeneration } from "@/lib/billing/reservation";
 import { MEDIA_BUCKET, mediaPath, supabaseMediaStorage } from "@/lib/media/storage";
+import { loadPipelineView } from "@/lib/pipeline/load-view";
 import { SupabasePipelineStore } from "@/lib/supabase/pipeline-store";
 import { validBrief } from "../fixtures/assets";
 import { admin, cleanup, createUser, createWorkspace, unwrap, withPg, type TestUser } from "./helpers";
@@ -104,6 +105,16 @@ describe("vidéo lancée après relecture du script", () => {
     ]);
     const account = unwrap(await admin.from("credit_accounts").select("reserved").eq("workspace_id", workspaceId).single());
     expect(account.reserved).toBe(0);
+  });
+
+  it("affiche la vidéo en cours, puis en échec relançable quand son exécution est perdue (30 min sans activité)", async () => {
+    const { workspaceId, pipelineId } = await finishedPipeline();
+    const store = new SupabasePipelineStore(admin);
+    const generation = await store.upsertGeneration({ pipelineId, assetType: "video", idempotencyKey: `regen:${randomUUID()}-video`, credits: 120 });
+    expect((await loadPipelineView(owner.client, workspaceId, pipelineId))!.video).toMatchObject({ status: "running", error: null });
+
+    await withPg((pg) => pg.query("update public.generations set created_at = now() - interval '40 minutes' where id = $1", [generation.id]));
+    expect((await loadPipelineView(owner.client, workspaceId, pipelineId))!.video).toMatchObject({ status: "failed", error: { code: "STALLED" } });
   });
 
   it("rend la réservation quand la vidéo échoue", async () => {
