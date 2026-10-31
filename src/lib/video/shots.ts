@@ -76,6 +76,17 @@ export function shotPrompt(
     .join("\n");
 }
 
+// Repli quand la modération d'OpenAI refuse l'image d'un plan : même sujet, évoqué sans violence,
+// sans l'extrait de narration (souvent la cause du refus sur un sujet historique difficile).
+const SOFTENED = [
+  "Respectful, non-graphic documentary image. Evoke the subject indirectly: places, landscapes, buildings, objects, maps, archival documents, or distant silhouettes.",
+  "No violence, no injuries, no blood, no weapons in use, no suffering faces, no one restrained.",
+].join("\n");
+
+export function softenedShotPrompt(prompt: string): string {
+  return [SOFTENED, ...prompt.split("\n").filter((line) => !line.startsWith("It illustrates this narration:"))].join("\n");
+}
+
 export function planShots(
   brief: Pick<Brief, "style" | "tone">,
   scenes: Array<Pick<Scene, "index" | "narration" | "visualDirection" | "bRollKeywords">>,

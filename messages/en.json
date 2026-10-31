@@ -85,6 +85,8 @@
     }
   },
   "Failures": {
+    "IMAGE_REFUSED": "OpenAI refused to generate one of the video's images: its moderation judged a scene too violent. Edit the visual direction of that scene, then launch again.",
+    "STALLED": "Creation didn't finish (no activity for 30 minutes). Launch it again.",
     "CONTENT_REFUSED": "The model refused to generate this asset. Rephrase the brief, then regenerate it.",
     "SCHEMA_INVALID": "The model's answer was incomplete, even after repair. Regenerate this asset.",
     "MAX_TOKENS": "The answer exceeded the maximum length. Shorten the duration or regenerate this asset.",
@@ -1080,6 +1082,7 @@
     "scriptChanged": "The script changed since this video: generate a new one to follow the latest version.",
     "running": "Creating the video: images, voice-over, captions, then editing. Allow up to {minutes} min; the page updates when it's done.",
     "refunded": "The video's credits were returned to you.",
+    "imageRefused": "OpenAI refused to generate an image for scene {scene}: its moderation judged it too violent, even in a softened version. Open the script, rewrite that scene's visual direction to suggest rather than show (places, objects, archival documents, distant silhouettes, no visible violence), then launch the video again.",
     "noPlayer": "Your browser can't play this video: download it instead.",
     "sandbox": "Test render (Shotstack sandbox): the video has a watermark. Don't publish it.",
     "download": "Download the video (MP4)",

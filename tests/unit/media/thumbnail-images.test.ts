@@ -40,6 +40,18 @@ describe("miniatures en image", () => {
     expect(costUsdMicros).toBe(validThumbnails.concepts.length * (100 * 5 + 6000 * 30));
   });
 
+  it("garde sans image un concept refusé par la modération, sans faire échouer les autres", async () => {
+    const refused = (validThumbnails as Thumbnails).concepts[1]!.imagePrompt;
+    const images = new FakeImages((prompt) => prompt.includes(refused));
+    const { content } = await renderThumbnailImages(
+      validThumbnails as Thumbnails,
+      { workspaceId: WORKSPACE_ID, pipelineId: PIPELINE_ID, generationId: "gen-1" },
+      { openai: images as unknown as OpenAIClient, storage: new MemoryMediaStorage(), model: "gpt-image-2" },
+    );
+    expect(content.concepts[1]!.imagePath).toBeUndefined();
+    expect(content.concepts.filter((c) => c.imagePath)).toHaveLength(validThumbnails.concepts.length - 1);
+  });
+
   it("refuse un segment de chemin qui sortirait du dossier du pipeline", () => {
     expect(() => mediaPath(WORKSPACE_ID, PIPELINE_ID, "..", "x.jpg")).toThrow(/invalide/);
     expect(() => mediaPath(WORKSPACE_ID, PIPELINE_ID, "a/b.jpg")).toThrow(/invalide/);

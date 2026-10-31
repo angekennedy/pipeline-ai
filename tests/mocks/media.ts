@@ -1,3 +1,4 @@
+import { OpenAIError } from "@/lib/ai/openai";
 import type { Alignment, Speech, SpeechRequest } from "@/lib/media/elevenlabs";
 import type { Edit, RenderState } from "@/lib/media/shotstack";
 import type { MediaStorage } from "@/lib/media/storage";
@@ -71,8 +72,13 @@ export class FakeRender {
 // Client d'images minimal : renvoie des octets et un usage fixe, enregistre les prompts.
 export class FakeImages {
   readonly prompts: string[] = [];
+  // Prompt refusé par la modération d'OpenAI (400 moderation_blocked) quand il passe ce filtre.
+  constructor(private readonly refuse: (prompt: string) => boolean = () => false) {}
   async generateImage({ prompt }: { prompt: string }) {
     this.prompts.push(prompt);
+    if (this.refuse(prompt)) {
+      throw new OpenAIError(400, "400 Your request was rejected by the safety system. safety_violations=[violence].", "image_generation_user_error", "moderation_blocked");
+    }
     return { bytes: new TextEncoder().encode(`jpeg:${this.prompts.length}`), usage: { input_tokens: 100, output_tokens: 6000 } };
   }
 }

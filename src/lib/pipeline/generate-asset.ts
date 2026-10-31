@@ -4,6 +4,7 @@ import type { PromptContext } from "@/lib/ai/prompts";
 import { assetSchemas, type AssetType, type Script, type Thumbnails, type Titles } from "@/lib/ai/schemas";
 import { LlmError, callStructured } from "@/lib/ai/structured";
 import { ElevenLabsError } from "@/lib/media/elevenlabs";
+import { ImageRefusedError } from "@/lib/media/moderation";
 import { ShotstackError } from "@/lib/media/shotstack";
 import { renderThumbnailImages, type ImageDeps } from "@/lib/media/thumbnail-images";
 import { createSceneThrottle, safePublish } from "@/lib/realtime/broadcast";
@@ -63,7 +64,7 @@ export async function loadContext(store: PipelineStore, pipeline: PipelineRecord
 // Échec enregistré sur la génération : code stable pour l'interface, message exact pour le diagnostic.
 export function failureOf(error: unknown): GenerationFailure {
   if (error instanceof LlmError) return { code: error.code, message: error.message, costUsdMicros: error.costUsdMicros };
-  if (error instanceof MissingDependencyError) return { code: error.code, message: error.message, costUsdMicros: null };
+  if (error instanceof MissingDependencyError || error instanceof ImageRefusedError) return { code: error.code, message: error.message, costUsdMicros: null };
   if (error instanceof OpenAIError || error instanceof ElevenLabsError || error instanceof ShotstackError) {
     return { code: "PROVIDER_ERROR", message: error.message, costUsdMicros: null };
   }
