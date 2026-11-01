@@ -33,15 +33,20 @@ export type VideoDeps = {
   config: { voiceId: string; voiceModel: string; imageModel: string; sandbox: boolean };
 };
 
-// Images par lot : la limite de débit des images reste basse sur un compte récent.
+// Images par lot : la limite de débit des images reste basse sur un compte récent. Les étapes d'un lot
+// s'exécutent en même temps (concurrence de render-video : 4 par pipeline).
 const IMAGE_BATCH = 4;
+// Voix par lot : ElevenLabs limite les requêtes simultanées selon l'abonnement (2 en Free, 3 en
+// Starter) ; un dépassement (429) est relancé par requestWithRetry.
+const VOICE_BATCH = 3;
 // Validité des liens signés lus par Shotstack : le rendu peut attendre son tour.
 const SOURCE_URL_SECONDS = 48 * 3600;
-// Suivi du rendu : toutes les 30 s pendant 10 min, puis toutes les 2 min, au plus 6 h. Chaque pause et
-// chaque interrogation sont des étapes : une exécution Inngest en compte au plus 1 000, et une vidéo de
-// 60 min en demande déjà ≈ 330 (voix et images).
-const pollDelayMs = (poll: number) => (poll <= 20 ? 30_000 : 120_000);
-const MAX_POLLS = 200;
+// Suivi du rendu : toutes les 30 s pendant 30 min (un rendu de 10 min de vidéo s'y termine), puis
+// toutes les 2 min, au plus 6 h. Chaque pause et chaque interrogation sont des étapes : une exécution
+// Inngest en compte au plus 1 000, et une vidéo de 60 min en demande déjà ≈ 330 (voix et images),
+// plus 2 × 225 pour le suivi.
+const pollDelayMs = (poll: number) => (poll <= 60 ? 30_000 : 120_000);
+const MAX_POLLS = 225;
 
 export class VideoRenderError extends Error {
   readonly retryable = false;
@@ -78,13 +83,19 @@ export async function runVideoSteps(pipelineId: string, request: VideoRequest, s
   const path = (...segments: string[]) => mediaPath(workspaceId, pipelineId, "video", generationId, ...segments);
 
   try {
-    // 1. Voix off, scène par scène (avec le texte voisin pour une intonation continue).
+    // 1. Voix off, une par scène, par lots en parallèle. Chaque voix reçoit le texte des scènes voisines
+    // (pas leur audio) : l'intonation reste continue sans attendre la scène précédente.
     const voices: VoiceResult[] = [];
-    for (const [i, scene] of scenes.entries()) {
+    for (let first = 0; first < scenes.length; first += VOICE_BATCH) {
+      const batch = scenes.slice(first, first + VOICE_BATCH);
       voices.push(
-        await step.run(`video:voice:${scene.index}`, () =>
-          synthesize(scene, { previousText: scenes[i - 1]?.spoken, nextText: scenes[i + 1]?.spoken }, { deps, generationId, path }),
-        ),
+        ...(await Promise.all(
+          batch.map((scene, j) =>
+            step.run(`video:voice:${scene.index}`, () =>
+              synthesize(scene, { previousText: scenes[first + j - 1]?.spoken, nextText: scenes[first + j + 1]?.spoken }, { deps, generationId, path }),
+            ),
+          ),
+        )),
       );
     }
 
