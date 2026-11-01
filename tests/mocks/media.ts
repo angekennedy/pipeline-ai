@@ -39,8 +39,13 @@ export function regularAlignment(text: string, secondsPerChar = 0.05): Alignment
 
 export class FakeVoice {
   readonly requests: SpeechRequest[] = [];
+  inFlight = 0;
+  maxInFlight = 0; // requêtes simultanées au plus fort
   async speech(request: SpeechRequest): Promise<Speech> {
     this.requests.push(request);
+    this.maxInFlight = Math.max(this.maxInFlight, ++this.inFlight);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    this.inFlight--;
     return { audio: new TextEncoder().encode(`mp3:${request.text}`), alignment: regularAlignment(request.text) };
   }
 }

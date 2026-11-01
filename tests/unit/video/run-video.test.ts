@@ -142,4 +142,12 @@ describe("runVideoSteps", () => {
     expect(images.prompts).toHaveLength(IMAGE_BATCH_PROMPTS * 2);
     expect(store.generation(REQUEST.key)).toMatchObject({ status: "failed", failure: { code: "IMAGE_REFUSED", message: expect.stringMatching(/^\[scene:1\] /) } });
   });
+
+  it("synthétise les voix par lots de 3 en parallèle, chacune avec le texte de ses voisines", async () => {
+    await runVideoSteps(PIPELINE_ID, REQUEST, runner(), deps(new FakeRender()));
+    expect(voice.maxInFlight).toBe(3); // 4 scènes : un lot de 3, puis 1
+    const byScene = new Map(voice.requests.map((r) => [r.text, r]));
+    expect(byScene.get("Scène 4… du récit.")).toMatchObject({ previousText: "Scène 3… du récit.", nextText: undefined });
+    expect(byScene.get("Scène 1… du récit.")).toMatchObject({ previousText: undefined, nextText: "Scène 2… du récit." });
+  });
 });

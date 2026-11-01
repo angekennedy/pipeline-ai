@@ -16,7 +16,10 @@ export function createRenderVideoFunction({ video, releaseRegeneration }: JobDep
       id: "render-video",
       triggers: [videoRenderRequested],
       idempotency: "event.data.regenerationKey", // un double envoi ne paie qu'une vidéo
-      concurrency: [{ key: "event.data.pipelineId", limit: 1 }], // une vidéo à la fois par pipeline
+      // Inngest limite les étapes en cours, pas les exécutions : à 1, les images et les voix d'un lot
+      // passaient l'une après l'autre. Une seule vidéo par pipeline est garantie au lancement
+      // (request-video) ; 4 : un lot d'images entier, sous la limite du plan Inngest (5).
+      concurrency: [{ key: "event.data.pipelineId", limit: 4 }],
       retries: 3,
       onFailure: releaseFailedRegeneration(releaseRegeneration),
     },
